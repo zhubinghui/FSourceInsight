@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if config else 'New' }} LLM Config{% endblock %}
+{% block content %}
+<h2>{{ 'Edit' if config else 'New' }} LLM Configuration</h2>
+
+<form method="post" class="mt-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Provider *</label>
+                <select name="provider" class="form-select" required>
+                    <option value="">Select...</option>
+                    {% for p in ['openai', 'anthropic', 'azure', 'ollama', 'deepseek', 'mistral', 'google'] %}
+                    <option value="{{ p }}" {{ 'selected' if config and config.provider == p }}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">LiteLLM provider identifier</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Model *</label>
+                <input type="text" class="form-control" name="model" required
+                       value="{{ config.model if config else '' }}"
+                       placeholder="e.g. gpt-4o, claude-sonnet-4-20250514, deepseek-chat">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">API Key Environment Variable</label>
+                <input type="text" class="form-control" name="api_key_env_var"
+                       value="{{ config.api_key_env_var if config else '' }}"
+                       placeholder="e.g. OPENAI_API_KEY">
+                <div class="form-text">Name of the env var holding the API key (never store raw keys)</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">API Base URL (optional)</label>
+                <input type="url" class="form-control" name="api_base_url"
+                       value="{{ config.api_base_url if config else '' }}"
+                       placeholder="e.g. http://localhost:11434 for Ollama">
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label class="form-label">Max Tokens</label>
+                <input type="number" class="form-control" name="max_tokens"
+                       value="{{ config.max_tokens if config else 4096 }}">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Temperature</label>
+                <input type="number" class="form-control" name="temperature" step="0.1" min="0" max="2"
+                       value="{{ config.temperature if config else 0.3 }}">
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label class="form-label">Cost / 1K input tokens ($)</label>
+                    <input type="number" class="form-control" name="cost_per_1k_input" step="0.000001"
+                           value="{{ config.cost_per_1k_input if config and config.cost_per_1k_input else '' }}">
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label">Cost / 1K output tokens ($)</label>
+                    <input type="number" class="form-control" name="cost_per_1k_output" step="0.000001"
+                           value="{{ config.cost_per_1k_output if config and config.cost_per_1k_output else '' }}">
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" name="is_default" id="is_default"
+                       {{ 'checked' if config and config.is_default }}>
+                <label class="form-check-label" for="is_default">Default config (fallback for unassigned tasks)</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Assigned Tasks</label>
+        <div class="d-flex flex-wrap gap-3">
+            {% for task in task_types %}
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="tasks" value="{{ task }}" id="task_{{ task }}"
+                       {{ 'checked' if config and config.tasks and task in config.tasks }}>
+                <label class="form-check-label" for="task_{{ task }}">{{ task }}</label>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="form-text">Select which tasks this model should handle. Different tasks can use different models.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        {{ 'Update' if config else 'Create' }}
+    </button>
+    <a href="{{ url_for('admin.llm_config') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

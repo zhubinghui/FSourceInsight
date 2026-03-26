@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Subscribe{% endblock %}
+{% block content %}
+<h2><i class="bi bi-bell"></i> News Subscription</h2>
+<p>Subscribe to keywords or companies. Get email alerts when matching news articles are found.</p>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">Add Subscriptions</div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keywords (comma-separated)</label>
+                        <input type="text" class="form-control" name="keywords"
+                               placeholder="e.g. semiconductor, AI, STMicroelectronics">
+                        <div class="form-text">You can add multiple keywords at once, separated by commas.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Or subscribe to a company</label>
+                        <select name="company_id" class="form-select">
+                            <option value="">-- Select a company --</option>
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">{{ c.name }}{% if c.is_grenoble %} (Grenoble){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-bell-fill"></i> Subscribe
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">Manage Subscriptions</div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('subscription.manage') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Enter your email to view/manage</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary w-100">Lookup</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">User Settings</div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('subscription.settings') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Enter your email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-secondary w-100">Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

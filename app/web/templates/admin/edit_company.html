@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ company.name }}{% endblock %}
+{% block content %}
+<h2>Edit Company: {{ company.name }}</h2>
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" name="name" value="{{ company.name }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Aliases (comma-separated)</label>
+        <input type="text" class="form-control" name="aliases" value="{{ company.aliases | join(', ') if company.aliases else '' }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="3">{{ company.description or '' }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Website</label>
+        <input type="url" class="form-control" name="website" value="{{ company.website or '' }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Headquarters</label>
+        <input type="text" class="form-control" name="headquarters" value="{{ company.headquarters or '' }}">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Sector</label>
+        <input type="text" class="form-control" name="sector" value="{{ company.sector or '' }}">
+    </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" name="is_grenoble" id="is_grenoble" {{ 'checked' if company.is_grenoble }}>
+        <label class="form-check-label" for="is_grenoble">Grenoble Area</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{{ url_for('admin.companies') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}LLM Configuration{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-robot"></i> LLM Configuration</h2>
+    <a href="{{ url_for('admin.llm_config_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Config
+    </a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Provider</th>
+            <th>Model</th>
+            <th>Tasks</th>
+            <th>Default</th>
+            <th>Active</th>
+            <th>Temp</th>
+            <th>Circuit</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for config in configs %}
+        <tr class="{{ 'table-secondary' if not config.is_active }}">
+            <td>{{ config.provider }}</td>
+            <td><code>{{ config.model }}</code></td>
+            <td>
+                {% for task in (config.tasks or []) %}
+                <span class="badge bg-info">{{ task }}</span>
+                {% endfor %}
+            </td>
+            <td>{% if config.is_default %}<i class="bi bi-star-fill text-warning"></i>{% endif %}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin.llm_config_toggle', config_id=config.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {{ 'btn-success' if config.is_active else 'btn-outline-secondary' }}">
+                        {{ 'On' if config.is_active else 'Off' }}
+                    </button>
+                </form>
+            </td>
+            <td>{{ config.temperature }}</td>
+            <td>
+                {% set status = cb_status.get(config.provider, 'closed') %}
+                <span class="badge bg-{{ 'success' if status == 'closed' else ('warning' if status == 'half_open' else 'danger') }}">
+                    {{ status }}
+                </span>
+            </td>
+            <td>
+                <a href="{{ url_for('admin.llm_config_edit', config_id=config.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form method="post" action="{{ url_for('admin.llm_config_delete', config_id=config.id) }}"
+                      style="display:inline" onsubmit="return confirm('Delete this config?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-muted">No LLM configs yet. Add one to enable AI processing.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="mt-3">
+    <a href="{{ url_for('admin.llm_usage') }}" class="btn btn-outline-info">
+        <i class="bi bi-graph-up"></i> View Usage Dashboard
+    </a>
+</div>
+{% endblock %}

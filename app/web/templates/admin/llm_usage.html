@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}LLM Usage Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-graph-up"></i> LLM Usage Dashboard</h2>
+    <div>
+        {% for d in [7, 14, 30] %}
+        <a href="?days={{ d }}" class="btn btn-sm {{ 'btn-primary' if days == d else 'btn-outline-primary' }}">
+            {{ d }} days
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3">${{ '%.4f' | format(total_cost) }}</div>
+                <div class="text-muted">Total Cost ({{ days }}d)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3">{{ total_calls }}</div>
+                <div class="text-muted">Total API Calls</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3">${{ '%.4f' | format(total_cost / days if days else 0) }}</div>
+                <div class="text-muted">Avg Cost / Day</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h3">${{ '%.6f' | format(total_cost / total_calls if total_calls else 0) }}</div>
+                <div class="text-muted">Avg Cost / Call</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Per-day breakdown -->
+<h4>Daily Breakdown</h4>
+<table class="table table-sm table-striped">
+    <thead>
+        <tr><th>Date</th><th>Calls</th><th>Input Tokens</th><th>Output Tokens</th><th>Cost</th><th>Failures</th></tr>
+    </thead>
+    <tbody>
+        {% for row in daily_stats %}
+        <tr>
+            <td>{{ row.day }}</td>
+            <td>{{ row.calls }}</td>
+            <td>{{ '{:,}'.format(row.input_tokens | int) }}</td>
+            <td>{{ '{:,}'.format(row.output_tokens | int) }}</td>
+            <td>${{ '%.4f' | format(row.cost | float) }}</td>
+            <td>
+                {% if row.failures %}
+                <span class="text-danger">{{ row.failures }}</span>
+                {% else %}
+                0
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-muted">No usage data yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Per-task breakdown -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <h4>By Task Type</h4>
+        <table class="table table-sm">
+            <thead><tr><th>Task</th><th>Calls</th><th>Cost</th><th>Avg Latency</th></tr></thead>
+            <tbody>
+                {% for row in task_stats %}
+                <tr>
+                    <td><span class="badge bg-info">{{ row.task_type }}</span></td>
+                    <td>{{ row.calls }}</td>
+                    <td>${{ '%.4f' | format(row.cost | float) }}</td>
+                    <td>{{ row.avg_latency | int }}ms</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-6">
+        <h4>By Provider</h4>
+        <table class="table table-sm">
+            <thead><tr><th>Provider</th><th>Model</th><th>Calls</th><th>Cost</th></tr></thead>
+            <tbody>
+                {% for row in provider_stats %}
+                <tr>
+                    <td>{{ row.provider }}</td>
+                    <td><code>{{ row.model }}</code></td>
+                    <td>{{ row.calls }}</td>
+                    <td>${{ '%.4f' | format(row.cost | float) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('admin.llm_config') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Config
+    </a>
+</div>
+{% endblock %}

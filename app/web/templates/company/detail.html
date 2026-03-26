@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ company.name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('company.index') }}">Companies</a></li>
+        <li class="breadcrumb-item active">{{ company.name }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- Main content -->
+    <div class="col-md-8">
+        <div class="d-flex align-items-center mb-3">
+            <h2 class="mb-0">{{ company.name }}</h2>
+            {% if company.is_grenoble %}
+            <span class="badge bg-success ms-2">Grenoble</span>
+            {% endif %}
+            {% if company.sector %}
+            <span class="badge bg-info ms-2">{{ company.sector }}</span>
+            {% endif %}
+        </div>
+        {% if company.description %}
+        <p class="text-muted">{{ company.description }}</p>
+        {% endif %}
+
+        <!-- Sentiment trend chart -->
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-graph-up"></i> Sentiment Trend</div>
+            <div class="card-body">
+                <canvas id="sentimentChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Articles -->
+        <h4>Related Articles ({{ articles.total }})</h4>
+        {% for article in articles.items %}
+        <div class="card mb-2">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <a href="{{ url_for('news.detail', article_id=article.id) }}" class="text-decoration-none fw-semibold">
+                            {{ article.title_zh or article.title_en or article.title_fr }}
+                        </a>
+                        <div class="small text-muted mt-1">
+                            <span class="badge bg-secondary">{{ article.source.name if article.source }}</span>
+                            {% for cat in article.categories[:2] %}
+                            <span class="badge bg-light text-dark">{{ cat.name_zh or cat.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="text-end text-nowrap ms-2">
+                        <small class="text-muted d-block">
+                            {{ article.published_at.strftime('%Y-%m-%d') if article.published_at }}
+                        </small>
+                        {% set ac = article.companies.filter_by(company_id=company.id).first() %}
+                        {% if ac %}
+                        <span class="badge bg-{{ 'success' if ac.sentiment == 'positive' else ('danger' if ac.sentiment == 'negative' else 'secondary') }}">
+                            {{ ac.sentiment }}
+                            {% if ac.sentiment_score %}({{ '%.1f' | format(ac.sentiment_score) }}){% endif %}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if article.summary_zh or article.summary_en %}
+                <p class="small text-muted mb-0 mt-1">{{ (article.summary_zh or article.summary_en)[:150] }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted">No articles found for this company.</p>
+        {% endfor %}
+
+        {% if articles.pages > 1 %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                {% for p in articles.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                    <li class="page-item {% if p == articles.page %}active{% endif %}">
+                        <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Company info card -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-info-circle"></i> Company Info</div>
+            <ul class="list-group list-group-flush">
+                {% if company.sector %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Sector</span> <span>{{ company.sector }}</span>
+                </li>
+                {% endif %}
+                {% if company.headquarters %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">HQ</span> <span>{{ company.headquarters }}</span>
+                </li>
+                {% endif %}
+                {% if company.website %}
+                <li class="list-group-item">
+                    <a href="{{ company.website }}" target="_blank" rel="noopener">
+                        <i class="bi bi-globe"></i> {{ company.website | replace('https://', '') | replace('http://', '') | truncate(30) }}
+                    </a>
+                </li>
+                {% endif %}
+                {% if company.aliases %}
+                <li class="list-group-item">
+                    <span class="text-muted">Also known as:</span><br>
+                    {% for alias in company.aliases %}
+                    <span class="badge bg-light text-dark">{{ alias }}</span>
+                    {% endfor %}
+                </li>
+                {% endif %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Total articles</span>
+                    <span class="fw-bold">{{ articles.total }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sentiment summary -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-emoji-smile"></i> Sentiment Summary</div>
+            <div class="card-body">
+                {% set total = sentiment_stats.positive + sentiment_stats.neutral + sentiment_stats.negative %}
+                {% if total > 0 %}
+                <div class="progress mb-3" style="height: 24px;">
+                    {% if sentiment_stats.positive %}
+                    <div class="progress-bar bg-success" style="width: {{ (sentiment_stats.positive / total * 100) | int }}%">
+                        {{ sentiment_stats.positive }}
+                    </div>
+                    {% endif %}
+                    {% if sentiment_stats.neutral %}
+                    <div class="progress-bar bg-secondary" style="width: {{ (sentiment_stats.neutral / total * 100) | int }}%">
+                        {{ sentiment_stats.neutral }}
+                    </div>
+                    {% endif %}
+                    {% if sentiment_stats.negative %}
+                    <div class="progress-bar bg-danger" style="width: {{ (sentiment_stats.negative / total * 100) | int }}%">
+                        {{ sentiment_stats.negative }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="d-flex justify-content-around text-center">
+                    <div>
+                        <div class="h4 text-success mb-0">{{ sentiment_stats.positive }}</div>
+                        <small class="text-muted">Positive</small>
+                    </div>
+                    <div>
+                        <div class="h4 text-secondary mb-0">{{ sentiment_stats.neutral }}</div>
+                        <small class="text-muted">Neutral</small>
+                    </div>
+                    <div>
+                        <div class="h4 text-danger mb-0">{{ sentiment_stats.negative }}</div>
+                        <small class="text-muted">Negative</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick link to news filtered by this company -->
+        <a href="{{ url_for('news.index', company_id=company.id) }}" class="btn btn-outline-primary w-100">
+            <i class="bi bi-newspaper"></i> View in News Feed
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const trendData = {{ trend_data_json | safe }};
+if (trendData.labels.length > 0) {
+    new Chart(document.getElementById('sentimentChart'), {
+        type: 'bar',
+        data: {
+            labels: trendData.labels,
+            datasets: [
+                {
+                    label: 'Positive',
+                    data: trendData.positive,
+                    backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                    borderColor: 'rgb(25, 135, 84)',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Neutral',
+                    data: trendData.neutral,
+                    backgroundColor: 'rgba(108, 117, 125, 0.5)',
+                    borderColor: 'rgb(108, 117, 125)',
+                    borderWidth: 1,
+                },
+                {
+                    label: 'Negative',
+                    data: trendData.negative,
+                    backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                    borderColor: 'rgb(220, 53, 69)',
+                    borderWidth: 1,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } },
+            },
+            plugins: {
+                legend: { position: 'bottom' },
+            },
+        },
+    });
+} else {
+    document.getElementById('sentimentChart').parentElement.innerHTML =
+        '<p class="text-muted text-center">No sentiment data yet.</p>';
+}
+</script>
+{% endblock %}

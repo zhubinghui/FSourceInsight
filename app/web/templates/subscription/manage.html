@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Manage Subscriptions{% endblock %}
+{% block content %}
+<h2>Manage Subscriptions</h2>
+
+{% if user %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="mb-0">Subscriptions for <strong>{{ user.email }}</strong></p>
+    <a href="{{ url_for('subscription.settings', email=user.email) }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-gear"></i> Settings
+    </a>
+</div>
+
+<div class="card">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr><th>Keyword</th><th>Status</th><th>Since</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for sub in subscriptions %}
+            <tr>
+                <td>
+                    <strong>{{ sub.keyword }}</strong>
+                    <a href="{{ url_for('news.index', q=sub.keyword) }}" class="ms-2 text-muted small">
+                        <i class="bi bi-search"></i> view news
+                    </a>
+                </td>
+                <td>
+                    <span class="badge bg-{{ 'success' if sub.is_active else 'secondary' }}">
+                        {{ 'Active' if sub.is_active else 'Paused' }}
+                    </span>
+                </td>
+                <td>{{ sub.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('subscription.toggle', sub_id=sub.id) }}" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if sub.is_active else 'success' }}">
+                            {{ 'Pause' if sub.is_active else 'Resume' }}
+                        </button>
+                    </form>
+                    <form method="post" action="{{ url_for('subscription.delete', sub_id=sub.id) }}" style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                onclick="return confirm('Remove this subscription?')">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted">No active subscriptions. <a href="{{ url_for('subscription.index') }}">Add one</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% else %}
+<p class="text-muted">No user found with that email. <a href="{{ url_for('subscription.index') }}">Subscribe first</a>.</p>
+{% endif %}
+{% endblock %}

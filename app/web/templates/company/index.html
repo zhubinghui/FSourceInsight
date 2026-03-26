@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Companies{% endblock %}
+
+{% block content %}
+<h2><i class="bi bi-building"></i> Companies</h2>
+
+<form class="mb-3" method="get" id="company-filter">
+    <div class="row g-2">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="q" placeholder="Search companies..."
+                   value="{{ search_query }}"
+                   hx-get="{{ url_for('company.search') }}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#company-grid"
+                   hx-include="#company-filter">
+        </div>
+        <div class="col-md-3">
+            <select name="sector" class="form-select"
+                    hx-get="{{ url_for('company.search') }}"
+                    hx-trigger="change"
+                    hx-target="#company-grid"
+                    hx-include="#company-filter">
+                <option value="">All Sectors</option>
+                {% for s in sectors %}
+                <option value="{{ s }}" {% if current_sector == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <div class="form-check form-switch mt-2">
+                <input class="form-check-input" type="checkbox" name="grenoble" value="1" id="grenobleFilter"
+                       {{ 'checked' if grenoble_only }}
+                       hx-get="{{ url_for('company.search') }}"
+                       hx-trigger="change"
+                       hx-target="#company-grid"
+                       hx-include="#company-filter">
+                <label class="form-check-label" for="grenobleFilter">Grenoble only</label>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit"><i class="bi bi-search"></i> Filter</button>
+        </div>
+    </div>
+</form>
+
+<div id="company-grid">
+    {% include 'company/_company_grid.html' %}
+</div>
+{% endblock %}

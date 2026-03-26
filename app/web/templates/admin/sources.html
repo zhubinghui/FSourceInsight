@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}News Sources{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>News Sources</h2>
+    <a href="{{ url_for('admin.source_new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Source
+    </a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th><th>Type</th><th>Category</th><th>Frequency</th>
+            <th>Active</th><th>Last Crawled</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for source in sources %}
+        <tr class="{{ 'table-secondary' if not source.is_active }}">
+            <td>
+                <a href="{{ source.url }}" target="_blank">{{ source.name }}</a>
+                {% if source.feed_url %}<i class="bi bi-rss text-warning ms-1" title="Has RSS"></i>{% endif %}
+            </td>
+            <td><span class="badge bg-{{ 'primary' if source.feed_type == 'rss' else ('info' if source.feed_type == 'atom' else 'warning') }}">{{ source.feed_type }}</span></td>
+            <td>{{ source.category }}</td>
+            <td>{{ source.crawl_frequency_minutes }} min</td>
+            <td>
+                <form method="post" action="{{ url_for('admin.source_toggle', source_id=source.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm {{ 'btn-success' if source.is_active else 'btn-outline-secondary' }}">
+                        {{ 'On' if source.is_active else 'Off' }}
+                    </button>
+                </form>
+            </td>
+            <td>{{ source.last_crawled_at.strftime('%m-%d %H:%M') if source.last_crawled_at else 'Never' }}</td>
+            <td>
+                <a href="{{ url_for('admin.source_edit', source_id=source.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form method="post" action="{{ url_for('admin.source_crawl_now', source_id=source.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Crawl now">
+                        <i class="bi bi-play-fill"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

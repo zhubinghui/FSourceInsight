@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Users - Admin{% endblock %}
+{% block content %}
+<h2><i class="bi bi-people"></i> Users</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th><th>Name</th><th>Language</th><th>Digest</th>
+            <th>Subscriptions</th><th>Admin</th><th>Since</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users.items %}
+        <tr>
+            <td>{{ user.email }}</td>
+            <td>{{ user.name or '-' }}</td>
+            <td>{{ user.preferred_language }}</td>
+            <td>{% if user.receive_daily_digest %}<i class="bi bi-check-circle text-success"></i>{% else %}<i class="bi bi-x-circle text-muted"></i>{% endif %}</td>
+            <td>{{ user.subscriptions.count() }}</td>
+            <td>
+                {% if user.is_admin %}
+                <span class="badge bg-success">Admin</span>
+                {% endif %}
+            </td>
+            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+                <form method="post" action="{{ url_for('admin.toggle_user_admin', user_id=user.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-{{ 'warning' if user.is_admin else 'success' }}"
+                            title="{{ 'Remove admin' if user.is_admin else 'Make admin' }}">
+                        {{ 'Revoke' if user.is_admin else 'Grant' }} Admin
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if users.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for p in users.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == users.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

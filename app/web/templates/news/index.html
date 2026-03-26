@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}News{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Sidebar filters -->
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-funnel"></i> Filters</div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('news.index') }}" id="filter-form">
+                    <!-- Live search -->
+                    <div class="mb-3">
+                        <label class="form-label">Search</label>
+                        <input type="search" class="form-control form-control-sm" name="q"
+                               placeholder="Keywords..."
+                               value="{{ search_query }}"
+                               hx-get="{{ url_for('news.search') }}"
+                               hx-trigger="keyup changed delay:400ms"
+                               hx-target="#article-list"
+                               hx-include="#filter-form">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Source</label>
+                        <select name="source_id" class="form-select form-select-sm"
+                                hx-get="{{ url_for('news.search') }}"
+                                hx-trigger="change"
+                                hx-target="#article-list"
+                                hx-include="#filter-form">
+                            <option value="">All Sources</option>
+                            {% for source in sources %}
+                            <option value="{{ source.id }}" {% if current_source_id == source.id %}selected{% endif %}>
+                                {{ source.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category_id" class="form-select form-select-sm"
+                                hx-get="{{ url_for('news.search') }}"
+                                hx-trigger="change"
+                                hx-target="#article-list"
+                                hx-include="#filter-form">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if current_category_id == cat.id %}selected{% endif %}>
+                                {{ cat.name_zh or cat.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Company</label>
+                        <select name="company_id" class="form-select form-select-sm"
+                                hx-get="{{ url_for('news.search') }}"
+                                hx-trigger="change"
+                                hx-target="#article-list"
+                                hx-include="#filter-form">
+                            <option value="">All Companies</option>
+                            {% for comp in companies %}
+                            <option value="{{ comp.id }}" {% if current_company_id == comp.id %}selected{% endif %}>
+                                {{ comp.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-control form-control-sm mb-1" name="date_from"
+                               value="{{ date_from }}" placeholder="From"
+                               hx-get="{{ url_for('news.search') }}"
+                               hx-trigger="change"
+                               hx-target="#article-list"
+                               hx-include="#filter-form">
+                        <input type="date" class="form-control form-control-sm" name="date_to"
+                               value="{{ date_to }}" placeholder="To"
+                               hx-get="{{ url_for('news.search') }}"
+                               hx-trigger="change"
+                               hx-target="#article-list"
+                               hx-include="#filter-form">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-filter"></i> Apply
+                    </button>
+                    <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary btn-sm w-100 mt-1">
+                        Clear All
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Article list -->
+    <div class="col-md-9">
+        {% if search_query %}
+        <p class="text-muted mb-2">
+            Search results for: <strong>{{ search_query }}</strong>
+            (<span id="result-count">{{ pagination.total }}</span> results)
+        </p>
+        {% endif %}
+
+        <div id="article-list">
+            {% include 'news/_article_list.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

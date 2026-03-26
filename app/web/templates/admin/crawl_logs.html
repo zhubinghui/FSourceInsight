@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Crawl Logs{% endblock %}
+{% block content %}
+<h2>Crawl Logs</h2>
+<table class="table table-sm table-striped">
+    <thead>
+        <tr><th>Source</th><th>Started</th><th>Finished</th><th>Status</th><th>Found</th><th>New</th><th>Error</th></tr>
+    </thead>
+    <tbody>
+        {% for log in logs.items %}
+        <tr>
+            <td>{{ log.source.name if log.source }}</td>
+            <td>{{ log.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.finished_at.strftime('%H:%M') if log.finished_at else '-' }}</td>
+            <td><span class="badge bg-{{ 'success' if log.status == 'success' else ('danger' if log.status == 'failed' else 'warning') }}">{{ log.status }}</span></td>
+            <td>{{ log.articles_found }}</td>
+            <td>{{ log.articles_new }}</td>
+            <td class="small">{{ log.error_message[:80] if log.error_message else '' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

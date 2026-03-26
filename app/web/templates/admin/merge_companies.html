@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Merge Companies{% endblock %}
+{% block content %}
+<h2><i class="bi bi-arrow-left-right"></i> Merge Companies</h2>
+<p class="text-muted">
+    Merge a duplicate company into a target company. All article associations will be moved to the target.
+    The source company's name will be added as an alias.
+</p>
+
+<form method="post" class="mt-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-success text-white">Target (keep)</div>
+                <div class="card-body">
+                    <select name="target_id" class="form-select" required>
+                        <option value="">Select target company...</option>
+                        {% for c in companies %}
+                        <option value="{{ c.id }}">{{ c.name }} ({{ c.article_count }} articles)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-center justify-content-center">
+            <i class="bi bi-arrow-left h2 text-muted"></i>
+        </div>
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-danger text-white">Source (delete)</div>
+                <div class="card-body">
+                    <select name="source_id" class="form-select" required>
+                        <option value="">Select company to merge...</option>
+                        {% for c in auto_created %}
+                        <option value="{{ c.id }}">{{ c.name }} ({{ c.article_count }} articles) [auto]</option>
+                        {% endfor %}
+                        <optgroup label="All companies">
+                            {% for c in companies %}
+                            <option value="{{ c.id }}">{{ c.name }} ({{ c.article_count }} articles)</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-warning"
+                onclick="return confirm('This will permanently delete the source company. Continue?')">
+            <i class="bi bi-arrow-left-right"></i> Merge
+        </button>
+        <a href="{{ url_for('admin.companies') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+{% if auto_created %}
+<div class="card mt-4">
+    <div class="card-header">Auto-created Companies (candidates for merge)</div>
+    <table class="table table-sm mb-0">
+        <thead><tr><th>Name</th><th>Articles</th><th>Created</th></tr></thead>
+        <tbody>
+            {% for c in auto_created %}
+            <tr>
+                <td>{{ c.name }}</td>
+                <td>{{ c.article_count }}</td>
+                <td>{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

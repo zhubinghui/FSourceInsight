@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}User Settings{% endblock %}
+{% block content %}
+<h2><i class="bi bi-gear"></i> User Settings</h2>
+
+{% if user %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Preferences for {{ user.email }}</div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('subscription.settings') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="email" value="{{ user.email }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-control" name="name"
+                               value="{{ user.name or '' }}" placeholder="Your name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Preferred Language</label>
+                        <select name="preferred_language" class="form-select">
+                            <option value="zh" {% if user.preferred_language == 'zh' %}selected{% endif %}>
+                                Chinese (中文)
+                            </option>
+                            <option value="en" {% if user.preferred_language == 'en' %}selected{% endif %}>
+                                English
+                            </option>
+                            <option value="fr" {% if user.preferred_language == 'fr' %}selected{% endif %}>
+                                Fran&ccedil;ais
+                            </option>
+                        </select>
+                        <div class="form-text">News summaries and translations in emails will use this language.</div>
+                    </div>
+
+                    <div class="mb-3 form-check form-switch">
+                        <input type="checkbox" class="form-check-input" name="receive_daily_digest"
+                               id="dailyDigest" {{ 'checked' if user.receive_daily_digest }}>
+                        <label class="form-check-label" for="dailyDigest">
+                            Receive daily digest (7:00 AM Paris time)
+                        </label>
+                    </div>
+
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label">Set/Change Password (optional)</label>
+                        <input type="password" class="form-control" name="password" minlength="8"
+                               placeholder="Leave empty to keep current">
+                        <div class="form-text">Set a password to access admin features (if granted).</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Your Subscriptions</div>
+            <div class="card-body">
+                {% set subs = user.subscriptions.filter_by(is_active=True).all() %}
+                {% if subs %}
+                <ul class="list-group list-group-flush">
+                    {% for sub in subs %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ sub.keyword }}
+                        <a href="{{ url_for('news.index', q=sub.keyword) }}" class="text-muted">
+                            <i class="bi bi-search"></i>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('subscription.manage', email=user.email) }}" class="btn btn-sm btn-outline-primary mt-3">
+                    Manage Subscriptions
+                </a>
+                {% else %}
+                <p class="text-muted">No subscriptions yet.</p>
+                <a href="{{ url_for('subscription.index') }}" class="btn btn-sm btn-primary">Add Subscription</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">Account Info</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Email: <strong>{{ user.email }}</strong></li>
+                <li class="list-group-item">Member since: {{ user.created_at.strftime('%Y-%m-%d') }}</li>
+                <li class="list-group-item">
+                    Admin: {% if user.is_admin %}<span class="badge bg-success">Yes</span>{% else %}No{% endif %}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-warning">
+    {% if email %}
+    No user found with email "{{ email }}".
+    {% else %}
+    Please enter your email from the <a href="{{ url_for('subscription.index') }}">subscription page</a>.
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

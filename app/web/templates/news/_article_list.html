@@ -1,0 +1,75 @@
+{% for article in articles %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+                <h5 class="card-title mb-1">
+                    <a href="{{ url_for('news.detail', article_id=article.id) }}" class="text-decoration-none">
+                        {{ article.title_zh or article.title_en or article.title_fr }}
+                    </a>
+                </h5>
+                <p class="text-muted small mb-1">{{ article.title_fr }}</p>
+            </div>
+            {% if article.image_url %}
+            <img src="{{ article.image_url }}" alt="" class="ms-3 rounded flex-shrink-0"
+                 style="width: 120px; height: 80px; object-fit: cover;">
+            {% endif %}
+        </div>
+
+        {% if article.summary_zh or article.summary_en %}
+        <p class="card-text mt-2 mb-2">{{ (article.summary_zh or article.summary_en)[:200] }}</p>
+        {% endif %}
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-secondary">{{ article.source.name if article.source }}</span>
+                {% for cat in article.categories[:3] %}
+                <span class="badge bg-info">{{ cat.name_zh or cat.name }}</span>
+                {% endfor %}
+                {% for ac in article.companies.limit(3).all() %}
+                <a href="{{ url_for('company.detail', slug=ac.company.slug) }}"
+                   class="badge bg-{{ 'success' if ac.sentiment == 'positive' else ('danger' if ac.sentiment == 'negative' else 'light text-dark') }} text-decoration-none">
+                    {{ ac.company.name }}
+                </a>
+                {% endfor %}
+            </div>
+            <small class="text-muted text-nowrap">
+                {% if article.published_at %}{{ article.published_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                {% if article.llm_processed %}<i class="bi bi-robot text-success ms-1" title="AI processed"></i>{% endif %}
+            </small>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">No articles found.</div>
+{% endfor %}
+
+{% if pagination and pagination.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ pagination.prev_num }}&{{ request.query_string.decode().replace('page=' ~ pagination.page, '') }}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}&source_id={{ request.args.get('source_id', '') }}&category_id={{ request.args.get('category_id', '') }}&company_id={{ request.args.get('company_id', '') }}&q={{ request.args.get('q', '') }}&date_from={{ request.args.get('date_from', '') }}&date_to={{ request.args.get('date_to', '') }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ pagination.next_num }}&{{ request.query_string.decode().replace('page=' ~ pagination.page, '') }}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}

@@ -1,0 +1,16 @@
+# Import all source crawlers to trigger registration
+from . import usine_digitale  # noqa: F401
+from . import frenchweb  # noqa: F401
+from . import silicon_fr  # noqa: F401
+from . import stmicro  # noqa: F401
+from . import maddyness  # noqa: F401
+from . import french_tech_alps  # noqa: F401
+from . import minalogic  # noqa: F401
+from . import cea_leti  # noqa: F401
+from . import place_grenet  # noqa: F401
+from . import tribune_aura  # noqa: F401
+from . import schneider  # noqa: F401
+from . import soitec  # noqa: F401
+from . import esrf  # noqa: F401
+from . import inria_grenoble  # noqa: F401
+from . import monde_informatique  # noqa: F401

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Email Logs{% endblock %}
+{% block content %}
+<h2><i class="bi bi-envelope"></i> Email Logs</h2>
+
+<table class="table table-sm table-striped">
+    <thead>
+        <tr><th>Sent At</th><th>User</th><th>Type</th><th>Subject</th><th>Articles</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+        {% for log in logs.items %}
+        <tr>
+            <td>{{ log.sent_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ log.user.email if log.user else '-' }}</td>
+            <td><span class="badge bg-{{ 'primary' if log.email_type == 'daily_digest' else 'info' }}">{{ log.email_type }}</span></td>
+            <td class="small">{{ log.subject[:50] if log.subject else '-' }}</td>
+            <td>{{ log.article_count or '-' }}</td>
+            <td>
+                <span class="badge bg-{{ 'success' if log.status == 'sent' else 'danger' }}">{{ log.status }}</span>
+                {% if log.error_message %}
+                <span class="text-danger small d-block">{{ log.error_message[:60] }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-muted">No emails sent yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if logs.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for p in logs.iter_pages() %}
+            {% if p %}
+            <li class="page-item {% if p == logs.page %}active{% endif %}">
+                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
