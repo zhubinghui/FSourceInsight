@@ -215,7 +215,7 @@ def merge_companies():
 
 # ── LLM Config CRUD ──────────────────────────────────────────────
 
-TASK_TYPES = ['translate', 'summarize', 'ner', 'sentiment', 'classify']
+TASK_TYPES = ['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight']
 
 @admin_bp.route('/llm-config')
 def llm_config():

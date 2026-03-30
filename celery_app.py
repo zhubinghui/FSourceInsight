@@ -20,6 +20,11 @@ def make_celery(app=None):
         result_serializer='json',
         timezone='Europe/Paris',
         enable_utc=True,
+        include=[
+            'app.crawlers.tasks',
+            'app.llm.tasks',
+            'app.email.tasks',
+        ],
         task_routes={
             'app.crawlers.tasks.*': {'queue': 'crawl'},
             'app.llm.tasks.*': {'queue': 'llm'},

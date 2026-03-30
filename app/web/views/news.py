@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, request
 from app.extensions import db
@@ -48,6 +48,11 @@ def _build_article_query():
         except ValueError:
             pass
 
+    # Highlight filter
+    highlight = request.args.get('highlight', '').strip()
+    if highlight:
+        query = query.filter(Article.highlights.like(f'%"{highlight}"%'))
+
     return query
 
 
@@ -60,6 +65,64 @@ def _get_filter_options():
     }
 
 
+def _get_highlighted_articles(page=1, per_page=8):
+    """Get highlighted articles with time rules per type, paginated.
+
+    - local_research / investment: published within last 7 days
+    - local_event: event_date is today or in the future
+    Returns (items, total) for pagination.
+    """
+    now = datetime.now()
+    cutoff_7d = now - timedelta(days=7)
+
+    # Research & Investment: last 7 days
+    research_investment = (
+        Article.query
+        .filter(Article.highlights.isnot(None))
+        .filter(Article.highlights != '[]')
+        .filter(
+            db.or_(
+                Article.highlights.like('%local_research%'),
+                Article.highlights.like('%investment%'),
+            )
+        )
+        .filter(Article.published_at >= cutoff_7d)
+        .order_by(Article.published_at.desc())
+        .all()
+    )
+
+    # Events: only future or today
+    events = (
+        Article.query
+        .filter(Article.highlights.like('%local_event%'))
+        .filter(
+            db.or_(
+                Article.event_date >= now.date(),
+                db.and_(
+                    Article.event_date.is_(None),
+                    Article.published_at >= cutoff_7d,
+                )
+            )
+        )
+        .order_by(Article.event_date.asc(), Article.published_at.desc())
+        .all()
+    )
+
+    # Merge and deduplicate: events first, then research/investment
+    seen = set()
+    merged = []
+    for a in events + research_investment:
+        if a.id not in seen:
+            seen.add(a.id)
+            merged.append(a)
+
+    # Manual pagination
+    total = len(merged)
+    start = (page - 1) * per_page
+    items = merged[start:start + per_page]
+    return items, total
+
+
 @news_bp.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
@@ -68,6 +131,14 @@ def index():
     query = _build_article_query()
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     options = _get_filter_options()
+
+    # Get highlighted articles for top section (when no text/highlight filter active)
+    highlighted = []
+    hl_total = 0
+    hl_page = request.args.get('hl_page', 1, type=int)
+    hl_per_page = 8
+    if not request.args.get('q') and not request.args.get('highlight'):
+        highlighted, hl_total = _get_highlighted_articles(page=hl_page, per_page=hl_per_page)
 
     # If HTMX request, return only the article list partial
     if request.headers.get('HX-Request'):
@@ -88,6 +159,11 @@ def index():
         search_query=request.args.get('q', ''),
         date_from=request.args.get('date_from', ''),
         date_to=request.args.get('date_to', ''),
+        current_highlight=request.args.get('highlight', ''),
+        highlighted=highlighted,
+        hl_page=hl_page,
+        hl_total=hl_total,
+        hl_pages=(hl_total + hl_per_page - 1) // hl_per_page if hl_total else 0,
     )
 
 

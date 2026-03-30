@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.web
+    ports: []  # Not exposed externally — nginx proxies to web:8000
     volumes: []  # No source mount in production
     restart: always
     environment:
@@ -49,6 +50,7 @@ services:
     restart: always
 
   mysql:
+    ports: []  # Not exposed externally — only internal Docker network
     restart: always
     deploy:
       resources:
@@ -56,5 +58,6 @@ services:
           memory: 1G
 
   redis:
+    ports: []  # Not exposed externally — only internal Docker network
     restart: always
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru

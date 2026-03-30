@@ -61,14 +61,16 @@ class BaseCrawler(ABC):
 
     def save(self, articles: list[RawArticle]) -> int:
         """Save new articles to the database. Returns count of saved articles."""
+        from app.utils.text import strip_html
+
         saved = 0
         for raw in articles:
             article = Article(
                 source_id=self.source.id,
                 external_id=raw.external_id,
                 url=raw.url,
-                title_fr=raw.title,
-                content_fr=raw.content,
+                title_fr=strip_html(raw.title),
+                content_fr=strip_html(raw.content),
                 author=raw.author,
                 image_url=raw.image_url,
                 published_at=raw.published_at,

@@ -16,8 +16,23 @@ class RSSCrawler(BaseCrawler):
         if not source.feed_url:
             raise ValueError(f'Source {source.name} has no feed_url configured')
 
+    USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0'
+
     def fetch_articles(self) -> list[RawArticle]:
-        feed = feedparser.parse(self.source.feed_url)
+        import requests
+
+        # Use requests to fetch with proper headers, then parse with feedparser
+        try:
+            resp = requests.get(
+                self.source.feed_url,
+                headers={'User-Agent': self.USER_AGENT, 'Accept': 'application/rss+xml, application/xml, text/xml'},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            feed = feedparser.parse(resp.content)
+        except requests.RequestException:
+            # Fallback to feedparser direct fetch
+            feed = feedparser.parse(self.source.feed_url)
 
         if feed.bozo and not feed.entries:
             raise RuntimeError(

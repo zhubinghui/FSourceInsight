@@ -3,6 +3,92 @@
 {% block title %}News{% endblock %}
 
 {% block content %}
+
+{# ── Highlights Section (top of page) ── #}
+{% if highlighted %}
+<div class="card mb-4 border-warning">
+    <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
+        <div>
+            <i class="bi bi-star-fill text-warning"></i>
+            <strong>Highlights</strong>
+            <small class="text-muted ms-2">{{ hl_total }} items (Research &amp; Investment: 7 days / Events: upcoming)</small>
+        </div>
+        <div class="btn-group btn-group-sm">
+            <a href="?highlight=local_research" class="btn btn-outline-dark" style="border-color: #7c3aed; color: #7c3aed;">
+                <i class="bi bi-mortarboard-fill"></i> Research
+            </a>
+            <a href="?highlight=investment" class="btn btn-outline-success">
+                <i class="bi bi-cash-stack"></i> Investment
+            </a>
+            <a href="?highlight=local_event" class="btn btn-outline-danger">
+                <i class="bi bi-calendar-event-fill"></i> Events
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-2">
+        {% for article in highlighted %}
+        <div class="d-flex align-items-start py-2 {{ 'border-top' if not loop.first }}">
+            <div class="me-2 mt-1">
+                {% for h in (article.highlights or []) %}
+                {% if h == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i></span>
+                {% elif h == 'investment' %}<span class="badge bg-success"><i class="bi bi-cash-stack"></i></span>
+                {% elif h == 'local_event' %}<span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i></span>
+                {% endif %}
+                {% endfor %}
+            </div>
+            <div class="flex-grow-1">
+                <a href="{{ url_for('news.detail', article_id=article.id) }}" class="text-decoration-none fw-semibold">
+                    {{ article.title_zh or article.title_en or article.title_fr }}
+                </a>
+                <div class="text-muted small">
+                    {{ article.source.name if article.source }}
+                    {% if article.published_at %}&middot; {{ article.published_at.strftime('%m-%d %H:%M') }}{% endif %}
+                    {% if article.event_date %}<span class="text-danger ms-1"><i class="bi bi-calendar3"></i> {{ article.event_date }}</span>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if hl_pages > 1 %}
+    <div class="card-footer bg-transparent text-center py-1">
+        <nav>
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+                {% if hl_page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?hl_page={{ hl_page - 1 }}"><i class="bi bi-chevron-left"></i></a>
+                </li>
+                {% endif %}
+                {% for p in range(1, hl_pages + 1) %}
+                <li class="page-item {{ 'active' if p == hl_page }}">
+                    <a class="page-link" href="?hl_page={{ p }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                {% if hl_page < hl_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?hl_page={{ hl_page + 1 }}"><i class="bi bi-chevron-right"></i></a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{# ── Highlight filter indicator ── #}
+{% if current_highlight %}
+<div class="alert alert-info d-flex justify-content-between align-items-center py-2 mb-3">
+    <span>
+        Filtering by:
+        {% if current_highlight == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+        {% elif current_highlight == 'investment' %}<span class="badge bg-success"><i class="bi bi-cash-stack"></i> Investment</span>
+        {% elif current_highlight == 'local_event' %}<span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i> Event</span>
+        {% endif %}
+    </span>
+    <a href="{{ url_for('news.index') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+</div>
+{% endif %}
+
 <div class="row">
     <!-- Sidebar filters -->
     <div class="col-md-3">

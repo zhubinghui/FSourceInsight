@@ -33,43 +33,111 @@
         {% endif %}
 
         <!-- Language tabs -->
+        {# Always show 3 language tabs for consistent layout #}
+        {% set has_content = article.content_fr or article.content_zh or article.content_en %}
+
         <ul class="nav nav-tabs" role="tablist">
-            {% if article.summary_zh or article.content_zh %}
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#zh">中文</a></li>
-            {% endif %}
-            {% if article.summary_en or article.content_en %}
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#en">English</a></li>
-            {% endif %}
-            <li class="nav-item"><a class="nav-link {% if not article.content_zh %}active{% endif %}" data-bs-toggle="tab" href="#fr">Fran&ccedil;ais</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#fr">Fran&ccedil;ais</a></li>
         </ul>
 
         <div class="tab-content mt-3">
-            {% if article.summary_zh or article.content_zh %}
+            {# Chinese tab #}
             <div class="tab-pane fade show active" id="zh">
                 {% if article.summary_zh %}
-                <div class="alert alert-light"><strong>Summary:</strong> {{ article.summary_zh }}</div>
+                <div class="alert alert-light border-start border-4 border-primary">
+                    <strong>摘要</strong><br>{{ article.summary_zh }}
+                </div>
                 {% endif %}
-                <div>{{ article.content_zh or '' }}</div>
+                {% if article.content_zh %}
+                <div class="article-body lh-lg">{{ article.content_zh | paragraphs }}</div>
+                {% elif not has_content %}
+                <div class="alert alert-secondary mt-2">
+                    <i class="bi bi-info-circle"></i> 该文章仅爬取到标题，未获取到正文内容。
+                    <a href="{{ article.url }}" target="_blank" class="fw-bold">查看原文 <i class="bi bi-box-arrow-up-right"></i></a>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-            {% if article.summary_en or article.content_en %}
+
+            {# English tab #}
             <div class="tab-pane fade" id="en">
                 {% if article.summary_en %}
-                <div class="alert alert-light"><strong>Summary:</strong> {{ article.summary_en }}</div>
+                <div class="alert alert-light border-start border-4 border-primary">
+                    <strong>Summary</strong><br>{{ article.summary_en }}
+                </div>
                 {% endif %}
-                <div>{{ article.content_en or '' }}</div>
+                {% if article.content_en %}
+                <div class="article-body lh-lg">{{ article.content_en | paragraphs }}</div>
+                {% elif not has_content %}
+                <div class="alert alert-secondary mt-2">
+                    <i class="bi bi-info-circle"></i> Only the headline was crawled; full content was not available.
+                    <a href="{{ article.url }}" target="_blank" class="fw-bold">Read original <i class="bi bi-box-arrow-up-right"></i></a>
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-            <div class="tab-pane fade {% if not article.content_zh %}show active{% endif %}" id="fr">
+
+            {# French tab #}
+            <div class="tab-pane fade" id="fr">
                 {% if article.summary_fr %}
-                <div class="alert alert-light"><strong>R&eacute;sum&eacute;:</strong> {{ article.summary_fr }}</div>
+                <div class="alert alert-light border-start border-4 border-primary">
+                    <strong>R&eacute;sum&eacute;</strong><br>{{ article.summary_fr }}
+                </div>
                 {% endif %}
-                <div>{{ article.content_fr or '' }}</div>
+                {% if article.content_fr %}
+                <div class="article-body lh-lg">{{ article.content_fr | paragraphs }}</div>
+                {% elif not has_content %}
+                <div class="alert alert-secondary mt-2">
+                    <i class="bi bi-info-circle"></i> Seul le titre a &eacute;t&eacute; r&eacute;cup&eacute;r&eacute;; le contenu complet n'&eacute;tait pas disponible.
+                    <a href="{{ article.url }}" target="_blank" class="fw-bold">Lire l'article original <i class="bi bi-box-arrow-up-right"></i></a>
+                </div>
+                {% endif %}
             </div>
         </div>
+
+        <!-- AI Strategic Insight -->
+        {% if article.insight_zh or article.insight_en %}
+        <div class="card mt-4 border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <i class="bi bi-lightbulb-fill text-warning"></i> <strong>AI Insight</strong>
+                {% if article.insight_zh and article.insight_en %}
+                <div class="btn-group btn-group-sm float-end">
+                    <a href="?insight_lang=zh" class="btn btn-{{ 'warning' if request.args.get('insight_lang', 'zh') == 'zh' else 'outline-secondary' }} btn-sm">中文</a>
+                    <a href="?insight_lang=en" class="btn btn-{{ 'warning' if request.args.get('insight_lang') == 'en' else 'outline-secondary' }} btn-sm">EN</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body insight-content" style="font-size: 0.92em;">
+                {% if article.insight_zh and request.args.get('insight_lang', 'zh') == 'zh' %}
+                {{ article.insight_zh | markdown_light }}
+                {% elif article.insight_en %}
+                {{ article.insight_en | markdown_light }}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <div class="col-md-4">
+        {% if article.highlights %}
+        <div class="card mb-3 border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <i class="bi bi-star-fill text-warning"></i> Highlights
+            </div>
+            <div class="card-body">
+                {% for h in article.highlights %}
+                {% if h == 'local_research' %}
+                <span class="badge fs-6 mb-1" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+                {% elif h == 'investment' %}
+                <span class="badge bg-success fs-6 mb-1"><i class="bi bi-cash-stack"></i> Investment / Funding</span>
+                {% elif h == 'local_event' %}
+                <span class="badge bg-danger fs-6 mb-1"><i class="bi bi-calendar-event-fill"></i> Upcoming Event</span>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card">
             <div class="card-header"><i class="bi bi-building"></i> Related Companies</div>
             <ul class="list-group list-group-flush">

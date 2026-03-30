@@ -29,15 +29,20 @@ def process_article_llm(self, article_id: int):
     text = article.content_fr or article.title_fr
 
     try:
-        # 1. Translate title and content
+        # 1. Translate title
         article.title_zh = client.translate(article.title_fr, 'zh', article.id)
         article.title_en = client.translate(article.title_fr, 'en', article.id)
 
+        # 2. Digest content (detailed rewrite, not literal translation)
         if article.content_fr:
-            article.content_zh = client.translate(article.content_fr, 'zh', article.id)
-            article.content_en = client.translate(article.content_fr, 'en', article.id)
+            article.content_zh = client.digest(
+                article.title_fr, article.content_fr, 'zh', article.id
+            )
+            article.content_en = client.digest(
+                article.title_fr, article.content_fr, 'en', article.id
+            )
 
-        # 2. Generate summaries
+        # 3. Generate summaries
         article.summary_fr = client.summarize(text, 'fr', article.id)
         article.summary_zh = client.summarize(text, 'zh', article.id)
         article.summary_en = client.summarize(text, 'en', article.id)
@@ -46,13 +51,32 @@ def process_article_llm(self, article_id: int):
         companies = client.extract_companies(text, article.id)
         _link_companies(article, companies, client, text)
 
-        # 4. Classify categories
-        categories = client.classify_category(text, article.id)
-        _link_categories(article, categories)
+        # 4. Classify categories + detect highlights
+        classify_result = client.classify_category(text, article.id)
+        _link_categories(article, classify_result['categories'])
+        article.highlights = classify_result['highlights'] or None
+        if classify_result.get('event_date'):
+            try:
+                from datetime import date
+                article.event_date = date.fromisoformat(classify_result['event_date'])
+            except (ValueError, TypeError):
+                pass
 
-        # Mark as processed
+        # 5. Generate strategic insight analysis
+        article.insight_zh = client.generate_insight(
+            article.title_fr, text, 'zh', article.id
+        )
+        article.insight_en = client.generate_insight(
+            article.title_fr, text, 'en', article.id
+        )
+
+        # Mark as processed with provider/model info
+        config = client._get_config('translate') or client._get_config('summarize')
         article.llm_processed = True
         article.llm_processed_at = datetime.utcnow()
+        if config:
+            article.llm_provider = config.provider
+            article.llm_model = config.model
         db.session.commit()
 
         logger.info(f'LLM processing complete for article {article_id}')
@@ -67,6 +91,8 @@ def _link_companies(article: Article, extracted: list[dict],
                     client: LLMClient, text: str):
     """Link extracted companies to the article, with sentiment analysis."""
     from slugify import slugify
+
+    linked_company_ids = set()
 
     for entry in extracted:
         name = entry.get('name', '').strip()
@@ -91,6 +117,16 @@ def _link_companies(article: Article, extracted: list[dict],
             )
             db.session.add(company)
             db.session.flush()
+
+        # Skip if this company was already linked to this article
+        if company.id in linked_company_ids:
+            continue
+        existing = ArticleCompany.query.filter_by(
+            article_id=article.id, company_id=company.id
+        ).first()
+        if existing:
+            continue
+        linked_company_ids.add(company.id)
 
         # Sentiment analysis for this company
         sentiment_data = client.analyze_sentiment(text, name, article.id)

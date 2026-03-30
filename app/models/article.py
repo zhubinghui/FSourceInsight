@@ -21,6 +21,15 @@ class Article(db.Model):
     summary_zh = db.Column(db.Text)
     summary_en = db.Column(db.Text)
 
+    # AI strategic insight analysis
+    insight_zh = db.Column(db.Text)
+    insight_en = db.Column(db.Text)
+
+    # Highlight tags: ["local_research", "investment", "local_event"]
+    highlights = db.Column(db.JSON)
+    # For local_event: the event date extracted by LLM (events past this date are hidden)
+    event_date = db.Column(db.Date)
+
     author = db.Column(db.String(200))
     image_url = db.Column(db.String(1000))
     published_at = db.Column(db.DateTime)

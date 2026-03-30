@@ -1,32 +1,76 @@
+import hashlib
+from datetime import datetime
+
+import requests
+from bs4 import BeautifulSoup
+
 from app.crawlers.registry import register_crawler
-from app.crawlers.rss_crawler import RSSCrawler
-from app.crawlers.base import RawArticle
+from app.crawlers.base import BaseCrawler, RawArticle
+from app.models.source import NewsSource
+
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
+    'Accept-Language': 'en-US,en;q=0.9',
+}
 
 
 @register_crawler('inria-grenoble')
-class InriaGrenobleCrawler(RSSCrawler):
-    """Crawler for Inria Grenoble - computer science and applied mathematics research."""
+class InriaGrenobleCrawler(BaseCrawler):
+    """Crawler for Inria news page (RSS is 404, use HTML scraping)."""
 
-    def parse_entry(self, entry) -> RawArticle | None:
-        article = super().parse_entry(entry)
-        if not article:
-            return None
+    def __init__(self, source: NewsSource):
+        super().__init__(source)
 
-        # Inria feed covers all centers — filter for Grenoble-related content
-        # Check tags and content for Grenoble mentions
-        tags = [t.get('term', '').lower() for t in entry.get('tags', [])]
-        text = (article.title + ' ' + (article.content or '')).lower()
+    def fetch_articles(self) -> list[RawArticle]:
+        articles = []
+        seen = set()
 
-        grenoble_keywords = ['grenoble', 'alpes', 'rhône-alpes', 'rhone-alpes', 'isère', 'isere']
-        is_grenoble = any(kw in text for kw in grenoble_keywords)
-        has_grenoble_tag = any(kw in tag for tag in tags for kw in grenoble_keywords)
+        for url in [
+            'https://www.inria.fr/en/news',
+            'https://www.inria.fr/en/events',
+        ]:
+            try:
+                resp = requests.get(url, headers=HEADERS, timeout=20)
+                resp.raise_for_status()
+                soup = BeautifulSoup(resp.text, 'lxml')
 
-        # Accept all Inria articles but could optionally filter
-        if tags:
-            tag_line = f'[Tags: {", ".join(t.get("term", "") for t in entry.get("tags", []))}]'
-            if article.content:
-                article.content = f'{tag_line}\n{article.content}'
-            else:
-                article.content = tag_line
+                for a_tag in soup.select('a[href]'):
+                    href = a_tag.get('href', '')
+                    text = a_tag.get_text(strip=True)
+                    if not text or len(text) < 15:
+                        continue
+                    # Filter for content pages
+                    if not any(kw in href for kw in ['/en/', '/fr/']):
+                        continue
+                    # Skip navigation
+                    if href.endswith('/news') or href.endswith('/events'):
+                        continue
 
-        return article
+                    full_url = href if href.startswith('http') else f'https://www.inria.fr{href}'
+                    if full_url in seen:
+                        continue
+                    seen.add(full_url)
+
+                    # Try to extract date from sibling elements
+                    pub_date = None
+                    parent = a_tag.find_parent(['article', 'div', 'li'])
+                    if parent:
+                        time_el = parent.find('time')
+                        if time_el and time_el.get('datetime'):
+                            try:
+                                pub_date = datetime.fromisoformat(
+                                    time_el['datetime'].replace('Z', '+00:00')
+                                )
+                            except ValueError:
+                                pass
+
+                    articles.append(RawArticle(
+                        title=text[:500],
+                        url=full_url,
+                        external_id=hashlib.sha256(full_url.encode()).hexdigest()[:32],
+                        published_at=pub_date,
+                    ))
+            except Exception as e:
+                self.logger.warning(f'Inria fetch failed for {url}: {e}')
+
+        return articles

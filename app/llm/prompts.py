@@ -29,6 +29,22 @@ SUMMARIZE_USER = "{text}"
 
 # -------------------------------------------------------------------
 
+DIGEST_SYSTEM = (
+    "You are a senior tech journalist rewriting French tech news for a {lang_name}-speaking professional audience.\n\n"
+    "Based on the original French article, produce a **detailed digest** in {lang_name}. Requirements:\n"
+    "- Cover ALL key facts, data points, quotes, and context from the original — do not omit important details\n"
+    "- Restructure and rewrite in clear, readable prose — do NOT translate sentence by sentence\n"
+    "- Use logical paragraph structure: background → main news → details → implications\n"
+    "- Preserve company names, people names, technical terms, and numbers accurately\n"
+    "- Length: roughly 40-60% of the original, denser and more readable\n"
+    "- No introductions like 'This article discusses...'. Start directly with the content.\n"
+    "Output only the digest, nothing else."
+)
+
+DIGEST_USER = "Article title: {title}\n\nOriginal article:\n{text}"
+
+# -------------------------------------------------------------------
+
 NER_SYSTEM = (
     "You are a Named Entity Recognition specialist for French tech news. "
     "Extract all company and organization names mentioned in the text below.\n\n"
@@ -80,12 +96,49 @@ CLASSIFY_SYSTEM = (
     "- fintech: payments, banking tech, blockchain, crypto\n"
     "- telecom: 5G, fiber, networks, operators\n"
     "- research: academic research, R&D, scientific breakthroughs\n\n"
-    "Return a JSON object with a single key 'categories':\n"
-    '{{"categories": [{{"category": "<slug>", "confidence": <float 0.0-1.0>}}, ...]}}\n\n'
-    "Assign 1-3 categories. Only include categories with confidence >= 0.3."
+    "Also detect these HIGHLIGHT types (only if clearly applicable):\n"
+    "- local_research: new research result or scientific breakthrough from a Grenoble/AURA institution "
+    "(CEA, Inria, ESRF, ILL, Grenoble INP, UGA, Minalogic member labs, etc.)\n"
+    "- investment: funding round, acquisition, IPO, venture capital, M&A involving a French/local company\n"
+    "- local_event: upcoming conference, workshop, summit, meetup, trade show, or event "
+    "in or related to the Grenoble/AURA/French tech ecosystem\n\n"
+    "Return a JSON object:\n"
+    '{{"categories": [{{"category": "<slug>", "confidence": <float 0.0-1.0>}}, ...], '
+    '"highlights": ["local_research", "investment", "local_event"], '
+    '"event_date": "YYYY-MM-DD or null"}}\n\n'
+    "Assign 1-3 categories (confidence >= 0.3). "
+    "highlights array should only contain applicable tags (can be empty []). "
+    "event_date: if local_event is detected, extract the event date (YYYY-MM-DD). "
+    "If multiple dates, use the start date. If no specific date found, use null."
 )
 
 CLASSIFY_USER = "{text}"
+
+# -------------------------------------------------------------------
+
+# -------------------------------------------------------------------
+
+INSIGHT_SYSTEM = (
+    "You are a concise tech industry analyst. Analyze this French tech news in {lang_name}.\n\n"
+    "Output EXACTLY this format (keep each section short, no filler):\n\n"
+    "## Core Point\n"
+    "One sentence: what happened and why it matters.\n\n"
+    "## Key Players\n"
+    "For each company/org: **Name** — what they do, where based. One line each. Skip if none.\n\n"
+    "## Industry Impact\n"
+    "Only list RELEVANT industries with impact level. One line each, no explanation if obvious:\n"
+    "- **ICT**: High/Medium/Low — reason\n"
+    "- **Terminals/Consumer Electronics**: ...\n"
+    "- **Energy**: ...\n"
+    "- **Computing/AI**: ...\n"
+    "- **Automotive**: ...\n"
+    "Skip irrelevant industries entirely.\n\n"
+    "## Tracking\n"
+    "**[Strongly track / Monitor / Low priority]** — one-sentence reason.\n\n"
+    "RULES: Be terse. No introductions. No repetition. Max 200 words total."
+)
+
+INSIGHT_USER = "Article title: {title}\n\nArticle content:\n{text}"
 
 # -------------------------------------------------------------------
 
@@ -112,6 +165,14 @@ def get_summarize_messages(text: str, target_lang: str) -> list[dict]:
     ]
 
 
+def get_digest_messages(title: str, text: str, target_lang: str) -> list[dict]:
+    lang_name = LANG_NAMES.get(target_lang, target_lang)
+    return [
+        {'role': 'system', 'content': DIGEST_SYSTEM.format(lang_name=lang_name)},
+        {'role': 'user', 'content': DIGEST_USER.format(title=title, text=text)},
+    ]
+
+
 def get_ner_messages(text: str) -> list[dict]:
     return [
         {'role': 'system', 'content': NER_SYSTEM},
@@ -132,4 +193,12 @@ def get_classify_messages(text: str) -> list[dict]:
     return [
         {'role': 'system', 'content': CLASSIFY_SYSTEM},
         {'role': 'user', 'content': CLASSIFY_USER.format(text=text)},
+    ]
+
+
+def get_insight_messages(title: str, text: str, target_lang: str) -> list[dict]:
+    lang_name = LANG_NAMES.get(target_lang, target_lang)
+    return [
+        {'role': 'system', 'content': INSIGHT_SYSTEM.format(lang_name=lang_name)},
+        {'role': 'user', 'content': INSIGHT_USER.format(title=title, text=text)},
     ]

@@ -6,17 +6,32 @@ import time
 from typing import Optional
 
 import litellm
+from app.utils.text import strip_html
 from app.extensions import db, redis_client
 from app.models.llm import LLMConfig, LLMUsageLog
 from app.llm.prompts import (
-    get_translate_messages, get_summarize_messages,
+    get_translate_messages, get_summarize_messages, get_digest_messages,
     get_ner_messages, get_sentiment_messages, get_classify_messages,
+    get_insight_messages,
 )
 from app.llm.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger(__name__)
 
 CACHE_TTL = 7 * 24 * 3600  # 7 days
+
+# Max input characters per task type — prevents exceeding model context limits
+# Rough rule: 1 token ≈ 4-5 chars for French text
+MAX_INPUT_CHARS = {
+    'translate': 50000,   # ~12K tokens, need full text
+    'digest': 50000,      # ~12K tokens, need full text
+    'summarize': 30000,   # ~7K tokens
+    'ner': 20000,         # ~5K tokens, entity names appear early
+    'sentiment': 20000,   # ~5K tokens
+    'classify': 20000,    # ~5K tokens
+    'insight': 30000,     # ~7K tokens
+}
+DEFAULT_MAX_INPUT_CHARS = 30000
 
 
 class LLMClient:
@@ -35,25 +50,41 @@ class LLMClient:
     # ── Config resolution ─────────────────────────────────────────
 
     def _get_config(self, task_type: str) -> Optional[LLMConfig]:
-        """Get the active LLM config for a specific task type."""
-        configs = LLMConfig.query.filter_by(is_active=True).all()
-        for config in configs:
-            if config.tasks and task_type in config.tasks:
-                if not self._breaker.is_open(config.provider):
-                    return config
+        """Get the active LLM config for a specific task type.
+
+        Uses cost-aware routing: when multiple configs can handle the same
+        task, the cheapest one (by input token cost) is preferred.  Seed
+        order (id) breaks ties so the first-seeded config wins.
+        """
+        configs = LLMConfig.query.filter_by(is_active=True).order_by(
+            LLMConfig.id
+        ).all()
+        candidates = [
+            c for c in configs
+            if c.tasks and task_type in c.tasks
+            and not self._breaker.is_open(c.provider)
+        ]
+        if candidates:
+            candidates.sort(key=lambda c: float(c.cost_per_1k_input or 999))
+            return candidates[0]
         # Fall back to default (even if breaker is open — last resort)
         return LLMConfig.query.filter_by(is_active=True, is_default=True).first()
 
     def _get_fallback_config(self, failed_config: LLMConfig,
                               task_type: str) -> Optional[LLMConfig]:
         """Get an alternative config after the primary one fails."""
-        configs = LLMConfig.query.filter_by(is_active=True).all()
-        for config in configs:
-            if config.id == failed_config.id:
-                continue
-            if config.tasks and task_type in config.tasks:
-                if not self._breaker.is_open(config.provider):
-                    return config
+        configs = LLMConfig.query.filter_by(is_active=True).order_by(
+            LLMConfig.id
+        ).all()
+        candidates = [
+            c for c in configs
+            if c.id != failed_config.id
+            and c.tasks and task_type in c.tasks
+            and not self._breaker.is_open(c.provider)
+        ]
+        if candidates:
+            candidates.sort(key=lambda c: float(c.cost_per_1k_input or 999))
+            return candidates[0]
         # Try default as last resort
         default = LLMConfig.query.filter_by(
             is_active=True, is_default=True
@@ -216,15 +247,43 @@ class LLMClient:
 
         if parse_json:
             try:
-                parsed = json.loads(result)
-            except json.JSONDecodeError:
-                logger.warning(f'Failed to parse {task_type} response as JSON')
+                cleaned = self._extract_json(result)
+                parsed = json.loads(cleaned)
+            except (json.JSONDecodeError, ValueError):
+                logger.warning(
+                    f'Failed to parse {task_type} response as JSON: '
+                    f'{result[:200]}'
+                )
                 parsed = self._json_fallback(task_type)
             self._set_cache(cache_key, json.dumps(parsed))
             return parsed
         else:
             self._set_cache(cache_key, result)
             return result
+
+    @staticmethod
+    def _extract_json(text: str) -> str:
+        """Strip markdown code blocks that some providers (DeepSeek) wrap around JSON."""
+        text = text.strip()
+        if text.startswith('```'):
+            first_newline = text.find('\n')
+            if first_newline != -1:
+                text = text[first_newline + 1:]
+            if text.rstrip().endswith('```'):
+                text = text.rstrip()[:-3]
+            text = text.strip()
+        return text
+
+    @staticmethod
+    def _truncate_text(text: str, task_type: str) -> str:
+        """Truncate input text to stay within model context limits."""
+        max_chars = MAX_INPUT_CHARS.get(task_type, DEFAULT_MAX_INPUT_CHARS)
+        if len(text) <= max_chars:
+            return text
+        logger.debug(
+            f'Truncating {task_type} input from {len(text)} to {max_chars} chars'
+        )
+        return text[:max_chars]
 
     @staticmethod
     def _json_fallback(task_type: str):
@@ -238,6 +297,8 @@ class LLMClient:
     def translate(self, text: str, target_lang: str = 'zh',
                   article_id: int = None) -> str:
         """Translate French text to target language."""
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'translate')
         cache_key = self._cache_key('translate', text, target_lang=target_lang)
         messages = get_translate_messages(text, target_lang)
         return self._call_with_cache('translate', messages, cache_key, article_id)
@@ -245,12 +306,29 @@ class LLMClient:
     def summarize(self, text: str, target_lang: str = 'zh',
                   article_id: int = None) -> str:
         """Generate a concise summary of the article."""
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'summarize')
         cache_key = self._cache_key('summarize', text, target_lang=target_lang)
         messages = get_summarize_messages(text, target_lang)
         return self._call_with_cache('summarize', messages, cache_key, article_id)
 
+    def digest(self, title: str, text: str, target_lang: str = 'zh',
+               article_id: int = None) -> str:
+        """Generate a detailed digest — more than summary, less than full translation.
+
+        Restructures and condenses the original into readable prose covering all key details.
+        """
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'digest')
+        title = strip_html(title) or title
+        cache_key = self._cache_key('digest', text, target_lang=target_lang)
+        messages = get_digest_messages(title, text, target_lang)
+        return self._call_with_cache('digest', messages, cache_key, article_id)
+
     def extract_companies(self, text: str, article_id: int = None) -> list[dict]:
         """Extract company/organization names from French text using NER."""
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'ner')
         cache_key = self._cache_key('ner', text)
         messages = get_ner_messages(text)
         result = self._call_with_cache(
@@ -267,6 +345,8 @@ class LLMClient:
     def analyze_sentiment(self, text: str, company_name: str,
                           article_id: int = None) -> dict:
         """Analyze sentiment of the article toward a specific company."""
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'sentiment')
         cache_key = self._cache_key('sentiment', text, company=company_name)
         messages = get_sentiment_messages(text, company_name)
         return self._call_with_cache(
@@ -274,17 +354,48 @@ class LLMClient:
             response_format={'type': 'json_object'}, parse_json=True
         )
 
-    def classify_category(self, text: str, article_id: int = None) -> list[dict]:
-        """Classify the article into tech categories."""
+    def classify_category(self, text: str, article_id: int = None) -> dict:
+        """Classify the article into tech categories and detect highlights.
+
+        Returns: {"categories": [...], "highlights": [...]}
+        """
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'classify')
         cache_key = self._cache_key('classify', text)
         messages = get_classify_messages(text)
         result = self._call_with_cache(
             'classify', messages, cache_key, article_id,
             response_format={'type': 'json_object'}, parse_json=True
         )
-        # Normalize: extract 'categories' key if wrapped
-        if isinstance(result, dict) and 'categories' in result:
-            return result['categories']
+        # Normalize into standard format
+        if isinstance(result, dict):
+            categories = result.get('categories', [])
+            highlights = result.get('highlights', [])
+            event_date = result.get('event_date')
+            if not isinstance(categories, list):
+                categories = []
+            if not isinstance(highlights, list):
+                highlights = []
+            return {
+                'categories': categories,
+                'highlights': highlights,
+                'event_date': event_date,
+            }
         if isinstance(result, list):
-            return result
-        return []
+            return {'categories': result, 'highlights': [], 'event_date': None}
+        return {'categories': [], 'highlights': [], 'event_date': None}
+
+    def generate_insight(self, title: str, text: str,
+                         target_lang: str = 'zh',
+                         article_id: int = None) -> str:
+        """Generate strategic insight analysis for an article.
+
+        Analyzes company background, technology impact on ICT/energy/computing/etc.,
+        and provides tracking recommendations.
+        """
+        text = strip_html(text) or text
+        text = self._truncate_text(text, 'insight')
+        title = strip_html(title) or title
+        cache_key = self._cache_key('insight', text, lang=target_lang)
+        messages = get_insight_messages(title, text, target_lang)
+        return self._call_with_cache('insight', messages, cache_key, article_id)

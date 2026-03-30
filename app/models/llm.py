@@ -30,11 +30,7 @@ class LLMUsageLog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     config_id = db.Column(db.Integer, db.ForeignKey('llm_config.id'), nullable=False)
-    task_type = db.Column(
-        db.Enum('translate', 'summarize', 'ner', 'sentiment', 'classify',
-                name='llm_task_type_enum'),
-        nullable=False
-    )
+    task_type = db.Column(db.String(50), nullable=False)
     article_id = db.Column(
         db.Integer, db.ForeignKey('article.id', ondelete='SET NULL')
     )

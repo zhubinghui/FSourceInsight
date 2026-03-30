@@ -1,6 +1,21 @@
 {% for article in articles %}
-<div class="card mb-3">
+<div class="card mb-3 {{ 'border-start border-4 border-warning' if article.highlights }}">
     <div class="card-body">
+        {# Highlight badges at top #}
+        {% if article.highlights %}
+        <div class="mb-2">
+            {% for h in article.highlights %}
+            {% if h == 'local_research' %}
+            <span class="badge bg-purple text-white" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+            {% elif h == 'investment' %}
+            <span class="badge bg-success"><i class="bi bi-cash-stack"></i> Investment</span>
+            {% elif h == 'local_event' %}
+            <span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i> Event</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
                 <h5 class="card-title mb-1">
@@ -36,6 +51,7 @@
             <small class="text-muted text-nowrap">
                 {% if article.published_at %}{{ article.published_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
                 {% if article.llm_processed %}<i class="bi bi-robot text-success ms-1" title="AI processed"></i>{% endif %}
+                {% if article.insight_zh %}<i class="bi bi-lightbulb text-warning ms-1" title="Has AI insight"></i>{% endif %}
             </small>
         </div>
     </div>
@@ -49,7 +65,7 @@
     <ul class="pagination justify-content-center">
         {% if pagination.has_prev %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ pagination.prev_num }}&{{ request.query_string.decode().replace('page=' ~ pagination.page, '') }}">
+            <a class="page-link" href="?page={{ pagination.prev_num }}&source_id={{ request.args.get('source_id', '') }}&category_id={{ request.args.get('category_id', '') }}&company_id={{ request.args.get('company_id', '') }}&q={{ request.args.get('q', '') }}&date_from={{ request.args.get('date_from', '') }}&date_to={{ request.args.get('date_to', '') }}&highlight={{ request.args.get('highlight', '') }}">
                 <i class="bi bi-chevron-left"></i>
             </a>
         </li>
@@ -57,7 +73,7 @@
         {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
             {% if p %}
             <li class="page-item {% if p == pagination.page %}active{% endif %}">
-                <a class="page-link" href="?page={{ p }}&source_id={{ request.args.get('source_id', '') }}&category_id={{ request.args.get('category_id', '') }}&company_id={{ request.args.get('company_id', '') }}&q={{ request.args.get('q', '') }}&date_from={{ request.args.get('date_from', '') }}&date_to={{ request.args.get('date_to', '') }}">{{ p }}</a>
+                <a class="page-link" href="?page={{ p }}&source_id={{ request.args.get('source_id', '') }}&category_id={{ request.args.get('category_id', '') }}&company_id={{ request.args.get('company_id', '') }}&q={{ request.args.get('q', '') }}&date_from={{ request.args.get('date_from', '') }}&date_to={{ request.args.get('date_to', '') }}&highlight={{ request.args.get('highlight', '') }}">{{ p }}</a>
             </li>
             {% else %}
             <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -65,7 +81,7 @@
         {% endfor %}
         {% if pagination.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ pagination.next_num }}&{{ request.query_string.decode().replace('page=' ~ pagination.page, '') }}">
+            <a class="page-link" href="?page={{ pagination.next_num }}&source_id={{ request.args.get('source_id', '') }}&category_id={{ request.args.get('category_id', '') }}&company_id={{ request.args.get('company_id', '') }}&q={{ request.args.get('q', '') }}&date_from={{ request.args.get('date_from', '') }}&date_to={{ request.args.get('date_to', '') }}&highlight={{ request.args.get('highlight', '') }}">
                 <i class="bi bi-chevron-right"></i>
             </a>
         </li>
