@@ -14,8 +14,8 @@ set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────
 INSTALL_DIR="/opt/fsourceinsight"
-REPO_URL=""  # <-- Fill in your git repo URL
-BRANCH="main"
+REPO_URL="https://github.com/zhubinghui/FSourceInsight.git"
+BRANCH="master"
 DOMAIN=""    # <-- Fill in your domain (optional, for SSL)
 
 RED='\033[0;31m'
