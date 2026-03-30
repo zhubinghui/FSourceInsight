@@ -4,121 +4,132 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-FSourceInsight is a French tech news aggregator web application that crawls news from French sources (especially Grenoble area), processes them with configurable LLMs (translation, summarization, NER, sentiment analysis), stores in MySQL, and provides a web interface with daily email digests.
+FSourceInsight is a French tech news aggregator focused on the Grenoble/AURA tech ecosystem. It crawls 15+ French news sources, processes articles through a multi-provider LLM pipeline (translation, summarization, NER, sentiment analysis, classification, insight generation), stores results in MySQL, and serves a web interface with daily email digests.
 
 ## Tech Stack
 
 - **Backend**: Python 3.12 + Flask + SQLAlchemy + Alembic
 - **Task Queue**: Celery + Redis (3 queues: crawl, llm, email)
-- **LLM**: LiteLLM for multi-provider routing (OpenAI, Anthropic, etc.)
+- **LLM**: LiteLLM for multi-provider routing (DeepSeek, OpenAI, Anthropic)
 - **Frontend**: Jinja2 + HTMX + Bootstrap 5
 - **Database**: MySQL 8.0 (utf8mb4)
-- **Deployment**: Docker Compose (web, worker, beat, redis, mysql, nginx)
+- **Deployment**: Docker Compose (6 services: web, worker, beat, redis, mysql, nginx)
 
 ## Common Commands
 
+All commands run inside Docker unless noted. For local dev, the web container mounts the source directory so code changes take effect on restart.
+
 ```bash
-# Start all services
-docker-compose up -d
+# Start services (dev)
+docker compose up -d
 
-# Run database migrations
-flask db upgrade
+# Start services (production — no source mount, resource limits, nginx SSL-ready)
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
-# Create a new migration after model changes
-flask db migrate -m "description"
+# Database migrations
+docker compose exec web flask db upgrade
+docker compose exec web flask db migrate -m "description"
 
-# Seed initial data (run in order)
-python scripts/seed_sources.py
-python scripts/seed_companies.py
-python scripts/seed_categories.py
-python scripts/seed_llm_configs.py
+# Seed data (must run in order on fresh DB)
+docker compose exec web python scripts/seed_sources.py
+docker compose exec web python scripts/seed_companies.py
+docker compose exec web python scripts/seed_categories.py
+docker compose exec web python scripts/seed_llm_configs.py
 
-# Manual crawl (all sources or specific)
-python scripts/run_crawl.py
-python scripts/run_crawl.py -s usine-digitale
-python scripts/run_crawl.py --list
+# Manual crawl
+docker compose exec web python scripts/run_crawl.py --list
+docker compose exec web python scripts/run_crawl.py -s frenchweb
 
 # Manual LLM processing
-python scripts/run_llm_process.py -n 10        # Process 10 unprocessed articles
-python scripts/run_llm_process.py -a 42         # Process specific article
-python scripts/run_llm_process.py --dry-run     # Preview without processing
+docker compose exec web python scripts/run_llm_process.py -n 10
+docker compose exec web python scripts/run_llm_process.py -a 42
+docker compose exec web python scripts/run_llm_process.py --dry-run
 
-# Run tests
+# Tests (install dev deps first: pip install -r requirements/dev.txt)
 pytest
 pytest tests/test_crawlers/ -v
 
-# Install dependencies (development)
-pip install -r requirements/dev.txt
+# View logs
+docker compose logs -f worker
+docker compose logs -f beat
 ```
 
 ## Architecture
 
 ### Data Flow
+
 ```
-News Sources → Crawlers → MySQL → LLM Pipeline → Translated/Enriched Articles → Web UI / Email
+News Sources → Crawlers → MySQL → LLM Pipeline → Enriched Articles → Web UI / Email Digest
 ```
 
-### Key Modules
+### Mixed LLM Provider Strategy
 
-- `app/crawlers/` — BaseCrawler → RSSCrawler/HTMLCrawler → source-specific parsers. Registry pattern maps source slugs to crawler classes via `@register_crawler` decorator.
-- `app/llm/client.py` — LLMClient facade using LiteLLM. Config stored in DB (`llm_config` table), not code. Each task (translate/summarize/ner/sentiment/classify) can use a different model.
-- `app/llm/tasks.py` — Celery task chain: translate → summarize → NER → sentiment → classify. Rate-limited to 10/min.
-- `app/email/` — Daily digest builder + keyword alert matching. Runs via Celery Beat at 7:00 AM Paris time.
-- `app/web/views/` — Six Flask Blueprints: news, company, admin, subscription, auth, api.
-- `app/api/v1/routes.py` — REST API for news/companies/sources (JSON, CSRF-exempt).
-- `app/models/` — SQLAlchemy models. Article is the central model; ArticleCompany carries sentiment data.
+Cost-optimized routing across providers — configured in DB (`llm_config` table), not code:
+
+- **DeepSeek** (cheapest): translate, digest, summarize, sentiment
+- **OpenAI gpt-5.4-mini**: NER, classify, insight (needs structured JSON output / deep analysis)
+- **OpenAI gpt-5.4-nano**: fallback for all simple tasks when primary provider is down
+- **Anthropic Claude**: disabled premium option, enable via Admin UI
+
+`LLMClient._get_config()` selects the cheapest active provider for each task type. Circuit breaker (`app/llm/circuit_breaker.py`) auto-opens after 5 consecutive failures per provider, recovers after 5 min. Fallback to next cheapest provider is automatic.
+
+LLM config is managed via Admin UI (`/admin/llm-config`). API keys are stored as env var names in DB (e.g., `DEEPSEEK_API_KEY`), never raw keys.
+
+### LLM Pipeline Per Article
+
+Executed by `process_article_llm` Celery task (rate-limited 10/min):
+
+1. **Title translation** (fr→zh, fr→en) — DeepSeek
+2. **Content digest** (zh, en) — DeepSeek — restructured rewrite, not literal translation
+3. **Summaries** (fr, zh, en) — DeepSeek
+4. **Company NER** — OpenAI — returns JSON with company names, mentions, is_primary
+5. **Sentiment analysis** per extracted company — DeepSeek
+6. **Category classification + highlight detection** — OpenAI — local_research/investment/local_event
+7. **Strategic insight** (zh, en) — OpenAI
+
+All prompts are in `app/llm/prompts.py`. Responses cached in Redis (7 days). Usage/cost logged to `llm_usage_log` table.
+
+### Crawler System
+
+Registry pattern: `@register_crawler('source-slug')` in `app/crawlers/sources/*.py`. Base classes `RSSCrawler` and `HTMLCrawler` handle fetching; subclasses customize parsing. `discover_crawlers()` imports all source modules to trigger registration.
+
+### Celery Configuration
+
+`celery_app.py` — three queues (crawl, llm, email) with explicit task routing. Task modules must be in the `include` list or they won't be discovered by workers. Beat schedule: crawl check every 60s, digest at 7:00 AM Paris, health check every 6h.
+
+### Key Design Decisions
+
+- **LLM config in DB, not code** — switch providers/models from Admin UI without deploys
+- **`response_format: {"type": "json_object"}`** used for NER/sentiment/classify — DeepSeek sometimes wraps JSON in markdown code blocks, so `LLMClient._extract_json()` strips them
+- **`_link_companies` deduplication** — checks both in-memory set and DB to prevent duplicate `article_company` rows from partial retry
+- **Docker port mapping** — dev uses non-standard ports (8001/8080/6380) to avoid conflicts; prod override resets nginx to 80/443 and hides internal service ports
 
 ### Adding a New News Source
 
 1. Create `app/crawlers/sources/new_source.py`
-2. Subclass `RSSCrawler` (if RSS) or `HTMLCrawler` (if scraping)
-3. Decorate with `@register_crawler('source-slug')`
-4. Add import in `app/crawlers/sources/__init__.py`
-5. Add entry in `scripts/seed_sources.py` and run it
-
-### LLM Provider Configuration
-
-LLM config lives in the `llm_config` database table. API keys are stored as environment variable names (never raw keys in DB). To switch providers, update the DB record via Admin UI (`/admin/llm-config`) — no code changes needed.
-
-### LLM Architecture
-
-- `app/llm/client.py` — LLMClient facade with caching, usage tracking, and circuit breaker
-- `app/llm/prompts.py` — All prompt templates centralized here. Modify prompts without touching client logic.
-- `app/llm/circuit_breaker.py` — Per-provider circuit breaker (Redis-backed). Opens after 5 failures, recovers after 5 min. Falls back to alternative provider automatically.
-- Admin UI at `/admin/llm-config` for CRUD; `/admin/llm-usage` for cost/token dashboard.
-
-### Web Interface
-
-- HTMX-powered live search on news and company list pages (no full reload)
-- News filtering: source, category, company, date range, keyword search — all via HTMX
-- Company detail: Chart.js stacked bar chart for sentiment trend over time
-- Admin: full CRUD for sources, companies, LLM configs; company merge tool; crawl-now button
-- Auth: Flask-Login with `@login_required` on admin routes; first-time `/auth/setup` creates admin
-
-### REST API
-
-Base URL: `/api/v1/`. CSRF-exempt. Returns JSON.
-- `GET /api/v1/news` — paginated articles (filter: source_id, company_id, q, date_from, date_to)
-- `GET /api/v1/news/<id>` — full article with companies and categories
-- `GET /api/v1/companies` — paginated companies (filter: q, sector, grenoble)
-- `GET /api/v1/companies/<slug>` — company with recent articles
-- `GET /api/v1/sources` — active news sources
-
-### Monitoring & Health
-
-- `GET /health` — basic health (DB + Redis connectivity), returns 200/503
-- `GET /health/detail` — detailed: crawl stats, pipeline queue, LLM failure rate
-- Sentry integration: set `SENTRY_DSN` env var to enable (Flask + Celery + SQLAlchemy)
-- Structured logging: `LOG_FORMAT=json` for production, rotating file handler
-- Crawl health check: Celery Beat task every 6h, logs warnings for stale/failing sources
-- LLM daily budget: `LLM_DAILY_BUDGET_USD` env var, checked before each API call
+2. Subclass `RSSCrawler` or `HTMLCrawler`, decorate with `@register_crawler('slug')`
+3. Add import in `app/crawlers/sources/__init__.py`
+4. Add entry in `scripts/seed_sources.py` and run it
 
 ### Production Deployment
 
 ```bash
-# Production with resource limits and SSL-ready nginx
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# One-command deployment on fresh Ubuntu/Debian server
+sudo ./scripts/deploy.sh
 
-# MySQL backup (set up as daily cron)
+# Or manually:
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose exec web flask db upgrade
+# Then seed scripts, create admin at /auth/setup
+
+# MySQL backup (daily cron at 2 AM)
 ./scripts/backup_mysql.sh
 ```
+
+### Monitoring
+
+- `GET /health` — DB + Redis check (200/503)
+- `GET /health/detail` — crawl stats, pipeline queue depth, LLM failure rate
+- Admin dashboard at `/admin` — article counts, today's LLM cost, crawl logs
+- `LLM_DAILY_BUDGET_USD` env var caps daily LLM spend
+- Optional Sentry: set `SENTRY_DSN` env var
