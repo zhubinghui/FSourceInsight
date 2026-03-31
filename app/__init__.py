@@ -91,31 +91,13 @@ def create_app(config_name=None):
 
     @app.template_filter('markdown_light')
     def markdown_light_filter(text):
-        """Render light markdown: ## headers, **bold**, - bullets, line breaks."""
+        """Convert markdown to HTML using markdown-it-py (supports tables, headers, lists, bold, etc.)."""
         if not text:
             return ''
         from markupsafe import Markup
-        import re
-        lines = text.split('\n')
-        out = []
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            # ## Header
-            if line.startswith('## '):
-                out.append(f'<h6 class="fw-bold mt-3 mb-1">{line[3:]}</h6>')
-            # - Bullet
-            elif line.startswith('- '):
-                content = line[2:]
-                content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', content)
-                out.append(f'<li>{content}</li>')
-            else:
-                content = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', line)
-                out.append(f'<p class="mb-1">{content}</p>')
-        # Wrap consecutive <li> in <ul>
-        html = '\n'.join(out)
-        html = re.sub(r'((?:<li>.*?</li>\n?)+)', r'<ul class="mb-2">\1</ul>', html)
+        from markdown_it import MarkdownIt
+        md = MarkdownIt('commonmark', {'typographer': True}).enable('table')
+        html = md.render(str(text))
         return Markup(html)
 
     # Template context

@@ -374,6 +374,48 @@ body {
 .hl-pill-event { color: var(--fs-red); border-color: var(--fs-red); }
 .hl-pill-event:hover { background: var(--fs-red); color: #fff; }
 
+/* ── Markdown rendered content ───────────────────────────────── */
+.article-body h1,
+.article-body h2,
+.insight-content h1,
+.insight-content h2 { font-size: 1.05rem; font-weight: 700; margin: 1.2rem 0 0.4rem; color: var(--fs-text); }
+.article-body h3,
+.article-body h4,
+.insight-content h3,
+.insight-content h4 { font-size: 0.95rem; font-weight: 600; margin: 1rem 0 0.3rem; color: var(--fs-text); }
+
+.article-body table,
+.insight-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.75rem 0;
+}
+
+.article-body table th,
+.insight-content table th {
+  background: var(--fs-muted);
+  font-weight: 600;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--fs-card-border);
+  text-align: left;
+}
+
+.article-body table td,
+.insight-content table td {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--fs-card-border);
+}
+
+.article-body table tr:hover,
+.insight-content table tr:hover { background: rgba(0,0,0,0.02); }
+
+.article-body ul,
+.insight-content ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+
+.article-body li,
+.insight-content li { margin-bottom: 0.25rem; }
+
 /* ── Detail page ────────────────────────────────────────────── */
 .article-detail .article-body {
   font-size: 1rem;
