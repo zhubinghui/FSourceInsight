@@ -383,31 +383,6 @@ body {
 
 .article-detail .article-body p { margin-bottom: 1.25rem; }
 
-/* ── Markdown rendered content ──────────────────────────────── */
-.article-body h1, .insight-content h1 { font-size: 1.15rem; font-weight: 700; margin-top: 1.2rem; margin-bottom: 0.5rem; }
-.article-body h2, .insight-content h2 { font-size: 1.05rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.4rem; }
-.article-body h3, .insight-content h3,
-.article-body h4, .insight-content h4,
-.article-body h5, .insight-content h5,
-.article-body h6, .insight-content h6 { font-size: 0.95rem; font-weight: 600; margin-top: 0.8rem; margin-bottom: 0.3rem; }
-
-.article-body table, .insight-content table {
-  width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.8rem 0;
-}
-.article-body table th, .insight-content table th {
-  background: var(--fs-muted); font-weight: 600; text-align: left;
-  padding: 0.4rem 0.6rem; border: 1px solid var(--fs-card-border);
-}
-.article-body table td, .insight-content table td {
-  padding: 0.4rem 0.6rem; border: 1px solid var(--fs-card-border);
-}
-.article-body ul, .insight-content ul {
-  padding-left: 1.2rem; margin-bottom: 0.6rem;
-}
-.article-body li, .insight-content li {
-  margin-bottom: 0.2rem;
-}
-
 .insight-card {
   border: 1px solid #FDE68A;
   background: linear-gradient(135deg, #FFFBEB 0%, #FFF 40%);
@@ -418,6 +393,32 @@ body {
   background: transparent;
   border-bottom: 1px solid #FDE68A;
   font-weight: 600;
+}
+
+/* Insight content typography */
+.insight-content {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--fs-text);
+}
+
+.insight-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin: 0.6rem 0;
+}
+.insight-table th {
+  background: var(--fs-muted);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--fs-card-border);
+  font-size: 0.82rem;
+}
+.insight-table td {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--fs-card-border);
 }
 
 /* ── Top Insights Page ──────────────────────────────────────── */
