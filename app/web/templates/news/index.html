@@ -11,9 +11,12 @@
         <div>
             <i class="bi bi-star-fill text-warning"></i>
             <strong>Highlights</strong>
-            <small class="text-muted ms-2">{{ hl_total }} items (Research &amp; Investment: 7 days / Events: upcoming)</small>
+            <small class="text-muted ms-2">{{ hl_total }} items (sorted by priority)</small>
         </div>
         <div class="btn-group btn-group-sm">
+            <a href="?highlight=tech_breakthrough" class="btn btn-outline-dark" style="border-color: #e65100; color: #e65100;">
+                <i class="bi bi-lightning-charge-fill"></i> Breakthrough
+            </a>
             <a href="?highlight=local_research" class="btn btn-outline-dark" style="border-color: #7c3aed; color: #7c3aed;">
                 <i class="bi bi-mortarboard-fill"></i> Research
             </a>
@@ -30,7 +33,8 @@
         <div class="d-flex align-items-start py-2 {{ 'border-top' if not loop.first }}">
             <div class="me-2 mt-1">
                 {% for h in (article.highlights or []) %}
-                {% if h == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i></span>
+                {% if h == 'tech_breakthrough' %}<span class="badge" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i></span>
+                {% elif h == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i></span>
                 {% elif h == 'investment' %}<span class="badge bg-success"><i class="bi bi-cash-stack"></i></span>
                 {% elif h == 'local_event' %}<span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i></span>
                 {% endif %}
@@ -80,7 +84,8 @@
 <div class="alert alert-info d-flex justify-content-between align-items-center py-2 mb-3">
     <span>
         Filtering by:
-        {% if current_highlight == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+        {% if current_highlight == 'tech_breakthrough' %}<span class="badge" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i> Tech Breakthrough</span>
+        {% elif current_highlight == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
         {% elif current_highlight == 'investment' %}<span class="badge bg-success"><i class="bi bi-cash-stack"></i> Investment</span>
         {% elif current_highlight == 'local_event' %}<span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i> Event</span>
         {% endif %}

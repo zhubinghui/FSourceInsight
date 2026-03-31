@@ -5,8 +5,10 @@
         {% if article.highlights %}
         <div class="mb-2">
             {% for h in article.highlights %}
-            {% if h == 'local_research' %}
-            <span class="badge bg-purple text-white" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+            {% if h == 'tech_breakthrough' %}
+            <span class="badge text-white" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i> Tech Breakthrough</span>
+            {% elif h == 'local_research' %}
+            <span class="badge text-white" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
             {% elif h == 'investment' %}
             <span class="badge bg-success"><i class="bi bi-cash-stack"></i> Investment</span>
             {% elif h == 'local_event' %}

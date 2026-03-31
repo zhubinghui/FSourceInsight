@@ -9,6 +9,21 @@ from app.models.company import Company
 
 news_bp = Blueprint('news', __name__)
 
+# Priority weights for highlight types (higher = more important)
+HIGHLIGHT_PRIORITY = {
+    'tech_breakthrough': 4,
+    'local_research': 3,
+    'investment': 2,
+    'local_event': 1,
+}
+
+
+def _highlight_score(article):
+    """Compute max highlight priority score for sorting."""
+    if not article.highlights:
+        return 0
+    return max(HIGHLIGHT_PRIORITY.get(h, 0) for h in article.highlights)
+
 
 def _build_article_query():
     """Build filtered article query from request args."""
@@ -66,28 +81,28 @@ def _get_filter_options():
 
 
 def _get_highlighted_articles(page=1, per_page=8):
-    """Get highlighted articles with time rules per type, paginated.
+    """Get highlighted articles sorted by priority weight, paginated.
 
-    - local_research / investment: published within last 7 days
-    - local_event: event_date is today or in the future
+    Priority: tech_breakthrough (4) > local_research (3) > investment (2) > local_event (1)
+    Time rules: research/investment/breakthrough within 7 days; events today or future.
     Returns (items, total) for pagination.
     """
     now = datetime.now()
     cutoff_7d = now - timedelta(days=7)
 
-    # Research & Investment: last 7 days
-    research_investment = (
+    # Research, Investment & Breakthroughs: last 7 days
+    high_value = (
         Article.query
         .filter(Article.highlights.isnot(None))
         .filter(Article.highlights != '[]')
         .filter(
             db.or_(
+                Article.highlights.like('%tech_breakthrough%'),
                 Article.highlights.like('%local_research%'),
                 Article.highlights.like('%investment%'),
             )
         )
         .filter(Article.published_at >= cutoff_7d)
-        .order_by(Article.published_at.desc())
         .all()
     )
 
@@ -104,17 +119,18 @@ def _get_highlighted_articles(page=1, per_page=8):
                 )
             )
         )
-        .order_by(Article.event_date.asc(), Article.published_at.desc())
         .all()
     )
 
-    # Merge and deduplicate: events first, then research/investment
+    # Merge, deduplicate, then sort by priority weight (highest first)
     seen = set()
     merged = []
-    for a in events + research_investment:
+    for a in high_value + events:
         if a.id not in seen:
             seen.add(a.id)
             merged.append(a)
+
+    merged.sort(key=lambda a: (-_highlight_score(a), -(a.published_at.timestamp() if a.published_at else 0)))
 
     # Manual pagination
     total = len(merged)

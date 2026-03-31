@@ -97,17 +97,21 @@ CLASSIFY_SYSTEM = (
     "- telecom: 5G, fiber, networks, operators\n"
     "- research: academic research, R&D, scientific breakthroughs\n\n"
     "Also detect these HIGHLIGHT types (only if clearly applicable):\n"
-    "- local_research: new research result or scientific breakthrough from a Grenoble/AURA institution "
+    "- tech_breakthrough: genuine technology breakthrough — new scientific paper/publication, new patent, "
+    "novel manufacturing process, first-of-its-kind product, record-breaking performance metric, "
+    "or significant R&D milestone. Must represent a REAL advance, not just a product launch or partnership.\n"
+    "- local_research: new research result or scientific discovery from a Grenoble/AURA institution "
     "(CEA, Inria, ESRF, ILL, Grenoble INP, UGA, Minalogic member labs, etc.)\n"
     "- investment: funding round, acquisition, IPO, venture capital, M&A involving a French/local company\n"
     "- local_event: upcoming conference, workshop, summit, meetup, trade show, or event "
     "in or related to the Grenoble/AURA/French tech ecosystem\n\n"
     "Return a JSON object:\n"
     '{{"categories": [{{"category": "<slug>", "confidence": <float 0.0-1.0>}}, ...], '
-    '"highlights": ["local_research", "investment", "local_event"], '
+    '"highlights": ["tech_breakthrough", "local_research", "investment", "local_event"], '
     '"event_date": "YYYY-MM-DD or null"}}\n\n'
     "Assign 1-3 categories (confidence >= 0.3). "
     "highlights array should only contain applicable tags (can be empty []). "
+    "An article CAN have multiple highlights (e.g., both tech_breakthrough and local_research). "
     "event_date: if local_event is detected, extract the event date (YYYY-MM-DD). "
     "If multiple dates, use the start date. If no specific date found, use null."
 )

@@ -12,14 +12,21 @@
         .header h1 { margin: 0; font-size: 22px; font-weight: 600; }
         .header p { margin: 6px 0 0; font-size: 14px; opacity: 0.8; }
         .stats { background: #f8f9fa; padding: 12px 24px; text-align: center; font-size: 13px; color: #666; border-bottom: 1px solid #eee; }
-        .section-header { padding: 16px 24px 8px; font-size: 13px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f0f0f0; }
+        .section-header { padding: 16px 24px 8px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #f0f0f0; }
+        .section-insights { color: #e65100; }
+        .section-news { color: #666; }
         .article { padding: 16px 24px; border-bottom: 1px solid #f0f0f0; }
-        .article:hover { background: #fafafa; }
+        .article-insight { border-left: 3px solid #e65100; }
         .article-title { margin: 0; font-size: 15px; line-height: 1.4; }
         .article-title a { color: #1a73e8; text-decoration: none; }
         .article-meta { margin-top: 4px; font-size: 12px; color: #888; }
         .article-meta .source { background: #e8eaed; padding: 1px 6px; border-radius: 3px; font-size: 11px; }
         .article-summary { margin-top: 8px; font-size: 13px; color: #555; line-height: 1.5; }
+        .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; color: #fff; margin-right: 4px; }
+        .tag-breakthrough { background: #e65100; }
+        .tag-research { background: #7c3aed; }
+        .tag-investment { background: #2e7d32; }
+        .tag-event { background: #c62828; }
         .footer { padding: 20px 24px; text-align: center; background: #f8f9fa; }
         .footer p { margin: 4px 0; font-size: 12px; color: #999; }
         .footer a { color: #1a73e8; text-decoration: none; }
@@ -39,10 +46,49 @@
         </div>
 
         <div class="stats">
-            {{ articles | length }} articles |
+            {% if top_insights %}{{ top_insights | length }} insights + {% endif %}{{ articles | length }} articles |
             {% if user.preferred_language == 'zh' %}中文摘要
             {% elif user.preferred_language == 'en' %}English summaries
             {% else %}R&eacute;sum&eacute;s en fran&ccedil;ais{% endif %}
+        </div>
+
+        {# ── Top Insights (priority-sorted highlights) ── #}
+        {% if top_insights %}
+        <div class="section-header section-insights">
+            &#9889; Top Insights
+        </div>
+
+        {% for article in top_insights %}
+        <div class="article article-insight">
+            <div style="margin-bottom: 4px;">
+                {% for h in article.highlights %}
+                {% if h == 'tech_breakthrough' %}<span class="tag tag-breakthrough">BREAKTHROUGH</span>
+                {% elif h == 'local_research' %}<span class="tag tag-research">RESEARCH</span>
+                {% elif h == 'investment' %}<span class="tag tag-investment">INVESTMENT</span>
+                {% elif h == 'local_event' %}<span class="tag tag-event">EVENT</span>
+                {% endif %}
+                {% endfor %}
+            </div>
+            <div class="article-title">
+                <a href="{{ article.url }}">{{ article.title }}</a>
+            </div>
+            <div class="article-meta">
+                <span class="source">{{ article.source }}</span>
+                {% if article.published_at %}
+                &middot; {{ article.published_at.strftime('%H:%M') }}
+                {% endif %}
+            </div>
+            {% if article.summary %}
+            <div class="article-summary">{{ article.summary }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        {# ── Regular Articles ── #}
+        {% if articles %}
+        <div class="section-header section-news">
+            &#128240; Other News
         </div>
 
         {% for article in articles %}
@@ -61,6 +107,7 @@
             {% endif %}
         </div>
         {% endfor %}
+        {% endif %}
 
         <div style="padding: 20px 24px; text-align: center;">
             <a href="#" class="btn">View All News Online</a>
