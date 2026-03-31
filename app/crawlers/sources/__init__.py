@@ -14,3 +14,9 @@ from . import soitec  # noqa: F401
 from . import esrf  # noqa: F401
 from . import inria_grenoble  # noqa: F401
 from . import monde_informatique  # noqa: F401
+from . import vipress  # noqa: F401
+from . import sifted  # noqa: F401
+from . import aeneas  # noqa: F401
+from . import usine_nouvelle  # noqa: F401
+from . import ledauphine  # noqa: F401
+from . import brefeco  # noqa: F401
