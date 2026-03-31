@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}LLM Task Routing - Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2><i class="bi bi-diagram-3"></i> LLM Task Routing</h2>
+        <small class="text-fs-secondary">Which model handles which task. Cost-aware routing picks the cheapest active provider.</small>
+    </div>
+    <a href="{{ url_for('admin.llm_config') }}" class="btn btn-fs-ghost btn-sm"><i class="bi bi-gear"></i> Edit Configs</a>
+</div>
+
+{# ── Active Routing Table ── #}
+<div class="card card-fs mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr style="font-size: 0.82rem;" class="text-fs-secondary">
+                        <th style="width: 140px;">Task</th>
+                        <th>Active Provider</th>
+                        <th>Model</th>
+                        <th>Cost (input/1K)</th>
+                        <th>Cost (output/1K)</th>
+                        <th>Fallback</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in all_tasks %}
+                    {% set primary = routing.get(task) %}
+                    <tr>
+                        <td>
+                            <span class="fw-semibold">{{ task }}</span>
+                            {% if task == 'translate' %}<i class="bi bi-translate text-fs-muted ms-1"></i>
+                            {% elif task == 'digest' %}<i class="bi bi-journal-text text-fs-muted ms-1"></i>
+                            {% elif task == 'summarize' %}<i class="bi bi-card-text text-fs-muted ms-1"></i>
+                            {% elif task == 'ner' %}<i class="bi bi-building text-fs-muted ms-1"></i>
+                            {% elif task == 'sentiment' %}<i class="bi bi-emoji-smile text-fs-muted ms-1"></i>
+                            {% elif task == 'classify' %}<i class="bi bi-tags text-fs-muted ms-1"></i>
+                            {% elif task == 'insight' %}<i class="bi bi-lightbulb text-fs-muted ms-1"></i>
+                            {% endif %}
+                        </td>
+                        {% if primary %}
+                        <td>
+                            <span class="badge badge-source">{{ primary.provider }}</span>
+                            {% set status = cb_status.get(primary.provider, 'closed') %}
+                            {% if status == 'open' %}<span class="badge bg-danger ms-1">OPEN</span>
+                            {% elif status == 'half_open' %}<span class="badge bg-warning ms-1">HALF-OPEN</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-medium">{{ primary.model }}</td>
+                        <td>${{ '%.5f' % (primary.cost_per_1k_input or 0) }}</td>
+                        <td>${{ '%.5f' % (primary.cost_per_1k_output or 0) }}</td>
+                        <td>
+                            {% set fallbacks = [] %}
+                            {% for c in configs if c.tasks and task in c.tasks and c.id != primary.id %}
+                                {% if fallbacks.append(c) %}{% endif %}
+                            {% endfor %}
+                            {% if fallbacks %}
+                                {% for fb in fallbacks[:2] %}
+                                <span class="text-fs-muted" style="font-size: 0.8rem;">{{ fb.provider }}/{{ fb.model }}</span>{{ ', ' if not loop.last }}
+                                {% endfor %}
+                            {% else %}
+                            <span class="text-danger" style="font-size: 0.8rem;">No fallback</span>
+                            {% endif %}
+                        </td>
+                        {% else %}
+                        <td colspan="5" class="text-danger"><i class="bi bi-exclamation-triangle"></i> No provider configured</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# ── Provider Overview Cards ── #}
+<h5 class="mb-3">Active Providers</h5>
+<div class="row g-3 mb-4">
+    {% for config in configs %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge badge-source">{{ config.provider }}</span>
+                        {% if config.is_default %}<span class="badge bg-warning-subtle text-warning ms-1">Default</span>{% endif %}
+                    </div>
+                    {% set status = cb_status.get(config.provider, 'closed') %}
+                    {% if status == 'closed' %}
+                    <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle"></i> Healthy</span>
+                    {% elif status == 'half_open' %}
+                    <span class="badge bg-warning-subtle text-warning"><i class="bi bi-exclamation-triangle"></i> Recovering</span>
+                    {% else %}
+                    <span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-circle"></i> Down</span>
+                    {% endif %}
+                </div>
+                <div class="fw-semibold mb-1">{{ config.model }}</div>
+                <div class="text-fs-muted" style="font-size: 0.82rem;">
+                    Temp: {{ config.temperature }} | Max tokens: {{ config.max_tokens }}
+                </div>
+                <div class="mt-2 d-flex flex-wrap gap-1">
+                    {% for task in (config.tasks or []) %}
+                    <span class="badge {{ 'badge-breakthrough' if routing.get(task) and routing[task].id == config.id else 'badge-category' }}"
+                          style="font-size: 0.7rem;">
+                        {{ task }}
+                        {% if routing.get(task) and routing[task].id == config.id %}
+                        <i class="bi bi-check"></i>
+                        {% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                <div class="text-fs-muted mt-2" style="font-size: 0.78rem;">
+                    Cost: ${{ '%.5f' % (config.cost_per_1k_input or 0) }} in / ${{ '%.5f' % (config.cost_per_1k_output or 0) }} out per 1K tokens
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="text-fs-muted" style="font-size: 0.82rem;">
+    <i class="bi bi-info-circle"></i>
+    Routing logic: for each task, the system picks the cheapest active provider (by input cost).
+    If a provider fails 5 times, the circuit breaker opens and the next cheapest is used.
+    Edit configurations at <a href="{{ url_for('admin.llm_config') }}">LLM Config</a>.
+</div>
+{% endblock %}

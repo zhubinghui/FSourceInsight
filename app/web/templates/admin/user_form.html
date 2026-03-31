@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit User' if user else 'New User' }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>{{ 'Edit User' if user else 'Create User' }}</h2>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-fs-ghost btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card card-fs">
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="email" required
+                               value="{{ user.email if user else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input type="text" class="form-control" name="name"
+                               value="{{ user.name if user else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password {{ '(leave blank to keep current)' if user else '*' }}</label>
+                        <input type="password" class="form-control" name="password"
+                               {{ '' if user else 'required' }} minlength="8"
+                               placeholder="{{ '••••••••' if user else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Preferred Language</label>
+                        <select name="preferred_language" class="form-select">
+                            {% for code, label in languages %}
+                            <option value="{{ code }}" {{ 'selected' if user and user.preferred_language == code }}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" name="is_admin" id="is_admin"
+                                   {{ 'checked' if user and user.is_admin }}
+                                   {{ 'disabled' if user and user.id == current_user.id }}>
+                            <label class="form-check-label" for="is_admin">Administrator</label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" name="receive_daily_digest" id="digest"
+                                   {{ 'checked' if not user or user.receive_daily_digest }}>
+                            <label class="form-check-label" for="digest">Receive daily digest</label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" name="is_active_user" id="active"
+                                   {{ 'checked' if not user or user.is_active_user }}>
+                            <label class="form-check-label" for="active">Active account</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-fs-primary">{{ 'Update' if user else 'Create' }}</button>
+                <a href="{{ url_for('admin.users') }}" class="btn btn-fs-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

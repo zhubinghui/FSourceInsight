@@ -62,7 +62,16 @@
 
 <!-- Quick links row 2 -->
 <div class="row mt-3">
-    <div class="col-md-3">
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body py-2">
+                <a href="{{ url_for('admin.llm_routing') }}" class="text-decoration-none">
+                    <i class="bi bi-diagram-3"></i> Task Routing
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
         <div class="card text-center">
             <div class="card-body py-2">
                 <a href="{{ url_for('admin.users') }}" class="text-decoration-none">
@@ -71,7 +80,16 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body py-2">
+                <a href="{{ url_for('admin.settings') }}" class="text-decoration-none">
+                    <i class="bi bi-sliders"></i> Settings
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
         <div class="card text-center">
             <div class="card-body py-2">
                 <a href="{{ url_for('admin.email_logs') }}" class="text-decoration-none">
@@ -80,7 +98,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card text-center">
             <div class="card-body py-2">
                 <a href="{{ url_for('admin.email_preview') }}" class="text-decoration-none">
@@ -89,14 +107,14 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <form method="post" action="{{ url_for('admin.send_digest_now') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="card text-center">
                 <div class="card-body py-2">
                     <button type="submit" class="btn btn-link text-decoration-none p-0"
                             onclick="return confirm('Send daily digest emails now?')">
-                        <i class="bi bi-send"></i> Send Digest Now
+                        <i class="bi bi-send"></i> Send Digest
                     </button>
                 </div>
             </div>

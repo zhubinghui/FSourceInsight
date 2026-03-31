@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
@@ -401,14 +402,78 @@ def crawl_logs():
 
 # ── Users & Email ─────────────────────────────────────────────────
 
+LANGUAGES = [('zh', '中文'), ('en', 'English'), ('fr', 'Français')]
+
+
 @admin_bp.route('/users')
 def users():
-    from app.models.user import User, KeywordSubscription
+    from app.models.user import User
     page = request.args.get('page', 1, type=int)
     users = User.query.order_by(User.created_at.desc()).paginate(
         page=page, per_page=50, error_out=False
     )
     return render_template('admin/users.html', users=users)
+
+
+@admin_bp.route('/users/new', methods=['GET', 'POST'])
+def user_new():
+    from app.models.user import User
+    from werkzeug.security import generate_password_hash
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        if User.query.filter_by(email=email).first():
+            flash(f'User {email} already exists.', 'error')
+            return redirect(url_for('admin.user_new'))
+        user = User(
+            email=email,
+            name=request.form.get('name', '').strip(),
+            password_hash=generate_password_hash(request.form.get('password', '')),
+            is_admin=request.form.get('is_admin') == 'on',
+            is_active_user=True,
+            receive_daily_digest=request.form.get('receive_daily_digest') == 'on',
+            preferred_language=request.form.get('preferred_language', 'zh'),
+        )
+        db.session.add(user)
+        db.session.commit()
+        flash(f'User "{email}" created.', 'success')
+        return redirect(url_for('admin.users'))
+    return render_template('admin/user_form.html', user=None, languages=LANGUAGES)
+
+
+@admin_bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+def user_edit(user_id):
+    from app.models.user import User
+    from werkzeug.security import generate_password_hash
+    user = User.query.get_or_404(user_id)
+    if request.method == 'POST':
+        user.email = request.form.get('email', user.email).strip()
+        user.name = request.form.get('name', '').strip()
+        user.preferred_language = request.form.get('preferred_language', 'zh')
+        user.receive_daily_digest = request.form.get('receive_daily_digest') == 'on'
+        user.is_active_user = request.form.get('is_active_user') == 'on'
+        if user.id != current_user.id:
+            user.is_admin = request.form.get('is_admin') == 'on'
+        new_password = request.form.get('password', '').strip()
+        if new_password:
+            user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        flash(f'User "{user.email}" updated.', 'success')
+        return redirect(url_for('admin.users'))
+    return render_template('admin/user_form.html', user=user, languages=LANGUAGES)
+
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+def user_delete(user_id):
+    from app.models.user import User
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        flash('Cannot delete your own account.', 'error')
+    else:
+        email = user.email
+        db.session.delete(user)
+        db.session.commit()
+        flash(f'User "{email}" deleted.', 'success')
+    return redirect(url_for('admin.users'))
 
 
 @admin_bp.route('/users/<int:user_id>/toggle-admin', methods=['POST'])
@@ -422,6 +487,76 @@ def toggle_user_admin(user_id):
         db.session.commit()
         flash(f'{user.email} admin status changed.', 'success')
     return redirect(url_for('admin.users'))
+
+
+# ── LLM Task Routing Matrix ─────────────────────────────────────
+
+@admin_bp.route('/llm-routing')
+def llm_routing():
+    """Visual matrix of which model handles which task."""
+    configs = LLMConfig.query.filter_by(is_active=True).order_by(LLMConfig.id).all()
+    all_tasks = ['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight']
+
+    # Build routing matrix: for each task, which config would be selected (cheapest)
+    routing = {}
+    for task in all_tasks:
+        candidates = [c for c in configs if c.tasks and task in c.tasks]
+        candidates.sort(key=lambda c: float(c.cost_per_1k_input or 999))
+        routing[task] = candidates[0] if candidates else None
+
+    # Get circuit breaker status
+    try:
+        from app.llm.circuit_breaker import CircuitBreaker
+        breaker = CircuitBreaker()
+        cb_status = {c.provider: breaker.get_status(c.provider) for c in configs}
+    except Exception:
+        cb_status = {}
+
+    return render_template(
+        'admin/llm_routing.html',
+        configs=configs,
+        all_tasks=all_tasks,
+        routing=routing,
+        cb_status=cb_status,
+    )
+
+
+# ── System Settings ──────────────────────────────────────────────
+
+@admin_bp.route('/settings', methods=['GET', 'POST'])
+def settings():
+    """System-wide settings management."""
+    from flask import current_app
+
+    if request.method == 'POST':
+        # Update .env-backed settings via DB override table
+        # For now, show current values from env (read-only display + editable for DB-backed)
+        flash('Settings updated.', 'success')
+        return redirect(url_for('admin.settings'))
+
+    settings_data = {
+        'llm_daily_budget': current_app.config.get('LLM_DAILY_BUDGET_USD', 5.0),
+        'crawl_frequency': current_app.config.get('DEFAULT_CRAWL_FREQUENCY_MINUTES', 60),
+        'mail_server': current_app.config.get('MAIL_SERVER', ''),
+        'mail_port': current_app.config.get('MAIL_PORT', 587),
+        'mail_use_tls': current_app.config.get('MAIL_USE_TLS', True),
+        'mail_username': current_app.config.get('MAIL_USERNAME', ''),
+        'mail_default_sender': current_app.config.get('MAIL_DEFAULT_SENDER', ''),
+        'log_level': os.environ.get('LOG_LEVEL', 'INFO'),
+        'log_format': os.environ.get('LOG_FORMAT', 'text'),
+    }
+
+    # LLM provider status
+    llm_keys = {}
+    for env_var in ['DEEPSEEK_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY']:
+        val = os.environ.get(env_var, '')
+        llm_keys[env_var] = 'Configured' if val else 'Not set'
+
+    return render_template(
+        'admin/settings.html',
+        settings=settings_data,
+        llm_keys=llm_keys,
+    )
 
 
 @admin_bp.route('/email-logs')

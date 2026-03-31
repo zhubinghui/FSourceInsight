@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Settings - Admin{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-sliders"></i> System Settings</h2>
+
+<div class="row g-4">
+    {# ── LLM Settings ── #}
+    <div class="col-md-6">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <h6 class="text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-robot"></i> LLM Configuration
+                </h6>
+                <table class="table table-sm mt-3 mb-0">
+                    <tr>
+                        <td class="text-fs-secondary">Daily Budget</td>
+                        <td class="fw-medium">${{ '%.2f' % settings.llm_daily_budget }} USD</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">Active Providers</td>
+                        <td>
+                            {% for key, status in llm_keys.items() %}
+                            <div>
+                                <code style="font-size: 0.78rem;">{{ key }}</code>
+                                {% if status == 'Configured' %}
+                                <span class="badge bg-success-subtle text-success ms-1" style="font-size: 0.7rem;">Set</span>
+                                {% else %}
+                                <span class="badge bg-danger-subtle text-danger ms-1" style="font-size: 0.7rem;">Missing</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </table>
+                <div class="mt-3 d-flex gap-2">
+                    <a href="{{ url_for('admin.llm_routing') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-diagram-3"></i> Task Routing
+                    </a>
+                    <a href="{{ url_for('admin.llm_config') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-gear"></i> Model Config
+                    </a>
+                    <a href="{{ url_for('admin.llm_usage') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-graph-up"></i> Usage
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Crawl Settings ── #}
+    <div class="col-md-6">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <h6 class="text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-cloud-download"></i> Crawl Settings
+                </h6>
+                <table class="table table-sm mt-3 mb-0">
+                    <tr>
+                        <td class="text-fs-secondary">Default Frequency</td>
+                        <td class="fw-medium">{{ settings.crawl_frequency }} min</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">Active Sources</td>
+                        <td class="fw-medium">
+                            <a href="{{ url_for('admin.sources') }}">Manage Sources</a>
+                        </td>
+                    </tr>
+                </table>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.sources') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-rss"></i> Sources
+                    </a>
+                    <a href="{{ url_for('admin.crawl_logs') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-clock-history"></i> Crawl Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Email Settings ── #}
+    <div class="col-md-6">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <h6 class="text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-envelope"></i> Email (SMTP)
+                </h6>
+                <table class="table table-sm mt-3 mb-0">
+                    <tr>
+                        <td class="text-fs-secondary">SMTP Server</td>
+                        <td class="fw-medium">{{ settings.mail_server or 'Not configured' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">Port / TLS</td>
+                        <td>{{ settings.mail_port }} / {{ 'Yes' if settings.mail_use_tls else 'No' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">Username</td>
+                        <td>{{ settings.mail_username or '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">From Address</td>
+                        <td>{{ settings.mail_default_sender }}</td>
+                    </tr>
+                </table>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.email_logs') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-envelope-check"></i> Email Logs
+                    </a>
+                    <form method="post" action="{{ url_for('admin.send_digest_now') }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-fs-ghost btn-sm">
+                            <i class="bi bi-send"></i> Send Digest Now
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Logging & Monitoring ── #}
+    <div class="col-md-6">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <h6 class="text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-terminal"></i> Logging & Monitoring
+                </h6>
+                <table class="table table-sm mt-3 mb-0">
+                    <tr>
+                        <td class="text-fs-secondary">Log Level</td>
+                        <td class="fw-medium">{{ settings.log_level }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">Log Format</td>
+                        <td>{{ settings.log_format }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-fs-secondary">Health Check</td>
+                        <td><a href="/health/detail" target="_blank">/health/detail</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ── Users & Auth ── #}
+    <div class="col-md-6">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <h6 class="text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-people"></i> Users & Authentication
+                </h6>
+                <div class="mt-3 d-flex gap-2">
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-people"></i> Manage Users
+                    </a>
+                    <a href="{{ url_for('admin.user_new') }}" class="btn btn-fs-primary btn-sm">
+                        <i class="bi bi-person-plus"></i> Create User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Data Management ── #}
+    <div class="col-md-6">
+        <div class="card card-fs h-100">
+            <div class="card-body">
+                <h6 class="text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-database"></i> Data Management
+                </h6>
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('admin.companies') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-building"></i> Companies
+                    </a>
+                    <a href="{{ url_for('admin.merge_companies') }}" class="btn btn-fs-ghost btn-sm">
+                        <i class="bi bi-intersect"></i> Merge Companies
+                    </a>
+                </div>
+                <p class="text-fs-muted mt-3 mb-0" style="font-size: 0.82rem;">
+                    <i class="bi bi-info-circle"></i>
+                    Environment variables (API keys, DB credentials, etc.) must be changed in the <code>.env</code> file and require a container restart.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
