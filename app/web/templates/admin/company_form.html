@@ -1,0 +1,94 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if company else 'New' }} Company{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.companies') }}" class="text-decoration-none">Companies</a></li>
+<li class="breadcrumb-item active">{{ 'Edit' if company else 'New' }}</li>
+{% endblock %}
+{% block content %}
+<h3 class="mb-4">{{ 'Edit: ' + company.name if company else 'New Company' }}</h3>
+
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-fs mb-3">
+                <div class="card-body">
+                    <h6 class="text-fs-secondary text-uppercase mb-3" style="font-size: 0.78rem; letter-spacing: 0.5px;">Basic Info</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" class="form-control" name="name" required
+                               value="{{ company.name if company else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Aliases <small class="text-fs-muted">(comma-separated)</small></label>
+                        <input type="text" class="form-control" name="aliases"
+                               value="{{ company.aliases | join(', ') if company and company.aliases else '' }}"
+                               placeholder="STMicro, ST Microelectronics">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3">{{ company.description or '' if company else '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Website</label>
+                        <input type="url" class="form-control" name="website"
+                               value="{{ company.website or '' if company else '' }}" placeholder="https://...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-fs mb-3">
+                <div class="card-body">
+                    <h6 class="text-fs-secondary text-uppercase mb-3" style="font-size: 0.78rem; letter-spacing: 0.5px;">Classification</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sector</label>
+                        <input type="text" class="form-control" name="sector"
+                               value="{{ company.sector or '' if company else '' }}"
+                               placeholder="Semiconductor / AI / MedTech...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Headquarters</label>
+                        <input type="text" class="form-control" name="headquarters"
+                               value="{{ company.headquarters or '' if company else '' }}" placeholder="Grenoble">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Company Stage</label>
+                        <select name="company_stage" class="form-select">
+                            <option value="">—</option>
+                            {% for s in stages %}
+                            {% if s %}
+                            <option value="{{ s }}" {{ 'selected' if company and company.company_stage == s }}>{{ s }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Spin-off Origin</label>
+                        <input type="text" class="form-control" name="spinoff_origin"
+                               value="{{ company.spinoff_origin or '' if company else '' }}"
+                               placeholder="CEA-Leti, Inria, UGA...">
+                    </div>
+                    <div class="form-check mt-3">
+                        <input type="checkbox" class="form-check-input" name="is_grenoble" id="is_grenoble"
+                               {{ 'checked' if company and company.is_grenoble }}>
+                        <label class="form-check-label fw-medium" for="is_grenoble">
+                            <i class="bi bi-geo-alt-fill" style="color: var(--fs-orange);"></i>
+                            Grenoble Area <small class="text-fs-muted fw-normal">— will appear in Grenoble Ecosystem Map</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-fs-primary"><i class="bi bi-check-lg"></i> {{ 'Save' if company else 'Create' }}</button>
+        <a href="{{ url_for('admin.companies') }}" class="btn btn-fs-ghost">Cancel</a>
+    </div>
+</form>
+{% endblock %}

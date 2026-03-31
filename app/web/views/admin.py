@@ -129,22 +129,84 @@ def companies():
     return render_template('admin/companies.html', companies=companies)
 
 
+COMPANY_STAGES = ['startup', 'scale-up', 'mature', 'research_institute', '']
+
+
+@admin_bp.route('/companies/new', methods=['GET', 'POST'])
+def company_new():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        if not name:
+            flash('Company name is required.', 'error')
+            return redirect(url_for('admin.company_new'))
+
+        slug = slugify(name)
+
+        # Duplicate check: by slug and by alias
+        existing = Company.query.filter_by(slug=slug).first()
+        if existing:
+            flash(f'Company "{existing.name}" already exists (same slug: {slug}).', 'error')
+            return redirect(url_for('admin.company_new'))
+
+        # Check aliases of existing companies
+        name_lower = name.lower()
+        for c in Company.query.all():
+            if c.aliases and name_lower in [a.lower() for a in c.aliases]:
+                flash(f'"{name}" matches alias of existing company "{c.name}".', 'error')
+                return redirect(url_for('admin.company_new'))
+            if c.name.lower() == name_lower:
+                flash(f'Company "{c.name}" already exists (same name).', 'error')
+                return redirect(url_for('admin.company_new'))
+
+        company = Company(
+            name=name,
+            slug=slug,
+            description=request.form.get('description', '').strip() or None,
+            website=request.form.get('website', '').strip() or None,
+            headquarters=request.form.get('headquarters', '').strip() or None,
+            sector=request.form.get('sector', '').strip() or None,
+            is_grenoble=request.form.get('is_grenoble') == 'on',
+            company_stage=request.form.get('company_stage', '').strip() or None,
+            spinoff_origin=request.form.get('spinoff_origin', '').strip() or None,
+            aliases=[a.strip() for a in request.form.get('aliases', '').split(',') if a.strip()] or None,
+        )
+        db.session.add(company)
+        db.session.commit()
+        flash(f'Company "{name}" created.', 'success')
+        return redirect(url_for('admin.companies'))
+
+    return render_template('admin/company_form.html', company=None, stages=COMPANY_STAGES)
+
+
 @admin_bp.route('/companies/<int:company_id>/edit', methods=['GET', 'POST'])
 def edit_company(company_id):
     company = Company.query.get_or_404(company_id)
     if request.method == 'POST':
-        company.name = request.form.get('name', company.name)
-        company.description = request.form.get('description')
-        company.website = request.form.get('website')
-        company.headquarters = request.form.get('headquarters')
-        company.sector = request.form.get('sector')
+        new_name = request.form.get('name', '').strip()
+        new_slug = slugify(new_name) if new_name else company.slug
+
+        # Duplicate check on rename
+        if new_slug != company.slug:
+            dup = Company.query.filter_by(slug=new_slug).first()
+            if dup:
+                flash(f'Cannot rename: "{dup.name}" already uses slug "{new_slug}".', 'error')
+                return redirect(url_for('admin.edit_company', company_id=company_id))
+
+        company.name = new_name or company.name
+        company.slug = new_slug
+        company.description = request.form.get('description', '').strip() or None
+        company.website = request.form.get('website', '').strip() or None
+        company.headquarters = request.form.get('headquarters', '').strip() or None
+        company.sector = request.form.get('sector', '').strip() or None
         company.is_grenoble = request.form.get('is_grenoble') == 'on'
+        company.company_stage = request.form.get('company_stage', '').strip() or None
+        company.spinoff_origin = request.form.get('spinoff_origin', '').strip() or None
         aliases_raw = request.form.get('aliases', '')
-        company.aliases = [a.strip() for a in aliases_raw.split(',') if a.strip()]
+        company.aliases = [a.strip() for a in aliases_raw.split(',') if a.strip()] or None
         db.session.commit()
-        flash('Company updated successfully.', 'success')
+        flash('Company updated.', 'success')
         return redirect(url_for('admin.companies'))
-    return render_template('admin/edit_company.html', company=company)
+    return render_template('admin/company_form.html', company=company, stages=COMPANY_STAGES)
 
 
 @admin_bp.route('/companies/<int:company_id>/delete', methods=['POST'])
