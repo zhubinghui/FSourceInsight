@@ -1,45 +1,57 @@
-<div class="row">
+<div class="row g-3">
     {% for company in companies.items %}
-    <div class="col-md-4 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <a href="{{ url_for('company.detail', slug=company.slug) }}" class="text-decoration-none">
-                        {{ company.name }}
-                    </a>
-                </h5>
-                {% if company.sector %}
-                <span class="badge bg-info">{{ company.sector }}</span>
-                {% endif %}
-                {% if company.is_grenoble %}
-                <span class="badge bg-success">Grenoble</span>
-                {% endif %}
-                {% if company.is_auto_created %}
-                <span class="badge bg-warning text-dark">Auto</span>
-                {% endif %}
-                {% if company.description %}
-                <p class="card-text small mt-2 text-muted">{{ company.description[:120] }}{% if company.description|length > 120 %}...{% endif %}</p>
-                {% endif %}
+    <div class="col-md-4">
+        <a href="{{ url_for('company.detail', slug=company.slug) }}" class="text-decoration-none">
+            <div class="card card-fs h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        {% if company.logo_url %}
+                        <img src="{{ company.logo_url }}" alt="" style="width: 32px; height: 32px; object-fit: contain;">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="width: 32px; height: 32px; border-radius: 8px; background: var(--fs-blue-muted); color: var(--fs-blue); font-weight: 700; font-size: 0.8rem;">
+                            {{ company.name[:2] }}
+                        </div>
+                        {% endif %}
+                        <div class="fw-semibold" style="color: var(--fs-text); font-size: 0.92rem;">{{ company.name }}</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1 mb-2">
+                        {% if company.sector %}
+                        <span class="badge badge-category" style="font-size: 0.68rem;">{{ company.sector }}</span>
+                        {% endif %}
+                        {% if company.is_grenoble %}
+                        <span class="badge badge-investment" style="font-size: 0.68rem;">Grenoble</span>
+                        {% endif %}
+                        {% if company.spinoff_origin %}
+                        <span class="badge badge-stage" style="font-size: 0.68rem;"><i class="bi bi-diagram-3"></i> {{ company.spinoff_origin }}</span>
+                        {% endif %}
+                    </div>
+                    {% if company.description %}
+                    <p class="text-fs-secondary mb-0" style="font-size: 0.8rem; line-height: 1.4;">{{ company.description[:100] }}{% if company.description|length > 100 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent text-fs-muted" style="font-size: 0.78rem; padding: 0.4rem 0.75rem;">
+                    {{ company.article_count }} articles
+                    {% if company.ai_analysis %}<i class="bi bi-robot text-success ms-1" title="AI analyzed"></i>{% endif %}
+                </div>
             </div>
-            <div class="card-footer text-muted small">
-                {{ company.article_count }} articles
-            </div>
-        </div>
+        </a>
     </div>
     {% else %}
-    <div class="col-12">
-        <div class="alert alert-info">No companies found.</div>
+    <div class="col-12 text-center py-5 text-fs-muted">
+        <i class="bi bi-building" style="font-size: 2rem;"></i>
+        <p class="mt-2">No companies found.</p>
     </div>
     {% endfor %}
 </div>
 
 {% if companies.pages > 1 %}
-<nav>
+<nav class="mt-3">
     <ul class="pagination justify-content-center">
         {% for p in companies.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
             {% if p %}
             <li class="page-item {% if p == companies.page %}active{% endif %}">
-                <a class="page-link" href="?page={{ p }}&q={{ request.args.get('q', '') }}&sector={{ request.args.get('sector', '') }}&grenoble={{ request.args.get('grenoble', '') }}">{{ p }}</a>
+                <a class="page-link" href="?page={{ p }}&q={{ request.args.get('q', '') }}&sector={{ request.args.get('sector', '') }}&grenoble={{ request.args.get('grenoble', '') }}&view=list">{{ p }}</a>
             </li>
             {% else %}
             <li class="page-item disabled"><span class="page-link">...</span></li>

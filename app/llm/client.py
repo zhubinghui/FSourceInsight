@@ -12,7 +12,7 @@ from app.models.llm import LLMConfig, LLMUsageLog
 from app.llm.prompts import (
     get_translate_messages, get_summarize_messages, get_digest_messages,
     get_ner_messages, get_sentiment_messages, get_classify_messages,
-    get_insight_messages,
+    get_insight_messages, get_company_analysis_messages,
 )
 from app.llm.circuit_breaker import CircuitBreaker
 
@@ -399,3 +399,19 @@ class LLMClient:
         cache_key = self._cache_key('insight', text, lang=target_lang)
         messages = get_insight_messages(title, text, target_lang)
         return self._call_with_cache('insight', messages, cache_key, article_id)
+
+    def analyze_company(self, name: str, sector: str = None,
+                        headquarters: str = None, description: str = None,
+                        spinoff_origin: str = None, company_stage: str = None,
+                        recent_news: str = None) -> str:
+        """Generate a structured company analysis in Chinese.
+
+        Covers: overview, core technology, disruption potential,
+        Chinese competitor comparison, and tracking recommendation.
+        """
+        cache_key = self._cache_key('company_analysis', name, sector=sector or '')
+        messages = get_company_analysis_messages(
+            name, sector, headquarters, description,
+            spinoff_origin, company_stage, recent_news,
+        )
+        return self._call_with_cache('insight', messages, cache_key)

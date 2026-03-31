@@ -150,6 +150,59 @@ INSIGHT_USER = "Article title: {title}\n\nArticle content:\n{text}"
 
 # -------------------------------------------------------------------
 
+# -------------------------------------------------------------------
+
+COMPANY_ANALYSIS_SYSTEM = (
+    "You are a senior technology analyst specializing in the French/European tech ecosystem, "
+    "particularly the Grenoble semiconductor and deep-tech cluster.\n\n"
+    "Analyze the given company in Chinese (Simplified). Output EXACTLY this format:\n\n"
+    "## 公司概况\n"
+    "一段话：公司名称、成立时间（如已知）、总部、核心定位。\n\n"
+    "## 核心技术\n"
+    "- 主要技术方向及产品\n"
+    "- 技术创新点（与传统方案的差异）\n"
+    "- 技术断裂点（disruption potential）：该技术可能颠覆哪些现有方案\n\n"
+    "## 中国同类企业对比\n"
+    "列出 1-3 家中国对标企业，简要对比：\n"
+    "| 对比维度 | 该公司 | 中国对标 |\n"
+    "|---------|--------|--------|\n"
+    "| 技术路线 | ... | ... |\n"
+    "| 成熟度 | ... | ... |\n"
+    "| 竞争优势 | ... | ... |\n"
+    "| 竞争劣势 | ... | ... |\n\n"
+    "如果没有直接对标的中国企业，说明该领域在中国的发展现状。\n\n"
+    "## 关注建议\n"
+    "**[重点关注 / 持续监控 / 一般了解]** — 一句话理由。\n\n"
+    "RULES: 简洁专业。不超过 400 字。不要客套开场白。"
+)
+
+COMPANY_ANALYSIS_USER = (
+    "Company: {name}\n"
+    "Sector: {sector}\n"
+    "Headquarters: {headquarters}\n"
+    "Description: {description}\n"
+    "Spin-off origin: {spinoff_origin}\n"
+    "Company stage: {company_stage}\n"
+    "\nRecent news context:\n{recent_news}"
+)
+
+
+def get_company_analysis_messages(name: str, sector: str, headquarters: str,
+                                   description: str, spinoff_origin: str,
+                                   company_stage: str, recent_news: str) -> list[dict]:
+    return [
+        {'role': 'system', 'content': COMPANY_ANALYSIS_SYSTEM},
+        {'role': 'user', 'content': COMPANY_ANALYSIS_USER.format(
+            name=name, sector=sector or 'N/A',
+            headquarters=headquarters or 'N/A',
+            description=description or 'N/A',
+            spinoff_origin=spinoff_origin or 'N/A',
+            company_stage=company_stage or 'N/A',
+            recent_news=recent_news or 'No recent news available.',
+        )},
+    ]
+
+
 LANG_NAMES = {
     'zh': 'Chinese (Simplified)',
     'en': 'English',

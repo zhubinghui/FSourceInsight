@@ -17,6 +17,8 @@ class Company(db.Model):
     sector = db.Column(db.String(200))
     company_stage = db.Column(db.String(50))  # startup, scale-up, mature, research_institute
     spinoff_origin = db.Column(db.String(200))  # e.g. "CEA-Leti", "Inria", "UGA"
+    ai_analysis = db.Column(db.Text)  # LLM-generated company analysis (JSON or Markdown)
+    ai_analysis_at = db.Column(db.DateTime)
     is_auto_created = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(
