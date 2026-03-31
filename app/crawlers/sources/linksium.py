@@ -12,18 +12,14 @@ HEADERS = {
     'Accept-Language': 'fr-FR,fr;q=0.9',
 }
 
-SECTION_URLS = [
-    'https://www.linksium.fr/nos-startups',
-    'https://www.linksium.fr/actualites',
-]
-
 
 @register_crawler('linksium')
 class LinksiumCrawler(BaseCrawler):
     """Crawler for Linksium — Grenoble tech transfer office.
 
-    Crawls both the startup portfolio page (to discover new spin-offs) and
-    the news page (for ecosystem updates, incubation announcements).
+    The /nos-startups page uses Craft CMS + Blitz SSR. Startup data is embedded
+    in data-* attributes on <li> elements (data-name, data-description, data-year,
+    data-link, data-project-url). No JS rendering needed.
     """
 
     def __init__(self, source: NewsSource):
@@ -33,43 +29,82 @@ class LinksiumCrawler(BaseCrawler):
         articles = []
         seen = set()
 
-        for url in SECTION_URLS:
-            try:
-                resp = requests.get(url, headers=HEADERS, timeout=20)
-                resp.raise_for_status()
-                soup = BeautifulSoup(resp.text, 'lxml')
+        # 1. Startup portfolio — extract from data-* attributes
+        try:
+            resp = requests.get(
+                'https://www.linksium.fr/nos-startups', headers=HEADERS, timeout=20
+            )
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, 'lxml')
 
-                for a_tag in soup.select('a[href]'):
-                    href = a_tag.get('href', '')
-                    text = a_tag.get_text(strip=True)
-                    if not text or len(text) < 10:
-                        continue
-                    if href.startswith('/'):
-                        href = f'https://www.linksium.fr{href}'
-                    if not href.startswith('https://www.linksium.fr/'):
-                        continue
-                    # Keep startup profiles, news articles, and portfolio entries
-                    if not any(kw in href for kw in [
-                        '/startup', '/actualite', '/article',
-                        '/nos-startups/', '/post/',
-                    ]):
-                        continue
-                    # Skip pure index pages
-                    if href.rstrip('/') in {
-                        'https://www.linksium.fr/nos-startups',
-                        'https://www.linksium.fr/actualites',
-                    }:
-                        continue
-                    if href in seen:
-                        continue
-                    seen.add(href)
+            for item in soup.select('[data-name][data-description]'):
+                name = item.get('data-name', '').strip()
+                desc = item.get('data-description', '').strip()
+                year = item.get('data-year', '').strip()
+                link = item.get('data-link', '').strip()
+                project_url = item.get('data-project-url', '').strip()
 
-                    articles.append(RawArticle(
-                        title=text[:500],
-                        url=href,
-                        external_id=hashlib.sha256(href.encode()).hexdigest()[:32],
-                    ))
-            except Exception as e:
-                self.logger.warning(f'Linksium failed for {url}: {e}')
+                if not name or not desc or len(name) < 2:
+                    continue
+                # Skip navigation/category headers
+                if name.lower() in ('calque 1', 'nos startups créées récemment',
+                                    'santé', 'numérique et électronique',
+                                    'energie et environnement', 'chimie et matériaux',
+                                    'sciences humaines et sociales'):
+                    continue
+
+                url = project_url or (f'https://{link}' if link and not link.startswith('http') else link) or f'https://www.linksium.fr/nos-startups#{name}'
+                ext_id = hashlib.sha256(f'linksium:{name}'.encode()).hexdigest()[:32]
+
+                if ext_id in seen:
+                    continue
+                seen.add(ext_id)
+
+                title = f'{name} ({year})' if year else name
+                content = desc
+
+                articles.append(RawArticle(
+                    title=title,
+                    url=url,
+                    external_id=ext_id,
+                    content=content,
+                ))
+        except Exception as e:
+            self.logger.warning(f'Linksium startup portfolio failed: {e}')
+
+        # 2. News/actualites page
+        try:
+            resp = requests.get(
+                'https://www.linksium.fr/actualites', headers=HEADERS, timeout=20
+            )
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, 'lxml')
+
+            for a_tag in soup.select('a[href]'):
+                href = a_tag.get('href', '')
+                text = a_tag.get_text(strip=True)
+                if not text or len(text) < 15:
+                    continue
+                if href.startswith('/'):
+                    href = f'https://www.linksium.fr{href}'
+                if not href.startswith('https://www.linksium.fr/'):
+                    continue
+                if '/actualite' not in href and '/post/' not in href:
+                    continue
+                if href.rstrip('/') == 'https://www.linksium.fr/actualites':
+                    continue
+
+                ext_id = hashlib.sha256(href.encode()).hexdigest()[:32]
+                if ext_id in seen:
+                    continue
+                seen.add(ext_id)
+
+                articles.append(RawArticle(
+                    title=text[:500],
+                    url=href,
+                    external_id=ext_id,
+                ))
+        except Exception as e:
+            self.logger.warning(f'Linksium news failed: {e}')
 
         return articles
