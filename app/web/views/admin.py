@@ -603,6 +603,10 @@ def settings():
         if crawl_hour:
             SystemSetting.set(key='crawl_daily_hour', value=crawl_hour,
                               description='Daily crawl start hour (UTC, 0-23)')
+        check_interval = request.form.get('crawl_check_interval_hours', '').strip()
+        if check_interval:
+            SystemSetting.set(key='crawl_check_interval_hours', value=check_interval,
+                              description='Frequency check interval (hours)')
         db.session.commit()
         flash('Settings updated.', 'success')
         return redirect(url_for('admin.settings'))
@@ -629,6 +633,7 @@ def settings():
 
     # Crawl schedule
     crawl_daily_hour = SystemSetting.get_int('crawl_daily_hour', 1)
+    crawl_check_interval = SystemSetting.get_int('crawl_check_interval_hours', 6)
 
     # LLM provider status
     llm_keys = {}
@@ -641,6 +646,7 @@ def settings():
         settings=settings_data,
         highlight_settings=highlight_settings,
         crawl_daily_hour=crawl_daily_hour,
+        crawl_check_interval=crawl_check_interval,
         llm_keys=llm_keys,
     )
 

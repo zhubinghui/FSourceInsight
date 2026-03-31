@@ -126,8 +126,16 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="text-fs-secondary">Per-Source Frequency</td>
-                        <td class="fw-medium">{{ settings.crawl_frequency }} min <small class="text-fs-muted">(default)</small></td>
+                        <td class="text-fs-secondary">Frequency Check</td>
+                        <td>
+                            <select class="form-select form-select-sm" name="crawl_check_interval_hours" form="settings-form" style="width: 160px;">
+                                {% for h in [1, 2, 3, 4, 6, 8, 12, 24] %}
+                                <option value="{{ h }}" {{ 'selected' if crawl_check_interval == h }}>
+                                    Every {{ h }} hour{{ 's' if h > 1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
                     </tr>
                     <tr>
                         <td class="text-fs-secondary">Active Sources</td>
@@ -137,7 +145,7 @@
                     </tr>
                 </table>
                 <div class="text-fs-muted mt-2" style="font-size: 0.75rem;">
-                    <i class="bi bi-info-circle"></i> All sources crawl daily at the configured hour. Sources also crawl individually based on their own frequency setting.
+                    <i class="bi bi-info-circle"></i> Daily crawl fetches all sources at the configured hour. Frequency check additionally crawls overdue sources at the set interval.
                 </div>
                 <div class="mt-2">
                     <a href="{{ url_for('admin.sources') }}" class="btn btn-fs-ghost btn-sm">

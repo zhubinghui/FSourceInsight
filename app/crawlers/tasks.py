@@ -74,11 +74,27 @@ def crawl_all_sources():
 
 @celery.task(name='app.crawlers.tasks.schedule_due_crawls', queue='crawl')
 def schedule_due_crawls():
-    """Frequency-based check: crawl sources whose crawl_frequency_minutes has elapsed.
+    """Frequency-based check: crawl sources whose crawl_frequency has elapsed.
 
-    This runs every 10 minutes and only picks up sources that are overdue
-    based on their individual frequency setting.
+    Beat triggers this every 10 min, but the task self-gates using
+    crawl_check_interval_hours from SystemSetting to avoid over-checking.
     """
+    from app.models.setting import SystemSetting
+
+    interval_hours = SystemSetting.get_int('crawl_check_interval_hours', 6)
+
+    # Self-gating: only actually run if enough time has passed since last check
+    from app.extensions import redis_client
+    gate_key = 'crawl:last_frequency_check'
+    if redis_client:
+        last_check = redis_client.get(gate_key)
+        if last_check:
+            from datetime import datetime
+            elapsed = (datetime.utcnow() - datetime.fromisoformat(last_check.decode())).total_seconds()
+            if elapsed < interval_hours * 3600:
+                return {'skipped': True, 'next_in_hours': round((interval_hours * 3600 - elapsed) / 3600, 1)}
+        redis_client.setex(gate_key, interval_hours * 3600 + 600, datetime.utcnow().isoformat())
+
     sources = NewsSource.query.filter_by(is_active=True).all()
     scheduled = 0
 
