@@ -52,9 +52,13 @@ NER_SYSTEM = (
     "- Use the canonical/official name (e.g., 'STMicroelectronics' not 'ST').\n"
     "- Include research institutes, universities, and government agencies if mentioned.\n"
     "- Do NOT include generic terms like 'the government' or 'the EU' unless a specific body is named.\n"
-    "- Mark is_primary=true if the company is a main subject of the article (not just mentioned in passing).\n\n"
+    "- Mark is_primary=true if the company is a main subject of the article (not just mentioned in passing).\n"
+    "- If the article mentions a company is a spin-off or was created from a research lab/institution, "
+    "include spinoff_origin (e.g., 'CEA-Leti', 'Inria', 'UGA'). Use null if unknown or not a spin-off.\n"
+    "- If the company stage is evident (startup, scale-up, mature), include it. Use null if unclear.\n\n"
     "Return a JSON object with a single key 'companies' containing an array of objects:\n"
-    '{{"companies": [{{"name": "...", "mentions": <int>, "is_primary": <bool>}}, ...]}}\n\n'
+    '{{"companies": [{{"name": "...", "mentions": <int>, "is_primary": <bool>, '
+    '"spinoff_origin": "...|null", "company_stage": "startup|scale-up|mature|null"}}, ...]}}\n\n'
     "If no companies are found, return: {\"companies\": []}"
 )
 

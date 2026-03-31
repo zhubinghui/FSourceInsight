@@ -16,6 +16,7 @@ COMPANIES = [
         'headquarters': 'Geneva / Crolles',
         'sector': 'Semiconductor',
         'is_grenoble': True,
+        'company_stage': 'mature',
         'description': 'Major semiconductor company with large fabrication facility in Crolles near Grenoble.',
     },
     {
@@ -124,7 +125,118 @@ COMPANIES = [
         'headquarters': 'Grenoble',
         'sector': 'Semiconductor IP',
         'is_grenoble': True,
+        'company_stage': 'mature',
         'description': 'Video codec IP and semiconductor design company.',
+    },
+    # ── CEA-Leti Spin-offs ───────────────────────────────────────
+    {
+        'name': 'Kalray',
+        'aliases': [],
+        'website': 'https://www.kalray.eu',
+        'headquarters': 'Grenoble',
+        'sector': 'Semiconductor / AI Processors',
+        'is_grenoble': True,
+        'company_stage': 'scale-up',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'Intelligent processor (MPPA) for data-intensive applications. CEA-Leti spin-off, listed on Euronext.',
+    },
+    {
+        'name': 'Prophesee',
+        'aliases': [],
+        'website': 'https://www.prophesee.ai',
+        'headquarters': 'Paris / Grenoble',
+        'sector': 'Neuromorphic Vision',
+        'is_grenoble': True,
+        'company_stage': 'scale-up',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'Event-based vision sensors (neuromorphic). CEA-Leti spin-off.',
+    },
+    {
+        'name': 'Arteris',
+        'aliases': ['Arteris IP'],
+        'website': 'https://www.arteris.com',
+        'headquarters': 'San Jose / Grenoble',
+        'sector': 'Semiconductor IP',
+        'is_grenoble': True,
+        'company_stage': 'mature',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'Network-on-Chip interconnect IP for SoCs. CEA-Leti spin-off, listed on Nasdaq.',
+    },
+    {
+        'name': 'Dolphin Design',
+        'aliases': ['Dolphin Integration'],
+        'website': 'https://www.dolphin.fr',
+        'headquarters': 'Grenoble',
+        'sector': 'Semiconductor IP',
+        'is_grenoble': True,
+        'company_stage': 'mature',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'Ultra-low-power SoC design and virtual prototyping platform. CEA-Leti spin-off.',
+    },
+    {
+        'name': 'GreenWaves Technologies',
+        'aliases': ['GreenWaves'],
+        'website': 'https://greenwaves-technologies.com',
+        'headquarters': 'Grenoble',
+        'sector': 'AI / IoT Processors',
+        'is_grenoble': True,
+        'company_stage': 'startup',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'Ultra-low-power AI processors (GAP series) for IoT edge devices. CEA-Leti spin-off.',
+    },
+    {
+        'name': 'Lancey Energy Storage',
+        'aliases': ['Lancey'],
+        'website': 'https://www.lancey.fr',
+        'headquarters': 'Grenoble',
+        'sector': 'Energy / CleanTech',
+        'is_grenoble': True,
+        'company_stage': 'startup',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'Smart electric radiator with integrated battery for energy management. CEA-Leti spin-off.',
+    },
+    {
+        'name': 'Pixyl',
+        'aliases': [],
+        'website': 'https://www.pixyl.ai',
+        'headquarters': 'Grenoble',
+        'sector': 'MedTech / AI',
+        'is_grenoble': True,
+        'company_stage': 'startup',
+        'spinoff_origin': 'Inria / UGA',
+        'description': 'AI-powered medical imaging analysis for neurological diseases. Inria Grenoble spin-off.',
+    },
+    {
+        'name': 'Microoled',
+        'aliases': ['ActiveLook'],
+        'website': 'https://www.microoled.net',
+        'headquarters': 'Grenoble',
+        'sector': 'Micro-displays / AR',
+        'is_grenoble': True,
+        'company_stage': 'scale-up',
+        'spinoff_origin': 'CEA-Leti',
+        'description': 'OLED micro-displays for smart glasses and AR. CEA-Leti spin-off.',
+    },
+    {
+        'name': 'Aledia',
+        'aliases': [],
+        'website': 'https://www.aledia.com',
+        'headquarters': 'Grenoble',
+        'sector': 'Micro-LED / Displays',
+        'is_grenoble': True,
+        'company_stage': 'scale-up',
+        'spinoff_origin': 'CEA-Leti',
+        'description': '3D micro-LED display technology for next-gen screens. CEA-Leti spin-off.',
+    },
+    {
+        'name': 'Linksium',
+        'aliases': [],
+        'website': 'https://www.linksium.fr',
+        'headquarters': 'Grenoble',
+        'sector': 'Tech Transfer / Incubator',
+        'is_grenoble': True,
+        'company_stage': 'mature',
+        'description': 'Technology transfer and startup incubator for Grenoble ecosystem (UGA, CEA, CNRS).',
     },
 ]
 
@@ -136,7 +248,16 @@ def seed():
             slug = slugify(data['name'])
             existing = Company.query.filter_by(slug=slug).first()
             if existing:
-                print(f'  Skipping {data["name"]} (already exists)')
+                # Update new fields if they were added
+                updated = False
+                for field in ('company_stage', 'spinoff_origin'):
+                    if field in data and data[field] and not getattr(existing, field, None):
+                        setattr(existing, field, data[field])
+                        updated = True
+                if updated:
+                    print(f'  Updated {data["name"]} (new fields)')
+                else:
+                    print(f'  Skipping {data["name"]} (already exists)')
                 continue
             company = Company(slug=slug, **data)
             db.session.add(company)

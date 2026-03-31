@@ -113,10 +113,18 @@ def _link_companies(article: Article, extracted: list[dict],
 
         if not company:
             company = Company(
-                name=name, slug=slug, is_auto_created=True
+                name=name, slug=slug, is_auto_created=True,
+                spinoff_origin=entry.get('spinoff_origin'),
+                company_stage=entry.get('company_stage'),
             )
             db.session.add(company)
             db.session.flush()
+        else:
+            # Enrich existing company with spin-off info if newly discovered
+            if not company.spinoff_origin and entry.get('spinoff_origin'):
+                company.spinoff_origin = entry['spinoff_origin']
+            if not company.company_stage and entry.get('company_stage'):
+                company.company_stage = entry['company_stage']
 
         # Skip if this company was already linked to this article
         if company.id in linked_company_ids:

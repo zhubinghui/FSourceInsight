@@ -183,6 +183,29 @@ def index():
     )
 
 
+@news_bp.route('/top')
+def top_insights():
+    """Concise daily top insights page — only highest-value articles."""
+    now = datetime.now()
+    cutoff = now - timedelta(days=3)
+
+    articles = (
+        Article.query
+        .filter(Article.highlights.isnot(None))
+        .filter(Article.highlights != '[]')
+        .filter(Article.published_at >= cutoff)
+        .all()
+    )
+
+    # Filter to only articles with scored highlights and sort by priority
+    scored = [(a, _highlight_score(a)) for a in articles if _highlight_score(a) > 0]
+    scored.sort(key=lambda x: (-x[1], -(x[0].published_at.timestamp() if x[0].published_at else 0)))
+
+    top = [a for a, _ in scored[:15]]
+
+    return render_template('news/top_insights.html', articles=top)
+
+
 @news_bp.route('/news/<int:article_id>')
 def detail(article_id):
     article = Article.query.get_or_404(article_id)
