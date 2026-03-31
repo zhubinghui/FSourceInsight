@@ -203,6 +203,43 @@ SOURCES = [
         'category': 'institutional',
         'crawl_frequency_minutes': 720,
     },
+    {
+        'name': 'CEA Enterprise',
+        'slug': 'cea-enterprise',
+        'url': 'https://www.cea.fr/entreprises',
+        'feed_url': 'https://www.cea.fr/entreprises/_layouts/15/i2i/web/ceasrchrss.ashx?pid=51&wid=g_df2252c5_2f67_4228_a495_d0f499e42779',
+        'feed_type': 'rss',
+        'category': 'institutional',
+        'crawl_frequency_minutes': 360,
+    },
+    {
+        'name': 'CEA-List',
+        'slug': 'cea-list',
+        'url': 'https://list.cea.fr/en/',
+        'feed_url': 'https://list.cea.fr/en/feed/',
+        'feed_type': 'rss',
+        'category': 'institutional',
+        'crawl_frequency_minutes': 720,
+    },
+    # Grenoble startup ecosystem
+    {
+        'name': 'Inovallee',
+        'slug': 'inovallee',
+        'url': 'https://www.inovallee.com',
+        'feed_url': 'https://www.inovallee.com/feed/',
+        'feed_type': 'rss',
+        'category': 'regional',
+        'crawl_frequency_minutes': 360,
+    },
+    {
+        'name': 'Linksium',
+        'slug': 'linksium',
+        'url': 'https://www.linksium.fr',
+        'feed_url': None,
+        'feed_type': 'html_scrape',
+        'category': 'institutional',
+        'crawl_frequency_minutes': 1440,
+    },
 ]
 
 

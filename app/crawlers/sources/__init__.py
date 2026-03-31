@@ -20,3 +20,7 @@ from . import aeneas  # noqa: F401
 from . import usine_nouvelle  # noqa: F401
 from . import ledauphine  # noqa: F401
 from . import brefeco  # noqa: F401
+from . import cea_enterprise  # noqa: F401
+from . import cea_list  # noqa: F401
+from . import inovallee  # noqa: F401
+from . import linksium  # noqa: F401

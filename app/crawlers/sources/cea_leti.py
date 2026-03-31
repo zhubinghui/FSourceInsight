@@ -11,9 +11,12 @@ from app.models.source import NewsSource
 
 BASE_URL = 'https://www.leti-cea.com'
 PAGES = [
+    # English pages
     '/cea-tech/leti/english/Pages/What%27s-On/News/news.aspx',
     '/cea-tech/leti/english/Pages/What%27s-On/Events/events.aspx',
     '/cea-tech/leti/english/Pages/What%27s-On/Press%20release/press-releases.aspx',
+    # French news page
+    '/cea-tech/leti/Pages/actualites/News/news.aspx',
 ]
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0',
