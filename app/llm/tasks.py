@@ -79,6 +79,9 @@ def process_article_llm(self, article_id: int):
             article.llm_model = config.model
         db.session.commit()
 
+        # 6. Auto-refresh AI analysis for linked companies that already have one
+        _refresh_company_analyses(article, client)
+
         logger.info(f'LLM processing complete for article {article_id}')
 
     except Exception as exc:
@@ -167,3 +170,52 @@ def _link_categories(article: Article, classified: list[dict]):
             confidence=confidence,
         )
         db.session.add(ac)
+
+
+def _refresh_company_analyses(article: Article, client: LLMClient):
+    """Auto-refresh AI analysis for companies linked to this article.
+
+    Only refreshes companies that already have an ai_analysis (i.e., were
+    previously analyzed). This avoids generating analyses for every company
+    mentioned in every article — only tracked companies get updated.
+    """
+    linked = (
+        ArticleCompany.query
+        .filter_by(article_id=article.id)
+        .all()
+    )
+    for ac in linked:
+        company = ac.company
+        if not company or not company.ai_analysis:
+            continue
+
+        try:
+            # Gather latest 5 news headlines for context
+            recent = (
+                Article.query
+                .join(ArticleCompany)
+                .filter(ArticleCompany.company_id == company.id)
+                .order_by(Article.published_at.desc())
+                .limit(5)
+                .all()
+            )
+            news = '\n'.join([
+                f'- {a.title_fr or a.title_en or ""}'
+                for a in recent
+            ])
+
+            analysis = client.analyze_company(
+                name=company.name,
+                sector=company.sector,
+                headquarters=company.headquarters,
+                description=company.description,
+                spinoff_origin=company.spinoff_origin,
+                company_stage=company.company_stage,
+                recent_news=news,
+            )
+            company.ai_analysis = analysis
+            company.ai_analysis_at = datetime.utcnow()
+            db.session.commit()
+            logger.info(f'Auto-refreshed AI analysis for {company.name}')
+        except Exception as e:
+            logger.warning(f'Failed to refresh analysis for {company.name}: {e}')
