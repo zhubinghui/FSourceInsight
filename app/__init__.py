@@ -81,23 +81,22 @@ def create_app(config_name=None):
     # Custom Jinja filters
     @app.template_filter('paragraphs')
     def paragraphs_filter(text):
-        """Convert plain text with newlines into HTML paragraphs."""
+        """Convert plain text or markdown into styled HTML."""
         if not text:
             return ''
-        from markupsafe import Markup, escape
-        paras = [p.strip() for p in text.split('\n') if p.strip()]
-        html = ''.join(f'<p>{escape(p)}</p>' for p in paras)
+        from markupsafe import Markup
+        import markdown2
+        html = markdown2.markdown(text, extras=['tables', 'fenced-code-blocks', 'header-ids'])
         return Markup(html)
 
     @app.template_filter('markdown_light')
     def markdown_light_filter(text):
-        """Convert markdown to HTML using markdown-it-py (supports tables, headers, lists, bold, etc.)."""
+        """Render markdown to HTML with full support (headers, bold, lists, tables)."""
         if not text:
             return ''
         from markupsafe import Markup
-        from markdown_it import MarkdownIt
-        md = MarkdownIt('commonmark', {'typographer': True}).enable('table')
-        html = md.render(str(text))
+        import markdown2
+        html = markdown2.markdown(text, extras=['tables', 'fenced-code-blocks', 'header-ids'])
         return Markup(html)
 
     # Template context
