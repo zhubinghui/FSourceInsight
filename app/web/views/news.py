@@ -80,33 +80,41 @@ def _get_filter_options():
     }
 
 
-def _get_highlighted_articles(page=1, per_page=8):
+def _get_highlighted_articles(page=1, per_page=5):
     """Get highlighted articles sorted by priority weight, paginated.
 
     Priority: tech_breakthrough (4) > local_research (3) > investment (2) > local_event (1)
-    Time rules: research/investment/breakthrough within 7 days; events today or future.
+    Time windows are configurable via Admin > Settings (system_setting table).
     Returns (items, total) for pagination.
     """
+    from app.models.setting import SystemSetting
+
     now = datetime.now()
-    cutoff_7d = now - timedelta(days=7)
+    bt_days = SystemSetting.get_int('highlight_breakthrough_days', 7)
+    rs_days = SystemSetting.get_int('highlight_research_days', 7)
+    inv_days = SystemSetting.get_int('highlight_investment_days', 7)
+    ev_days = SystemSetting.get_int('highlight_event_days', 14)
 
-    # Research, Investment & Breakthroughs: last 7 days
-    high_value = (
-        Article.query
-        .filter(Article.highlights.isnot(None))
-        .filter(Article.highlights != '[]')
-        .filter(
-            db.or_(
-                Article.highlights.like('%tech_breakthrough%'),
-                Article.highlights.like('%local_research%'),
-                Article.highlights.like('%investment%'),
-            )
+    # Each highlight type can have its own time window
+    high_value_articles = []
+
+    for hl_type, days in [
+        ('tech_breakthrough', bt_days),
+        ('local_research', rs_days),
+        ('investment', inv_days),
+    ]:
+        cutoff = now - timedelta(days=days)
+        articles = (
+            Article.query
+            .filter(Article.highlights.isnot(None))
+            .filter(Article.highlights.like(f'%{hl_type}%'))
+            .filter(Article.published_at >= cutoff)
+            .all()
         )
-        .filter(Article.published_at >= cutoff_7d)
-        .all()
-    )
+        high_value_articles.extend(articles)
 
-    # Events: only future or today
+    # Events: future or within event_days fallback
+    ev_cutoff = now - timedelta(days=ev_days)
     events = (
         Article.query
         .filter(Article.highlights.like('%local_event%'))
@@ -115,7 +123,7 @@ def _get_highlighted_articles(page=1, per_page=8):
                 Article.event_date >= now.date(),
                 db.and_(
                     Article.event_date.is_(None),
-                    Article.published_at >= cutoff_7d,
+                    Article.published_at >= ev_cutoff,
                 )
             )
         )
@@ -125,7 +133,7 @@ def _get_highlighted_articles(page=1, per_page=8):
     # Merge, deduplicate, then sort by priority weight (highest first)
     seen = set()
     merged = []
-    for a in high_value + events:
+    for a in high_value_articles + events:
         if a.id not in seen:
             seen.add(a.id)
             merged.append(a)

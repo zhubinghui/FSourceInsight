@@ -45,6 +45,9 @@ def create_app(config_name=None):
         from .models.user import User
         return db.session.get(User, int(user_id))
 
+    # Import all models for Alembic detection
+    from .models import setting  # noqa: F401
+
     # Register blueprints
     from .web.views.news import news_bp
     from .web.views.company import company_bp

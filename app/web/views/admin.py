@@ -589,10 +589,16 @@ def llm_routing():
 def settings():
     """System-wide settings management."""
     from flask import current_app
+    from app.models.setting import SystemSetting
 
     if request.method == 'POST':
-        # Update .env-backed settings via DB override table
-        # For now, show current values from env (read-only display + editable for DB-backed)
+        # Save highlight settings
+        for key in ['highlight_breakthrough_days', 'highlight_research_days',
+                     'highlight_investment_days', 'highlight_event_days']:
+            val = request.form.get(key, '').strip()
+            if val:
+                SystemSetting.set(key, val)
+        db.session.commit()
         flash('Settings updated.', 'success')
         return redirect(url_for('admin.settings'))
 
@@ -608,6 +614,14 @@ def settings():
         'log_format': os.environ.get('LOG_FORMAT', 'text'),
     }
 
+    # Highlight time window settings (from DB)
+    highlight_settings = {
+        'highlight_breakthrough_days': SystemSetting.get_int('highlight_breakthrough_days', 7),
+        'highlight_research_days': SystemSetting.get_int('highlight_research_days', 7),
+        'highlight_investment_days': SystemSetting.get_int('highlight_investment_days', 7),
+        'highlight_event_days': SystemSetting.get_int('highlight_event_days', 14),
+    }
+
     # LLM provider status
     llm_keys = {}
     for env_var in ['DEEPSEEK_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY']:
@@ -617,6 +631,7 @@ def settings():
     return render_template(
         'admin/settings.html',
         settings=settings_data,
+        highlight_settings=highlight_settings,
         llm_keys=llm_keys,
     )
 

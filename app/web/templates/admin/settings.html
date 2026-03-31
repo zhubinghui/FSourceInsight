@@ -3,6 +3,66 @@
 {% block content %}
 <h2 class="mb-4"><i class="bi bi-sliders"></i> System Settings</h2>
 
+{# ── Highlight Time Windows (editable) ── #}
+<form method="post" class="mb-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card card-fs" style="border-top: 3px solid var(--fs-orange);">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 text-fs-secondary text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                    <i class="bi bi-lightning-charge-fill" style="color: var(--fs-orange);"></i> Highlight Display Period
+                </h6>
+                <button type="submit" class="btn btn-fs-primary btn-sm"><i class="bi bi-check-lg"></i> Save</button>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label" style="font-size: 0.82rem;">
+                        <span class="badge badge-breakthrough" style="font-size: 0.68rem;">Breakthrough</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" name="highlight_breakthrough_days"
+                               value="{{ highlight_settings.highlight_breakthrough_days }}" min="1" max="90">
+                        <span class="input-group-text">days</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" style="font-size: 0.82rem;">
+                        <span class="badge badge-research" style="font-size: 0.68rem;">Research</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" name="highlight_research_days"
+                               value="{{ highlight_settings.highlight_research_days }}" min="1" max="90">
+                        <span class="input-group-text">days</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" style="font-size: 0.82rem;">
+                        <span class="badge badge-investment" style="font-size: 0.68rem;">Investment</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" name="highlight_investment_days"
+                               value="{{ highlight_settings.highlight_investment_days }}" min="1" max="90">
+                        <span class="input-group-text">days</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" style="font-size: 0.82rem;">
+                        <span class="badge badge-event" style="font-size: 0.68rem;">Events</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control" name="highlight_event_days"
+                               value="{{ highlight_settings.highlight_event_days }}" min="1" max="90">
+                        <span class="input-group-text">days</span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-fs-muted mt-2" style="font-size: 0.75rem;">
+                <i class="bi bi-info-circle"></i> Events with a specific event_date always show if the date is today or in the future, regardless of this setting.
+            </div>
+        </div>
+    </div>
+</form>
+
 <div class="row g-4">
     {# ── LLM Settings ── #}
     <div class="col-md-6">
