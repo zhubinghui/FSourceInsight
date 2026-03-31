@@ -152,7 +152,7 @@ def index():
     highlighted = []
     hl_total = 0
     hl_page = request.args.get('hl_page', 1, type=int)
-    hl_per_page = 8
+    hl_per_page = 5
     if not request.args.get('q') and not request.args.get('highlight'):
         highlighted, hl_total = _get_highlighted_articles(page=hl_page, per_page=hl_per_page)
 
