@@ -22,6 +22,7 @@ feedparser>=6.0
 beautifulsoup4>=4.12
 requests>=2.32
 lxml>=5.0
+cloudscraper>=1.2
 
 # Server
 gunicorn>=22.0

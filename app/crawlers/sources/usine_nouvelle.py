@@ -1,17 +1,11 @@
 import hashlib
 
-import requests
+import cloudscraper
 from bs4 import BeautifulSoup
 
 from app.crawlers.registry import register_crawler
 from app.crawlers.base import BaseCrawler, RawArticle
 from app.models.source import NewsSource
-
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml',
-    'Accept-Language': 'fr-FR,fr;q=0.9',
-}
 
 SECTION_URLS = [
     'https://www.usinenouvelle.com/',
@@ -22,10 +16,16 @@ SECTION_URLS = [
 
 @register_crawler('usine-nouvelle')
 class UsineNouvelleCrawler(BaseCrawler):
-    """Crawler for L'Usine Nouvelle - French industrial/tech news (Cloudflare-protected)."""
+    """Crawler for L'Usine Nouvelle - French industrial/tech news.
+
+    Uses cloudscraper to bypass Cloudflare anti-bot protection.
+    """
 
     def __init__(self, source: NewsSource):
         super().__init__(source)
+        self._scraper = cloudscraper.create_scraper(
+            browser={'browser': 'chrome', 'platform': 'darwin'},
+        )
 
     def fetch_articles(self) -> list[RawArticle]:
         articles = []
@@ -33,7 +33,7 @@ class UsineNouvelleCrawler(BaseCrawler):
 
         for url in SECTION_URLS:
             try:
-                resp = requests.get(url, headers=HEADERS, timeout=20)
+                resp = self._scraper.get(url, timeout=30)
                 if resp.status_code == 403:
                     self.logger.warning(f'Usine Nouvelle 403 for {url}')
                     continue
