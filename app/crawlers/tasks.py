@@ -46,9 +46,39 @@ def crawl_source(self, source_id: int):
         raise self.retry(exc=exc)
 
 
-@celery.task(name='app.crawlers.tasks.schedule_all_crawls', queue='crawl')
-def schedule_all_crawls():
-    """Check all active sources and schedule crawls for those that are due."""
+@celery.task(name='app.crawlers.tasks.crawl_all_sources', queue='crawl')
+def crawl_all_sources():
+    """Daily crawl: fetch all active sources. Triggered by Beat at configured hour."""
+    from app.models.setting import SystemSetting
+
+    # Check if the configured hour matches (allows admin to override the Beat default)
+    # Beat fires at the crontab hour, but admin might have changed the setting
+    # after Beat started. The setting is the source of truth.
+    configured_hour = SystemSetting.get_int('crawl_daily_hour', 1)
+    from datetime import datetime
+    current_hour = datetime.utcnow().hour
+    # Allow ±1 hour tolerance for timezone/scheduling drift
+    if abs(current_hour - configured_hour) > 1 and abs(current_hour - configured_hour) < 23:
+        logger.info(f'Skipping daily crawl: current hour {current_hour} != configured {configured_hour}')
+        return {'skipped': True, 'reason': f'hour mismatch: {current_hour} vs {configured_hour}'}
+
+    sources = NewsSource.query.filter_by(is_active=True).all()
+    scheduled = 0
+    for source in sources:
+        crawl_source.delay(source.id)
+        scheduled += 1
+
+    logger.info(f'Daily crawl: scheduled {scheduled} sources')
+    return {'scheduled': scheduled}
+
+
+@celery.task(name='app.crawlers.tasks.schedule_due_crawls', queue='crawl')
+def schedule_due_crawls():
+    """Frequency-based check: crawl sources whose crawl_frequency_minutes has elapsed.
+
+    This runs every 10 minutes and only picks up sources that are overdue
+    based on their individual frequency setting.
+    """
     sources = NewsSource.query.filter_by(is_active=True).all()
     scheduled = 0
 
@@ -58,7 +88,7 @@ def schedule_all_crawls():
             scheduled += 1
 
     if scheduled:
-        logger.info(f'Scheduled {scheduled} crawls')
+        logger.info(f'Frequency check: scheduled {scheduled} crawls')
     return {'scheduled': scheduled}
 
 

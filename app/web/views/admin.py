@@ -598,6 +598,11 @@ def settings():
             val = request.form.get(key, '').strip()
             if val:
                 SystemSetting.set(key, val)
+        # Save crawl schedule
+        crawl_hour = request.form.get('crawl_daily_hour', '').strip()
+        if crawl_hour:
+            SystemSetting.set(key='crawl_daily_hour', value=crawl_hour,
+                              description='Daily crawl start hour (UTC, 0-23)')
         db.session.commit()
         flash('Settings updated.', 'success')
         return redirect(url_for('admin.settings'))
@@ -622,6 +627,9 @@ def settings():
         'highlight_event_days': SystemSetting.get_int('highlight_event_days', 14),
     }
 
+    # Crawl schedule
+    crawl_daily_hour = SystemSetting.get_int('crawl_daily_hour', 1)
+
     # LLM provider status
     llm_keys = {}
     for env_var in ['DEEPSEEK_API_KEY', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY']:
@@ -632,6 +640,7 @@ def settings():
         'admin/settings.html',
         settings=settings_data,
         highlight_settings=highlight_settings,
+        crawl_daily_hour=crawl_daily_hour,
         llm_keys=llm_keys,
     )
 
