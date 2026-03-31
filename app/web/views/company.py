@@ -92,13 +92,8 @@ def index():
     ]
 
     if view_mode == 'map' and not search and not sector:
-        # Sector-grouped map view: only Grenoble companies with articles
-        grenoble_companies = (
-            Company.query
-            .filter(Company.is_grenoble == True)
-            .order_by(Company.name)
-            .all()
-        )
+        # Sector-grouped map view: Grenoble companies with article counts (single query)
+        grenoble_companies = Company.grenoble_with_counts()
 
         # Group by sector
         grouped = defaultdict(list)
@@ -176,11 +171,20 @@ def detail(slug):
         .paginate(page=page, per_page=20, error_out=False)
     )
 
-    # Sentiment stats
+    # Sentiment stats (single aggregation query instead of 3)
+    raw_stats = dict(
+        db.session.query(
+            ArticleCompany.sentiment,
+            func.count(ArticleCompany.id)
+        )
+        .filter(ArticleCompany.company_id == company.id)
+        .group_by(ArticleCompany.sentiment)
+        .all()
+    )
     sentiment_stats = {
-        'positive': ArticleCompany.query.filter_by(company_id=company.id, sentiment='positive').count(),
-        'neutral': ArticleCompany.query.filter_by(company_id=company.id, sentiment='neutral').count(),
-        'negative': ArticleCompany.query.filter_by(company_id=company.id, sentiment='negative').count(),
+        'positive': raw_stats.get('positive', 0),
+        'neutral': raw_stats.get('neutral', 0),
+        'negative': raw_stats.get('negative', 0),
     }
 
     trend_data = _get_sentiment_trend(company.id)

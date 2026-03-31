@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy import func, select
 from app.extensions import db
 
 
@@ -36,9 +37,37 @@ class Company(db.Model):
             names.extend(self.aliases)
         return names
 
+    # Cached article count — set by view queries via with_article_count().
+    # Falls back to a DB count query if not preloaded.
+    _article_count = None
+
     @property
     def article_count(self):
+        if self._article_count is not None:
+            return self._article_count
         return self.article_associations.count()
+
+    @classmethod
+    def grenoble_with_counts(cls):
+        """Load all Grenoble companies with article counts in a single query."""
+        from app.models.article import ArticleCompany
+        count_subq = (
+            select(func.count(ArticleCompany.id))
+            .where(ArticleCompany.company_id == cls.id)
+            .correlate(cls)
+            .scalar_subquery()
+        )
+        rows = (
+            db.session.query(cls, count_subq.label('cnt'))
+            .filter(cls.is_grenoble == True)
+            .order_by(cls.name)
+            .all()
+        )
+        companies = []
+        for company, cnt in rows:
+            company._article_count = cnt or 0
+            companies.append(company)
+        return companies
 
     @property
     def summary_zh(self):
