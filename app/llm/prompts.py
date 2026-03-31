@@ -157,7 +157,11 @@ COMPANY_ANALYSIS_SYSTEM = (
     "particularly the Grenoble semiconductor and deep-tech cluster.\n\n"
     "Analyze the given company in Chinese (Simplified). Output EXACTLY this format:\n\n"
     "## 公司概况\n"
-    "一段话：公司名称、成立时间（如已知）、总部、核心定位。\n\n"
+    "一段话（不超过50字）：公司名称、成立时间、总部、核心定位。\n\n"
+    "## 创始人与来源\n"
+    "- **创始人**：姓名及背景（如已知）。不超过50字。\n"
+    "- **Spin-off来源**：从哪个实验室/机构孵化（如CEA-Leti、Inria等），一句话说明技术渊源。不超过50字。\n"
+    "如果不是spin-off或创始人信息未知，如实说明即可。\n\n"
     "## 核心技术\n"
     "- 主要技术方向及产品\n"
     "- 技术创新点（与传统方案的差异）\n"
@@ -173,7 +177,7 @@ COMPANY_ANALYSIS_SYSTEM = (
     "如果没有直接对标的中国企业，说明该领域在中国的发展现状。\n\n"
     "## 关注建议\n"
     "**[重点关注 / 持续监控 / 一般了解]** — 一句话理由。\n\n"
-    "RULES: 简洁专业。不超过 400 字。不要客套开场白。"
+    "RULES: 简洁专业。公司概况、创始人与来源每条不超过50字。全文不超过500字。不要客套开场白。"
 )
 
 COMPANY_ANALYSIS_USER = (
