@@ -51,7 +51,8 @@
         <p class="text-fs-secondary mb-4">{{ company.description }}</p>
         {% endif %}
 
-        {# ── AI Analysis ── #}
+        {# ── AI Analysis (Structured) ── #}
+        {% set a = company.ai_analysis if company.ai_analysis is mapping else {} %}
         <div class="card card-fs mb-4" style="border-top: 3px solid {{ sector_config.color or '#64748B' }};">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -60,7 +61,7 @@
                     </h6>
                     {% if current_user.is_authenticated and current_user.is_admin %}
                     <div class="d-flex gap-1">
-                        {% if company.ai_analysis %}
+                        {% if a %}
                         <a href="{{ url_for('company.edit_analysis', slug=company.slug) }}" class="btn btn-fs-ghost" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;">
                             <i class="bi bi-pencil"></i> Edit
                         </a>
@@ -69,28 +70,98 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-fs-ghost" style="padding: 0.2rem 0.5rem; font-size: 0.78rem;"
                                     onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Generating...';">
-                                <i class="bi bi-arrow-clockwise"></i> {{ 'AI Refresh' if company.ai_analysis else 'Generate' }}
+                                <i class="bi bi-arrow-clockwise"></i> {{ 'AI Refresh' if a else 'Generate' }}
                             </button>
                         </form>
                     </div>
                     {% endif %}
                 </div>
 
-                {% if company.ai_analysis %}
-                <div class="article-body" style="font-size: 0.9rem; line-height: 1.7;">
-                    {{ company.ai_analysis | markdown_light }}
+                {% if a %}
+                <div style="font-size: 0.9rem;">
+                    {# 公司概况 #}
+                    <div class="mb-3">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-info-circle"></i> 公司概况</div>
+                        <div>{{ a.overview or '-' }}</div>
+                    </div>
+
+                    {# 创始人与来源 #}
+                    <div class="mb-3">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-people"></i> 创始人与来源</div>
+                        <div><strong>创始人：</strong>{{ a.founders or '信息未公开' }}</div>
+                        <div><strong>Spin-off：</strong>{{ a.spinoff_source or '非spin-off企业' }}</div>
+                    </div>
+
+                    {# 核心技术 #}
+                    <div class="mb-3">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-cpu"></i> 核心技术</div>
+                        <div style="line-height: 1.7;">{{ a.core_tech or '-' }}</div>
+                    </div>
+
+                    {# 中国同类企业对比 #}
+                    <div class="mb-3">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;">
+                            <i class="bi bi-arrow-left-right"></i> 中国同类企业对比
+                            {% if a.cn_competitor_names %}<span class="text-fs-muted fw-normal">（{{ a.cn_competitor_names }}）</span>{% endif %}
+                        </div>
+                        {% if a.competitors %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;">
+                                <thead style="background: var(--fs-muted);">
+                                    <tr>
+                                        <th style="width: 20%;">对比维度</th>
+                                        <th style="width: 40%;">{{ company.name }}</th>
+                                        <th style="width: 40%;">中国对标</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for row in a.competitors %}
+                                    <tr>
+                                        <td class="fw-medium">{{ row.dimension }}</td>
+                                        <td>{{ row.company }}</td>
+                                        <td>{{ row.cn_competitor }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-fs-muted">暂无对比数据</div>
+                        {% endif %}
+                    </div>
+
+                    {# 经营现状 #}
+                    <div class="mb-3">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-briefcase"></i> 经营现状</div>
+                        <div style="line-height: 1.7;">{{ a.business_status or '-' }}</div>
+                    </div>
+
+                    {# 关注建议 #}
+                    <div class="mb-2">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-bookmark-star"></i> 关注建议</div>
+                        <div>
+                            {% if a.recommendation == '重点关注' %}
+                            <span class="badge badge-breakthrough">{{ a.recommendation }}</span>
+                            {% elif a.recommendation == '持续监控' %}
+                            <span class="badge badge-investment">{{ a.recommendation }}</span>
+                            {% else %}
+                            <span class="badge badge-category">{{ a.recommendation or '-' }}</span>
+                            {% endif %}
+                            <span class="ms-1">{{ a.recommendation_reason or '' }}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
+
+                {# Footer: timestamp + revision count #}
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2" style="border-top: 1px solid var(--fs-card-border);">
                     {% if company.ai_analysis_at %}
-                    <span class="text-fs-muted" style="font-size: 0.75rem;">
-                        Updated: {{ company.ai_analysis_at.strftime('%Y-%m-%d %H:%M') }}
-                    </span>
+                    <span class="text-fs-muted" style="font-size: 0.75rem;">Updated: {{ company.ai_analysis_at.strftime('%Y-%m-%d %H:%M') }}</span>
                     {% endif %}
                     {% if company.ai_revision_history %}
                     <span class="text-fs-muted" style="font-size: 0.75rem;">
                         <i class="bi bi-clock-history"></i> {{ company.ai_revision_history | length }} revision(s)
                         {% if current_user.is_authenticated and current_user.is_admin %}
-                        — <a href="{{ url_for('company.edit_analysis', slug=company.slug) }}#rev-history" class="text-decoration-none">view history</a>
+                        — <a href="{{ url_for('company.edit_analysis', slug=company.slug) }}" class="text-decoration-none">view history</a>
                         {% endif %}
                     </span>
                     {% endif %}

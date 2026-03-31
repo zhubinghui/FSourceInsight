@@ -403,15 +403,19 @@ class LLMClient:
     def analyze_company(self, name: str, sector: str = None,
                         headquarters: str = None, description: str = None,
                         spinoff_origin: str = None, company_stage: str = None,
-                        recent_news: str = None) -> str:
+                        recent_news: str = None) -> dict:
         """Generate a structured company analysis in Chinese.
 
-        Covers: overview, core technology, disruption potential,
-        Chinese competitor comparison, and tracking recommendation.
+        Returns a dict with keys: overview, founders, spinoff_source,
+        core_tech, competitors, cn_competitor_names, business_status,
+        recommendation, recommendation_reason.
         """
         cache_key = self._cache_key('company_analysis', name, sector=sector or '')
         messages = get_company_analysis_messages(
             name, sector, headquarters, description,
             spinoff_origin, company_stage, recent_news,
         )
-        return self._call_with_cache('insight', messages, cache_key)
+        return self._call_with_cache(
+            'insight', messages, cache_key,
+            response_format={'type': 'json_object'}, parse_json=True
+        )

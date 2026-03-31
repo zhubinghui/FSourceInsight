@@ -9,51 +9,138 @@
     </ol>
 </nav>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 style="font-weight: 700;"><i class="bi bi-pencil-square"></i> Edit Analysis — {{ company.name }}</h3>
-    <a href="{{ url_for('company.detail', slug=company.slug) }}" class="btn btn-fs-ghost btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
-</div>
+<h3 class="mb-4" style="font-weight: 700;"><i class="bi bi-pencil-square"></i> Edit Analysis — {{ company.name }}</h3>
 
 <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
     <div class="card card-fs mb-3">
         <div class="card-body">
-            <div class="mb-2 text-fs-muted" style="font-size: 0.82rem;">
-                Markdown format. Sections: 公司概况 / 创始人与来源 / 核心技术 / 中国同类企业对比 / 经营现状 / 关注建议
-            </div>
-            <textarea name="ai_analysis" class="form-control" rows="25" style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 0.85rem; line-height: 1.6;">{{ company.ai_analysis or '' }}</textarea>
+            <label class="form-label fw-semibold"><i class="bi bi-info-circle"></i> 公司概况 <small class="text-fs-muted fw-normal">(≤50字)</small></label>
+            <input type="text" class="form-control" name="overview" value="{{ data.get('overview', '') }}" maxlength="80">
         </div>
     </div>
-    <div class="d-flex gap-2">
+
+    <div class="card card-fs mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold"><i class="bi bi-people"></i> 创始人与来源</label>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-fs-secondary" style="font-size: 0.85rem;">创始人</label>
+                    <input type="text" class="form-control" name="founders" value="{{ data.get('founders', '') }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-fs-secondary" style="font-size: 0.85rem;">Spin-off来源</label>
+                    <input type="text" class="form-control" name="spinoff_source" value="{{ data.get('spinoff_source', '') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-fs mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold"><i class="bi bi-cpu"></i> 核心技术</label>
+            <textarea class="form-control" name="core_tech" rows="4">{{ data.get('core_tech', '') }}</textarea>
+        </div>
+    </div>
+
+    <div class="card card-fs mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold"><i class="bi bi-arrow-left-right"></i> 中国同类企业对比</label>
+            <div class="mb-2">
+                <label class="form-label text-fs-secondary" style="font-size: 0.85rem;">对标企业名称</label>
+                <input type="text" class="form-control" name="cn_competitor_names" value="{{ data.get('cn_competitor_names', '') }}" placeholder="寒武纪, 地平线">
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered" id="comp-table">
+                    <thead style="background: var(--fs-muted);">
+                        <tr>
+                            <th style="width: 20%;">对比维度</th>
+                            <th style="width: 40%;">{{ company.name }}</th>
+                            <th style="width: 40%;">中国对标</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in (data.get('competitors', []) or [{'dimension':'技术路线','company':'','cn_competitor':''},{'dimension':'成熟度','company':'','cn_competitor':''},{'dimension':'竞争优势','company':'','cn_competitor':''},{'dimension':'竞争劣势','company':'','cn_competitor':''}]) %}
+                        <tr>
+                            <td><input type="text" class="form-control form-control-sm" name="comp_dimension" value="{{ row.dimension }}"></td>
+                            <td><input type="text" class="form-control form-control-sm" name="comp_company" value="{{ row.company }}"></td>
+                            <td><input type="text" class="form-control form-control-sm" name="comp_cn" value="{{ row.cn_competitor }}"></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-fs mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold"><i class="bi bi-briefcase"></i> 经营现状</label>
+            <textarea class="form-control" name="business_status" rows="3">{{ data.get('business_status', '') }}</textarea>
+        </div>
+    </div>
+
+    <div class="card card-fs mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold"><i class="bi bi-bookmark-star"></i> 关注建议</label>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <select name="recommendation" class="form-select">
+                        {% for opt in ['重点关注', '持续监控', '一般了解'] %}
+                        <option value="{{ opt }}" {{ 'selected' if data.get('recommendation') == opt }}>{{ opt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <input type="text" class="form-control" name="recommendation_reason" value="{{ data.get('recommendation_reason', '') }}" placeholder="一句话理由">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mb-4">
         <button type="submit" class="btn btn-fs-primary"><i class="bi bi-check-lg"></i> Save</button>
         <a href="{{ url_for('company.detail', slug=company.slug) }}" class="btn btn-fs-ghost">Cancel</a>
     </div>
 </form>
 
+{# ── Revision History ── #}
 {% if company.ai_revision_history %}
-<div class="mt-4">
-    <h5 style="font-weight: 600;"><i class="bi bi-clock-history"></i> Revision History ({{ company.ai_revision_history | length }})</h5>
+<div id="rev-history">
+    <h5 class="mb-3" style="font-weight: 600;"><i class="bi bi-clock-history"></i> Revision History</h5>
     {% for rev in company.ai_revision_history | reverse %}
     <div class="card card-fs mb-2">
         <div class="card-body py-2 px-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="text-fs-muted" style="font-size: 0.8rem;">
-                    {{ rev.timestamp[:19] }} &middot;
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span style="font-size: 0.82rem;">
+                    <strong>{{ rev.timestamp[:16] }}</strong>
                     {% if rev.source == 'manual-edit' %}
-                    <span class="badge bg-info-subtle text-info" style="font-size: 0.68rem;">Manual Edit</span>
+                    <span class="badge bg-info-subtle text-info ms-1" style="font-size: 0.68rem;">手动编辑</span>
                     {% elif rev.source == 'auto-refresh' %}
-                    <span class="badge bg-warning-subtle text-warning" style="font-size: 0.68rem;">Auto Refresh</span>
+                    <span class="badge bg-warning-subtle text-warning ms-1" style="font-size: 0.68rem;">新闻触发</span>
                     {% elif rev.source == 'ai-regenerate' %}
-                    <span class="badge bg-success-subtle text-success" style="font-size: 0.68rem;">AI Regenerate</span>
+                    <span class="badge bg-success-subtle text-success ms-1" style="font-size: 0.68rem;">AI 重新生成</span>
+                    {% endif %}
+                    {% if rev.trigger %}
+                    <span class="text-fs-muted ms-1" style="font-size: 0.78rem;">{{ rev.trigger[:80] }}</span>
                     {% endif %}
                 </span>
-                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#rev-{{ loop.index }}">
-                    <i class="bi bi-eye"></i>
-                </button>
             </div>
-            <div class="collapse mt-2" id="rev-{{ loop.index }}">
-                <pre class="bg-fs-muted p-2 rounded" style="font-size: 0.78rem; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ rev.content }}</pre>
+            {% if rev.changes %}
+            <div style="font-size: 0.82rem;">
+                {% for chg in rev.changes %}
+                <div class="py-1 {{ 'border-top' if not loop.first }}" style="border-color: var(--fs-card-border) !important;">
+                    <span class="fw-medium">{{ chg.field }}</span>：
+                    {% if chg.old and chg.old != '(table updated)' %}
+                    <span class="text-danger" style="text-decoration: line-through;">{{ chg.old[:80] }}{% if chg.old|length > 80 %}...{% endif %}</span>
+                    <i class="bi bi-arrow-right mx-1"></i>
+                    {% endif %}
+                    <span class="text-success">{{ chg.new[:100] }}{% if chg.new|length > 100 %}...{% endif %}</span>
+                </div>
+                {% endfor %}
             </div>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

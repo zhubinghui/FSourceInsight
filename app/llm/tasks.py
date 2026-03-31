@@ -204,9 +204,6 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
                 for a in recent
             ])
 
-            # Save current analysis to revision history before overwriting
-            _save_revision(company, source='auto-refresh')
-
             analysis = client.analyze_company(
                 name=company.name,
                 sector=company.sector,
@@ -216,6 +213,8 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
                 company_stage=company.company_stage,
                 recent_news=news,
             )
+            trigger = f'Article #{article.id}: {(article.title_fr or "")[:60]}'
+            _save_revision(company, new_data=analysis, source='auto-refresh', trigger=trigger)
             company.ai_analysis = analysis
             company.ai_analysis_at = datetime.utcnow()
             db.session.commit()
@@ -224,15 +223,60 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
             logger.warning(f'Failed to refresh analysis for {company.name}: {e}')
 
 
-def _save_revision(company, source='manual'):
-    """Save current ai_analysis to revision history before overwriting."""
-    if not company.ai_analysis:
+ANALYSIS_FIELDS = [
+    ('overview', '公司概况'),
+    ('founders', '创始人'),
+    ('spinoff_source', 'Spin-off来源'),
+    ('core_tech', '核心技术'),
+    ('cn_competitor_names', '中国对标企业'),
+    ('business_status', '经营现状'),
+    ('recommendation', '关注建议'),
+    ('recommendation_reason', '建议理由'),
+]
+
+
+def _save_revision(company, new_data=None, source='manual', trigger=''):
+    """Track field-level changes in revision history.
+
+    Compares old ai_analysis (dict) with new_data and records which fields changed.
+    """
+    old_data = company.ai_analysis or {}
+    if not isinstance(old_data, dict):
+        old_data = {}
+    if new_data is None:
         return
+
+    changes = []
+    for field_key, field_label in ANALYSIS_FIELDS:
+        old_val = str(old_data.get(field_key, '') or '')
+        new_val = str(new_data.get(field_key, '') or '')
+        if old_val != new_val and (old_val or new_val):
+            changes.append({
+                'field': field_label,
+                'field_key': field_key,
+                'old': old_val[:200] if old_val else '',
+                'new': new_val[:200] if new_val else '',
+            })
+
+    # Also check competitors table
+    old_comp = old_data.get('competitors', [])
+    new_comp = new_data.get('competitors', [])
+    if str(old_comp) != str(new_comp):
+        changes.append({
+            'field': '对标对比表',
+            'field_key': 'competitors',
+            'old': '(table updated)',
+            'new': '(table updated)',
+        })
+
+    if not changes:
+        return
+
     history = company.ai_revision_history or []
     history.append({
         'timestamp': datetime.utcnow().isoformat(),
         'source': source,
-        'content': company.ai_analysis,
+        'trigger': trigger,
+        'changes': changes,
     })
-    # Keep only last 10 revisions
     company.ai_revision_history = history[-10:]

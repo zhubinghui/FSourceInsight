@@ -224,9 +224,6 @@ def generate_analysis(slug):
         from app.llm.client import LLMClient
         from app.llm.tasks import _save_revision
 
-        # Save old version to revision history
-        _save_revision(company, source='ai-regenerate')
-
         client = LLMClient()
         analysis = client.analyze_company(
             name=company.name,
@@ -237,6 +234,7 @@ def generate_analysis(slug):
             company_stage=company.company_stage,
             recent_news=recent_news,
         )
+        _save_revision(company, new_data=analysis, source='ai-regenerate')
         company.ai_analysis = analysis
         company.ai_analysis_at = datetime.utcnow()
         db.session.commit()
@@ -250,7 +248,7 @@ def generate_analysis(slug):
 @company_bp.route('/<slug>/edit-analysis', methods=['GET', 'POST'])
 @login_required
 def edit_analysis(slug):
-    """Manually edit AI analysis for a company (admin only)."""
+    """Manually edit structured AI analysis fields (admin only)."""
     if not current_user.is_admin:
         flash('Admin access required.', 'error')
         return redirect(url_for('company.detail', slug=slug))
@@ -260,10 +258,31 @@ def edit_analysis(slug):
     if request.method == 'POST':
         from app.llm.tasks import _save_revision
 
-        # Save old version to revision history
-        _save_revision(company, source='manual-edit')
+        new_data = {
+            'overview': request.form.get('overview', '').strip(),
+            'founders': request.form.get('founders', '').strip(),
+            'spinoff_source': request.form.get('spinoff_source', '').strip(),
+            'core_tech': request.form.get('core_tech', '').strip(),
+            'cn_competitor_names': request.form.get('cn_competitor_names', '').strip(),
+            'competitors': [],
+            'business_status': request.form.get('business_status', '').strip(),
+            'recommendation': request.form.get('recommendation', '').strip(),
+            'recommendation_reason': request.form.get('recommendation_reason', '').strip(),
+        }
+        # Parse competitors table from form
+        dims = request.form.getlist('comp_dimension')
+        comps = request.form.getlist('comp_company')
+        cns = request.form.getlist('comp_cn')
+        for d, c, cn in zip(dims, comps, cns):
+            if d.strip():
+                new_data['competitors'].append({
+                    'dimension': d.strip(),
+                    'company': c.strip(),
+                    'cn_competitor': cn.strip(),
+                })
 
-        company.ai_analysis = request.form.get('ai_analysis', '')
+        _save_revision(company, new_data=new_data, source='manual-edit', trigger='Admin manual edit')
+        company.ai_analysis = new_data
         company.ai_analysis_at = datetime.utcnow()
         db.session.commit()
         flash(f'Analysis for {company.name} updated.', 'success')
@@ -272,6 +291,7 @@ def edit_analysis(slug):
     return render_template(
         'company/edit_analysis.html',
         company=company,
+        data=company.ai_analysis if isinstance(company.ai_analysis, dict) else {},
     )
 
 
