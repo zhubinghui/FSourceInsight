@@ -4,73 +4,55 @@
 
 {% block content %}
 
-{# ── Highlights Section (top of page) ── #}
+{# ── Highlights Section (dark panel) ── #}
 {% if highlighted %}
-<div class="card mb-4 border-warning">
-    <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
-        <div>
-            <i class="bi bi-star-fill text-warning"></i>
-            <strong>Highlights</strong>
-            <small class="text-muted ms-2">{{ hl_total }} items (sorted by priority)</small>
-        </div>
-        <div class="btn-group btn-group-sm">
-            <a href="?highlight=tech_breakthrough" class="btn btn-outline-dark" style="border-color: #e65100; color: #e65100;">
-                <i class="bi bi-lightning-charge-fill"></i> Breakthrough
-            </a>
-            <a href="?highlight=local_research" class="btn btn-outline-dark" style="border-color: #7c3aed; color: #7c3aed;">
-                <i class="bi bi-mortarboard-fill"></i> Research
-            </a>
-            <a href="?highlight=investment" class="btn btn-outline-success">
-                <i class="bi bi-cash-stack"></i> Investment
-            </a>
-            <a href="?highlight=local_event" class="btn btn-outline-danger">
-                <i class="bi bi-calendar-event-fill"></i> Events
-            </a>
+<div class="highlights-section mb-4">
+    <div class="hl-header">
+        <h6><i class="bi bi-lightning-charge-fill" style="color: #F97316;"></i> Highlights <span style="opacity:0.5; font-weight:400;">{{ hl_total }} items</span></h6>
+        <div class="d-flex gap-1">
+            <a href="?highlight=tech_breakthrough" class="hl-pill hl-pill-breakthrough"><i class="bi bi-lightning-charge-fill"></i> Breakthrough</a>
+            <a href="?highlight=local_research" class="hl-pill hl-pill-research"><i class="bi bi-mortarboard-fill"></i> Research</a>
+            <a href="?highlight=investment" class="hl-pill hl-pill-investment"><i class="bi bi-cash-stack"></i> Investment</a>
+            <a href="?highlight=local_event" class="hl-pill hl-pill-event"><i class="bi bi-calendar-event-fill"></i> Events</a>
         </div>
     </div>
-    <div class="card-body p-2">
+    <div class="hl-body">
         {% for article in highlighted %}
-        <div class="d-flex align-items-start py-2 {{ 'border-top' if not loop.first }}">
-            <div class="me-2 mt-1">
+        <div class="hl-item">
+            <div class="d-flex flex-wrap gap-1 flex-shrink-0" style="min-width: 80px;">
                 {% for h in (article.highlights or []) %}
-                {% if h == 'tech_breakthrough' %}<span class="badge" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i></span>
-                {% elif h == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i></span>
-                {% elif h == 'investment' %}<span class="badge bg-success"><i class="bi bi-cash-stack"></i></span>
-                {% elif h == 'local_event' %}<span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i></span>
+                {% if h == 'tech_breakthrough' %}<span class="badge badge-breakthrough" style="font-size:0.65rem;"><i class="bi bi-lightning-charge-fill"></i></span>
+                {% elif h == 'local_research' %}<span class="badge badge-research" style="font-size:0.65rem;"><i class="bi bi-mortarboard-fill"></i></span>
+                {% elif h == 'investment' %}<span class="badge badge-investment" style="font-size:0.65rem;"><i class="bi bi-cash-stack"></i></span>
+                {% elif h == 'local_event' %}<span class="badge badge-event" style="font-size:0.65rem;"><i class="bi bi-calendar-event-fill"></i></span>
                 {% endif %}
                 {% endfor %}
             </div>
             <div class="flex-grow-1">
-                <a href="{{ url_for('news.detail', article_id=article.id) }}" class="text-decoration-none fw-semibold">
+                <a href="{{ url_for('news.detail', article_id=article.id) }}">
                     {{ article.title_zh or article.title_en or article.title_fr }}
                 </a>
-                <div class="text-muted small">
+                <div class="hl-meta">
                     {{ article.source.name if article.source }}
                     {% if article.published_at %}&middot; {{ article.published_at.strftime('%m-%d %H:%M') }}{% endif %}
-                    {% if article.event_date %}<span class="text-danger ms-1"><i class="bi bi-calendar3"></i> {{ article.event_date }}</span>{% endif %}
+                    {% if article.event_date %}<span style="color: #FCA5A5;"><i class="bi bi-calendar3"></i> {{ article.event_date }}</span>{% endif %}
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% if hl_pages > 1 %}
-    <div class="card-footer bg-transparent text-center py-1">
+    <div style="padding: 0 1.25rem 0.75rem; text-align: center;">
         <nav>
             <ul class="pagination pagination-sm justify-content-center mb-0">
                 {% if hl_page > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="?hl_page={{ hl_page - 1 }}"><i class="bi bi-chevron-left"></i></a>
-                </li>
+                <li class="page-item"><a class="page-link bg-transparent border-0 text-white" href="?hl_page={{ hl_page - 1 }}"><i class="bi bi-chevron-left"></i></a></li>
                 {% endif %}
                 {% for p in range(1, hl_pages + 1) %}
-                <li class="page-item {{ 'active' if p == hl_page }}">
-                    <a class="page-link" href="?hl_page={{ p }}">{{ p }}</a>
-                </li>
+                <li class="page-item {{ 'active' if p == hl_page }}"><a class="page-link bg-transparent border-0 {{ 'text-warning' if p == hl_page else 'text-white-50' }}" href="?hl_page={{ p }}">{{ p }}</a></li>
                 {% endfor %}
                 {% if hl_page < hl_pages %}
-                <li class="page-item">
-                    <a class="page-link" href="?hl_page={{ hl_page + 1 }}"><i class="bi bi-chevron-right"></i></a>
-                </li>
+                <li class="page-item"><a class="page-link bg-transparent border-0 text-white" href="?hl_page={{ hl_page + 1 }}"><i class="bi bi-chevron-right"></i></a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -81,27 +63,26 @@
 
 {# ── Highlight filter indicator ── #}
 {% if current_highlight %}
-<div class="alert alert-info d-flex justify-content-between align-items-center py-2 mb-3">
+<div class="d-flex justify-content-between align-items-center py-2 px-3 mb-3 rounded-3" style="background: var(--fs-muted); border: 1px solid var(--fs-card-border);">
     <span>
-        Filtering by:
-        {% if current_highlight == 'tech_breakthrough' %}<span class="badge" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i> Tech Breakthrough</span>
-        {% elif current_highlight == 'local_research' %}<span class="badge" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
-        {% elif current_highlight == 'investment' %}<span class="badge bg-success"><i class="bi bi-cash-stack"></i> Investment</span>
-        {% elif current_highlight == 'local_event' %}<span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i> Event</span>
+        Filtering:
+        {% if current_highlight == 'tech_breakthrough' %}<span class="badge badge-breakthrough"><i class="bi bi-lightning-charge-fill"></i> Tech Breakthrough</span>
+        {% elif current_highlight == 'local_research' %}<span class="badge badge-research"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+        {% elif current_highlight == 'investment' %}<span class="badge badge-investment"><i class="bi bi-cash-stack"></i> Investment</span>
+        {% elif current_highlight == 'local_event' %}<span class="badge badge-event"><i class="bi bi-calendar-event-fill"></i> Event</span>
         {% endif %}
     </span>
-    <a href="{{ url_for('news.index') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+    <a href="{{ url_for('news.index') }}" class="btn-fs-ghost" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">Clear</a>
 </div>
 {% endif %}
 
 <div class="row">
     <!-- Sidebar filters -->
     <div class="col-md-3">
-        <div class="card mb-3">
+        <div class="card card-fs filter-card mb-3">
             <div class="card-header"><i class="bi bi-funnel"></i> Filters</div>
             <div class="card-body">
                 <form method="get" action="{{ url_for('news.index') }}" id="filter-form">
-                    <!-- Live search -->
                     <div class="mb-3">
                         <label class="form-label">Search</label>
                         <input type="search" class="form-control form-control-sm" name="q"
@@ -164,23 +145,23 @@
                     <div class="mb-3">
                         <label class="form-label">Date Range</label>
                         <input type="date" class="form-control form-control-sm mb-1" name="date_from"
-                               value="{{ date_from }}" placeholder="From"
+                               value="{{ date_from }}"
                                hx-get="{{ url_for('news.search') }}"
                                hx-trigger="change"
                                hx-target="#article-list"
                                hx-include="#filter-form">
                         <input type="date" class="form-control form-control-sm" name="date_to"
-                               value="{{ date_to }}" placeholder="To"
+                               value="{{ date_to }}"
                                hx-get="{{ url_for('news.search') }}"
                                hx-trigger="change"
                                hx-target="#article-list"
                                hx-include="#filter-form">
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <button type="submit" class="btn btn-fs-primary w-100">
                         <i class="bi bi-filter"></i> Apply
                     </button>
-                    <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary btn-sm w-100 mt-1">
+                    <a href="{{ url_for('news.index') }}" class="btn btn-fs-ghost w-100 mt-1">
                         Clear All
                     </a>
                 </form>
@@ -191,8 +172,8 @@
     <!-- Article list -->
     <div class="col-md-9">
         {% if search_query %}
-        <p class="text-muted mb-2">
-            Search results for: <strong>{{ search_query }}</strong>
+        <p class="text-fs-secondary mb-2" style="font-size: 0.9rem;">
+            Search: <strong>{{ search_query }}</strong>
             (<span id="result-count">{{ pagination.total }}</span> results)
         </p>
         {% endif %}

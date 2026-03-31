@@ -3,70 +3,70 @@
 {% block title %}Top Insights{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-0"><i class="bi bi-lightning-charge-fill text-warning"></i> Top Insights</h2>
-        <small class="text-muted">Last 3 days, sorted by value: Breakthrough > Research > Investment > Events</small>
+<div class="top-insights-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-lightning-charge-fill" style="color: #F97316;"></i> Top Insights</h2>
+            <p>Last 3 days &middot; Sorted by value: Breakthrough &gt; Research &gt; Investment &gt; Events</p>
+        </div>
+        <a href="{{ url_for('news.index') }}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-arrow-left"></i> All News
+        </a>
     </div>
-    <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> All News
-    </a>
 </div>
 
 {% if not articles %}
-<div class="alert alert-info">No high-value insights in the last 3 days.</div>
+<div class="text-center py-5 text-fs-muted">
+    <i class="bi bi-lightning-charge" style="font-size: 2.5rem;"></i>
+    <p class="mt-2">No high-value insights in the last 3 days.</p>
+</div>
 {% endif %}
 
 {% for article in articles %}
-<div class="card mb-3 border-start border-4
-    {% if 'tech_breakthrough' in (article.highlights or []) %}border-warning
-    {% elif 'local_research' in (article.highlights or []) %}border-purple
-    {% elif 'investment' in (article.highlights or []) %}border-success
-    {% else %}border-danger{% endif %}">
+<div class="card card-fs article-card has-highlight mb-3">
     <div class="card-body">
         {# Priority badges #}
-        <div class="mb-2">
+        <div class="mb-2 d-flex flex-wrap gap-1 align-items-center">
             {% for h in (article.highlights or []) %}
             {% if h == 'tech_breakthrough' %}
-            <span class="badge text-white" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i> Breakthrough</span>
+            <span class="badge badge-breakthrough"><i class="bi bi-lightning-charge-fill"></i> Breakthrough</span>
             {% elif h == 'local_research' %}
-            <span class="badge text-white" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Research</span>
+            <span class="badge badge-research"><i class="bi bi-mortarboard-fill"></i> Research</span>
             {% elif h == 'investment' %}
-            <span class="badge bg-success"><i class="bi bi-cash-stack"></i> Investment</span>
+            <span class="badge badge-investment"><i class="bi bi-cash-stack"></i> Investment</span>
             {% elif h == 'local_event' %}
-            <span class="badge bg-danger"><i class="bi bi-calendar-event-fill"></i> Event</span>
+            <span class="badge badge-event"><i class="bi bi-calendar-event-fill"></i> Event</span>
             {% endif %}
             {% endfor %}
             {% if article.event_date %}
-            <span class="badge bg-dark"><i class="bi bi-calendar3"></i> {{ article.event_date }}</span>
+            <span class="badge" style="background: var(--fs-navy-light); color: #fff;"><i class="bi bi-calendar3"></i> {{ article.event_date }}</span>
             {% endif %}
         </div>
 
-        <h5 class="card-title mb-1">
-            <a href="{{ url_for('news.detail', article_id=article.id) }}" class="text-decoration-none">
+        <div class="article-title" style="font-size: 1.1rem;">
+            <a href="{{ url_for('news.detail', article_id=article.id) }}">
                 {{ article.title_zh or article.title_en or article.title_fr }}
             </a>
-        </h5>
-        <p class="text-muted small mb-2">{{ article.title_fr }}</p>
+        </div>
+        <p class="article-fr mb-2">{{ article.title_fr }}</p>
 
         {% if article.summary_zh or article.summary_en %}
-        <p class="card-text mb-2">{{ (article.summary_zh or article.summary_en) }}</p>
+        <p class="article-summary mb-2">{{ (article.summary_zh or article.summary_en) }}</p>
         {% endif %}
 
         <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <span class="badge bg-secondary">{{ article.source.name if article.source }}</span>
+            <div class="d-flex flex-wrap gap-1 align-items-center">
+                <span class="badge badge-source">{{ article.source.name if article.source }}</span>
                 {% for ac in article.companies.limit(3).all() %}
-                <a href="{{ url_for('company.detail', slug=ac.company.slug) }}"
-                   class="badge bg-light text-dark text-decoration-none">
+                <a href="{{ url_for('company.detail', slug=ac.company.slug) }}" class="badge badge-company text-decoration-none">
                     {{ ac.company.name }}
-                    {% if ac.company.spinoff_origin %}<small class="text-muted">({{ ac.company.spinoff_origin }})</small>{% endif %}
+                    {% if ac.company.spinoff_origin %}<small class="text-fs-muted">({{ ac.company.spinoff_origin }})</small>{% endif %}
                 </a>
                 {% endfor %}
             </div>
-            <small class="text-muted">
+            <span class="article-meta">
                 {% if article.published_at %}{{ article.published_at.strftime('%m-%d %H:%M') }}{% endif %}
-            </small>
+            </span>
         </div>
     </div>
 </div>

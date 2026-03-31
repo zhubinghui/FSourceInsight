@@ -3,102 +3,104 @@
 {% block title %}{{ article.title_zh or article.title_fr }}{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row article-detail">
     <div class="col-md-8">
-        <nav aria-label="breadcrumb">
+        <nav aria-label="breadcrumb" style="font-size: 0.85rem;">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('news.index') }}">News</a></li>
-                <li class="breadcrumb-item active">Article</li>
+                <li class="breadcrumb-item"><a href="{{ url_for('news.index') }}" class="text-decoration-none">News</a></li>
+                <li class="breadcrumb-item active text-truncate" style="max-width: 400px;">{{ article.title_zh or article.title_fr }}</li>
             </ol>
         </nav>
 
-        <h2>{{ article.title_zh or article.title_en or article.title_fr }}</h2>
-        <p class="text-muted">{{ article.title_fr }}</p>
+        <h2 style="font-weight: 700; letter-spacing: -0.3px; line-height: 1.3;">{{ article.title_zh or article.title_en or article.title_fr }}</h2>
+        <p class="text-fs-muted" style="font-style: italic; font-size: 0.9rem;">{{ article.title_fr }}</p>
 
-        <div class="mb-3">
-            <span class="badge bg-secondary">{{ article.source.name if article.source }}</span>
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+            <span class="badge badge-source">{{ article.source.name if article.source }}</span>
             {% if article.author %}
-            <span class="text-muted">by {{ article.author }}</span>
+            <span class="text-fs-secondary" style="font-size: 0.85rem;">by {{ article.author }}</span>
             {% endif %}
-            <span class="text-muted">
+            <span class="text-fs-muted" style="font-size: 0.85rem;">
                 {{ article.published_at.strftime('%Y-%m-%d %H:%M') if article.published_at }}
             </span>
-            <a href="{{ article.url }}" target="_blank" class="ms-2">
+            <a href="{{ article.url }}" target="_blank" class="text-decoration-none" style="font-size: 0.85rem; color: var(--fs-blue);">
                 <i class="bi bi-box-arrow-up-right"></i> Original
             </a>
         </div>
 
         {% if article.image_url %}
-        <img src="{{ article.image_url }}" alt="" class="img-fluid rounded mb-3" style="max-height: 300px;">
+        <img src="{{ article.image_url }}" alt="" class="img-fluid mb-3" style="max-height: 300px; border-radius: var(--fs-radius); object-fit: cover; width: 100%;">
         {% endif %}
 
-        <!-- Language tabs -->
-        {# Always show 3 language tabs for consistent layout #}
+        {# Language tabs #}
         {% set has_content = article.content_fr or article.content_zh or article.content_en %}
 
-        <ul class="nav nav-tabs" role="tablist">
+        <ul class="nav nav-tabs" role="tablist" style="font-size: 0.9rem;">
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#zh">中文</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#en">English</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#fr">Fran&ccedil;ais</a></li>
         </ul>
 
         <div class="tab-content mt-3">
-            {# Chinese tab #}
             <div class="tab-pane fade show active" id="zh">
                 {% if article.summary_zh %}
-                <div class="alert alert-light border-start border-4 border-primary">
-                    <strong>摘要</strong><br>{{ article.summary_zh }}
+                <div class="p-3 mb-3" style="background: var(--fs-blue-muted); border-radius: var(--fs-radius-sm); border-left: 3px solid var(--fs-blue);">
+                    <strong style="font-size: 0.85rem; color: var(--fs-blue);">摘要</strong><br>
+                    <span style="font-size: 0.92rem;">{{ article.summary_zh }}</span>
                 </div>
                 {% endif %}
                 {% if article.content_zh %}
-                <div class="article-body lh-lg">{{ article.content_zh | paragraphs }}</div>
+                <div class="article-body">{{ article.content_zh | paragraphs }}</div>
                 {% elif not has_content %}
-                <div class="alert alert-secondary mt-2">
-                    <i class="bi bi-info-circle"></i> 该文章仅爬取到标题，未获取到正文内容。
-                    <a href="{{ article.url }}" target="_blank" class="fw-bold">查看原文 <i class="bi bi-box-arrow-up-right"></i></a>
+                <div class="text-center py-4 text-fs-muted">
+                    <i class="bi bi-file-text" style="font-size: 1.5rem;"></i>
+                    <p class="mt-2">该文章仅爬取到标题，未获取到正文内容。</p>
+                    <a href="{{ article.url }}" target="_blank" class="btn btn-fs-primary btn-sm">查看原文 <i class="bi bi-box-arrow-up-right"></i></a>
                 </div>
                 {% endif %}
             </div>
 
-            {# English tab #}
             <div class="tab-pane fade" id="en">
                 {% if article.summary_en %}
-                <div class="alert alert-light border-start border-4 border-primary">
-                    <strong>Summary</strong><br>{{ article.summary_en }}
+                <div class="p-3 mb-3" style="background: var(--fs-blue-muted); border-radius: var(--fs-radius-sm); border-left: 3px solid var(--fs-blue);">
+                    <strong style="font-size: 0.85rem; color: var(--fs-blue);">Summary</strong><br>
+                    <span style="font-size: 0.92rem;">{{ article.summary_en }}</span>
                 </div>
                 {% endif %}
                 {% if article.content_en %}
-                <div class="article-body lh-lg">{{ article.content_en | paragraphs }}</div>
+                <div class="article-body">{{ article.content_en | paragraphs }}</div>
                 {% elif not has_content %}
-                <div class="alert alert-secondary mt-2">
-                    <i class="bi bi-info-circle"></i> Only the headline was crawled; full content was not available.
-                    <a href="{{ article.url }}" target="_blank" class="fw-bold">Read original <i class="bi bi-box-arrow-up-right"></i></a>
+                <div class="text-center py-4 text-fs-muted">
+                    <i class="bi bi-file-text" style="font-size: 1.5rem;"></i>
+                    <p class="mt-2">Only the headline was crawled; full content was not available.</p>
+                    <a href="{{ article.url }}" target="_blank" class="btn btn-fs-primary btn-sm">Read original <i class="bi bi-box-arrow-up-right"></i></a>
                 </div>
                 {% endif %}
             </div>
 
-            {# French tab #}
             <div class="tab-pane fade" id="fr">
                 {% if article.summary_fr %}
-                <div class="alert alert-light border-start border-4 border-primary">
-                    <strong>R&eacute;sum&eacute;</strong><br>{{ article.summary_fr }}
+                <div class="p-3 mb-3" style="background: var(--fs-blue-muted); border-radius: var(--fs-radius-sm); border-left: 3px solid var(--fs-blue);">
+                    <strong style="font-size: 0.85rem; color: var(--fs-blue);">R&eacute;sum&eacute;</strong><br>
+                    <span style="font-size: 0.92rem;">{{ article.summary_fr }}</span>
                 </div>
                 {% endif %}
                 {% if article.content_fr %}
-                <div class="article-body lh-lg">{{ article.content_fr | paragraphs }}</div>
+                <div class="article-body">{{ article.content_fr | paragraphs }}</div>
                 {% elif not has_content %}
-                <div class="alert alert-secondary mt-2">
-                    <i class="bi bi-info-circle"></i> Seul le titre a &eacute;t&eacute; r&eacute;cup&eacute;r&eacute;; le contenu complet n'&eacute;tait pas disponible.
-                    <a href="{{ article.url }}" target="_blank" class="fw-bold">Lire l'article original <i class="bi bi-box-arrow-up-right"></i></a>
+                <div class="text-center py-4 text-fs-muted">
+                    <i class="bi bi-file-text" style="font-size: 1.5rem;"></i>
+                    <p class="mt-2">Seul le titre a &eacute;t&eacute; r&eacute;cup&eacute;r&eacute;.</p>
+                    <a href="{{ article.url }}" target="_blank" class="btn btn-fs-primary btn-sm">Lire l'original <i class="bi bi-box-arrow-up-right"></i></a>
                 </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- AI Strategic Insight -->
+        {# AI Strategic Insight #}
         {% if article.insight_zh or article.insight_en %}
-        <div class="card mt-4 border-warning">
-            <div class="card-header bg-warning bg-opacity-10">
+        <div class="card insight-card mt-4">
+            <div class="card-header">
                 <i class="bi bi-lightbulb-fill text-warning"></i> <strong>AI Insight</strong>
                 {% if article.insight_zh and article.insight_en %}
                 <div class="btn-group btn-group-sm float-end">
@@ -107,7 +109,7 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="card-body insight-content" style="font-size: 0.92em;">
+            <div class="card-body" style="font-size: 0.92rem;">
                 {% if article.insight_zh and request.args.get('insight_lang', 'zh') == 'zh' %}
                 {{ article.insight_zh | markdown_light }}
                 {% elif article.insight_en %}
@@ -118,72 +120,76 @@
         {% endif %}
     </div>
 
+    {# ── Sidebar ── #}
     <div class="col-md-4">
         {% if article.highlights %}
-        <div class="card mb-3 border-warning">
-            <div class="card-header bg-warning bg-opacity-10">
-                <i class="bi bi-star-fill text-warning"></i> Highlights
-            </div>
+        <div class="card card-fs mb-3" style="border-color: #FDE68A; background: linear-gradient(135deg, #FFFBEB 0%, #FFF 40%);">
             <div class="card-body">
-                {% for h in article.highlights %}
-                {% if h == 'tech_breakthrough' %}
-                <span class="badge fs-6 mb-1" style="background-color: #e65100;"><i class="bi bi-lightning-charge-fill"></i> Tech Breakthrough</span>
-                {% elif h == 'local_research' %}
-                <span class="badge fs-6 mb-1" style="background-color: #7c3aed;"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
-                {% elif h == 'investment' %}
-                <span class="badge bg-success fs-6 mb-1"><i class="bi bi-cash-stack"></i> Investment / Funding</span>
-                {% elif h == 'local_event' %}
-                <span class="badge bg-danger fs-6 mb-1"><i class="bi bi-calendar-event-fill"></i> Upcoming Event</span>
-                {% endif %}
-                {% endfor %}
+                <h6 class="mb-2" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--fs-text-secondary);"><i class="bi bi-star-fill text-warning"></i> Highlights</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    {% for h in article.highlights %}
+                    {% if h == 'tech_breakthrough' %}
+                    <span class="badge badge-breakthrough"><i class="bi bi-lightning-charge-fill"></i> Tech Breakthrough</span>
+                    {% elif h == 'local_research' %}
+                    <span class="badge badge-research"><i class="bi bi-mortarboard-fill"></i> Local Research</span>
+                    {% elif h == 'investment' %}
+                    <span class="badge badge-investment"><i class="bi bi-cash-stack"></i> Investment / Funding</span>
+                    {% elif h == 'local_event' %}
+                    <span class="badge badge-event"><i class="bi bi-calendar-event-fill"></i> Upcoming Event</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
         {% endif %}
 
-        <div class="card">
-            <div class="card-header"><i class="bi bi-building"></i> Related Companies</div>
-            <ul class="list-group list-group-flush">
+        <div class="card card-fs mb-3">
+            <div class="card-body">
+                <h6 class="mb-2" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--fs-text-secondary);"><i class="bi bi-building"></i> Related Companies</h6>
                 {% for ac in related_companies %}
-                <li class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ url_for('company.detail', slug=ac.company.slug) }}">
+                <div class="d-flex justify-content-between align-items-center py-2 {{ 'border-top' if not loop.first }}" style="border-color: var(--fs-card-border) !important;">
+                    <div>
+                        <a href="{{ url_for('company.detail', slug=ac.company.slug) }}" class="text-decoration-none fw-medium">
                             {{ ac.company.name }}
                         </a>
-                        <span class="badge bg-{{ 'success' if ac.sentiment == 'positive' else ('danger' if ac.sentiment == 'negative' else 'secondary') }}">
-                            {{ ac.sentiment }}
-                        </span>
+                        {% if ac.company.spinoff_origin or ac.company.company_stage %}
+                        <div style="font-size: 0.75rem; color: var(--fs-text-muted);">
+                            {% if ac.company.spinoff_origin %}<i class="bi bi-diagram-3"></i> {{ ac.company.spinoff_origin }}{% endif %}
+                            {% if ac.company.company_stage %}<span class="badge badge-stage ms-1">{{ ac.company.company_stage }}</span>{% endif %}
+                        </div>
+                        {% endif %}
                     </div>
-                    {% if ac.company.spinoff_origin or ac.company.company_stage %}
-                    <small class="text-muted">
-                        {% if ac.company.spinoff_origin %}<i class="bi bi-diagram-3"></i> Spin-off: {{ ac.company.spinoff_origin }}{% endif %}
-                        {% if ac.company.company_stage %}<span class="badge bg-light text-dark ms-1">{{ ac.company.company_stage }}</span>{% endif %}
-                    </small>
-                    {% endif %}
-                </li>
+                    <span class="badge bg-{{ 'success' if ac.sentiment == 'positive' else ('danger' if ac.sentiment == 'negative' else 'secondary') }}" style="font-size: 0.7rem;">
+                        {{ ac.sentiment }}
+                    </span>
+                </div>
                 {% else %}
-                <li class="list-group-item text-muted">No companies linked yet</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-header"><i class="bi bi-tags"></i> Categories</div>
-            <div class="card-body">
-                {% for cat in article.categories %}
-                <span class="badge bg-info me-1">{{ cat.name_zh or cat.name }}</span>
-                {% else %}
-                <span class="text-muted">Not classified yet</span>
+                <p class="text-fs-muted mb-0" style="font-size: 0.85rem;">No companies linked yet</p>
                 {% endfor %}
             </div>
         </div>
 
+        <div class="card card-fs mb-3">
+            <div class="card-body">
+                <h6 class="mb-2" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--fs-text-secondary);"><i class="bi bi-tags"></i> Categories</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    {% for cat in article.categories %}
+                    <span class="badge badge-category">{{ cat.name_zh or cat.name }}</span>
+                    {% else %}
+                    <span class="text-fs-muted" style="font-size: 0.85rem;">Not classified yet</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         {% if article.llm_processed %}
-        <div class="card mt-3">
-            <div class="card-header"><i class="bi bi-robot"></i> AI Processing</div>
-            <div class="card-body small">
-                <p>Processed: {{ article.llm_processed_at.strftime('%Y-%m-%d %H:%M') if article.llm_processed_at }}</p>
-                <p>Provider: {{ article.llm_provider or 'N/A' }}</p>
-                <p>Model: {{ article.llm_model or 'N/A' }}</p>
+        <div class="card card-fs">
+            <div class="card-body">
+                <h6 class="mb-2" style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--fs-text-secondary);"><i class="bi bi-robot"></i> AI Processing</h6>
+                <div style="font-size: 0.82rem; color: var(--fs-text-secondary);">
+                    <div>{{ article.llm_processed_at.strftime('%Y-%m-%d %H:%M') if article.llm_processed_at }}</div>
+                    <div>{{ article.llm_provider or '' }} / {{ article.llm_model or '' }}</div>
+                </div>
             </div>
         </div>
         {% endif %}
