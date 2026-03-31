@@ -95,8 +95,13 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="container footer-fs mt-5 mb-3">
-        FSourceInsight &copy; {{ now().year if now is defined else '2026' }} &middot; French Tech Intelligence Platform
+    <footer class="container mt-5 mb-3" style="border-top: 1px solid var(--fs-card-border); padding-top: 1.25rem; text-align: center;">
+        <div style="font-size: 0.82rem; color: var(--fs-text-secondary);">
+            <span class="fw-semibold">FSourceInsight</span> &copy; {{ now().year if now is defined else '2026' }} &middot; French Tech Intelligence Sourcing Platform
+        </div>
+        <div style="font-size: 0.75rem; color: var(--fs-text-muted); margin-top: 4px;">
+            powered by <a href="mailto:bill.zhubinghui@huawei.com" style="color: var(--fs-blue); text-decoration: none;">ZhuBinghui</a>
+        </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
