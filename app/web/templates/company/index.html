@@ -108,10 +108,10 @@
                             {{ company.name }}
                         </div>
 
-                        {# One-line description #}
-                        {% if company.description %}
+                        {# One-line Chinese description #}
+                        {% if company.summary_zh %}
                         <div class="mt-1" style="font-size: 0.72rem; color: var(--fs-text-secondary); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                            {{ company.description | truncate(80, True) }}
+                            {{ company.summary_zh | truncate(60, True) }}
                         </div>
                         {% endif %}
 

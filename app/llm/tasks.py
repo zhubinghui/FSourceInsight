@@ -204,6 +204,9 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
                 for a in recent
             ])
 
+            # Save current analysis to revision history before overwriting
+            _save_revision(company, source='auto-refresh')
+
             analysis = client.analyze_company(
                 name=company.name,
                 sector=company.sector,
@@ -219,3 +222,17 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
             logger.info(f'Auto-refreshed AI analysis for {company.name}')
         except Exception as e:
             logger.warning(f'Failed to refresh analysis for {company.name}: {e}')
+
+
+def _save_revision(company, source='manual'):
+    """Save current ai_analysis to revision history before overwriting."""
+    if not company.ai_analysis:
+        return
+    history = company.ai_revision_history or []
+    history.append({
+        'timestamp': datetime.utcnow().isoformat(),
+        'source': source,
+        'content': company.ai_analysis,
+    })
+    # Keep only last 10 revisions
+    company.ai_revision_history = history[-10:]

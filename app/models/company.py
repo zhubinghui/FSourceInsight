@@ -17,8 +17,9 @@ class Company(db.Model):
     sector = db.Column(db.String(200))
     company_stage = db.Column(db.String(50))  # startup, scale-up, mature, research_institute
     spinoff_origin = db.Column(db.String(200))  # e.g. "CEA-Leti", "Inria", "UGA"
-    ai_analysis = db.Column(db.Text)  # LLM-generated company analysis (JSON or Markdown)
+    ai_analysis = db.Column(db.Text)  # LLM-generated company analysis (Markdown)
     ai_analysis_at = db.Column(db.DateTime)
+    ai_revision_history = db.Column(db.JSON)  # [{timestamp, source, content}, ...]
     is_auto_created = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(
@@ -38,3 +39,15 @@ class Company(db.Model):
     @property
     def article_count(self):
         return self.article_associations.count()
+
+    @property
+    def summary_zh(self):
+        """Extract the '公司概况' one-liner from ai_analysis as Chinese description."""
+        if not self.ai_analysis:
+            return self.description or ''
+        for line in self.ai_analysis.split('\n'):
+            line = line.strip()
+            if line and not line.startswith('#') and not line.startswith('-') and not line.startswith('|') and not line.startswith('*'):
+                if any(c >= '\u4e00' and c <= '\u9fff' for c in line):
+                    return line
+        return self.description or ''

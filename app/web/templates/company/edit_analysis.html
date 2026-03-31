@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Edit Analysis - {{ company.name }}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb" style="font-size: 0.85rem;">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('company.index') }}" class="text-decoration-none">Companies</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('company.detail', slug=company.slug) }}" class="text-decoration-none">{{ company.name }}</a></li>
+        <li class="breadcrumb-item active">Edit Analysis</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 style="font-weight: 700;"><i class="bi bi-pencil-square"></i> Edit Analysis — {{ company.name }}</h3>
+    <a href="{{ url_for('company.detail', slug=company.slug) }}" class="btn btn-fs-ghost btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="card card-fs mb-3">
+        <div class="card-body">
+            <div class="mb-2 text-fs-muted" style="font-size: 0.82rem;">
+                Markdown format. Sections: 公司概况 / 创始人与来源 / 核心技术 / 中国同类企业对比 / 经营现状 / 关注建议
+            </div>
+            <textarea name="ai_analysis" class="form-control" rows="25" style="font-family: 'SF Mono', Monaco, Menlo, monospace; font-size: 0.85rem; line-height: 1.6;">{{ company.ai_analysis or '' }}</textarea>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-fs-primary"><i class="bi bi-check-lg"></i> Save</button>
+        <a href="{{ url_for('company.detail', slug=company.slug) }}" class="btn btn-fs-ghost">Cancel</a>
+    </div>
+</form>
+
+{% if company.ai_revision_history %}
+<div class="mt-4">
+    <h5 style="font-weight: 600;"><i class="bi bi-clock-history"></i> Revision History ({{ company.ai_revision_history | length }})</h5>
+    {% for rev in company.ai_revision_history | reverse %}
+    <div class="card card-fs mb-2">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-fs-muted" style="font-size: 0.8rem;">
+                    {{ rev.timestamp[:19] }} &middot;
+                    {% if rev.source == 'manual-edit' %}
+                    <span class="badge bg-info-subtle text-info" style="font-size: 0.68rem;">Manual Edit</span>
+                    {% elif rev.source == 'auto-refresh' %}
+                    <span class="badge bg-warning-subtle text-warning" style="font-size: 0.68rem;">Auto Refresh</span>
+                    {% elif rev.source == 'ai-regenerate' %}
+                    <span class="badge bg-success-subtle text-success" style="font-size: 0.68rem;">AI Regenerate</span>
+                    {% endif %}
+                </span>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#rev-{{ loop.index }}">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+            <div class="collapse mt-2" id="rev-{{ loop.index }}">
+                <pre class="bg-fs-muted p-2 rounded" style="font-size: 0.78rem; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ rev.content }}</pre>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

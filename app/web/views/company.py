@@ -222,6 +222,11 @@ def generate_analysis(slug):
 
     try:
         from app.llm.client import LLMClient
+        from app.llm.tasks import _save_revision
+
+        # Save old version to revision history
+        _save_revision(company, source='ai-regenerate')
+
         client = LLMClient()
         analysis = client.analyze_company(
             name=company.name,
@@ -240,6 +245,34 @@ def generate_analysis(slug):
         flash(f'Analysis failed: {e}', 'error')
 
     return redirect(url_for('company.detail', slug=slug))
+
+
+@company_bp.route('/<slug>/edit-analysis', methods=['GET', 'POST'])
+@login_required
+def edit_analysis(slug):
+    """Manually edit AI analysis for a company (admin only)."""
+    if not current_user.is_admin:
+        flash('Admin access required.', 'error')
+        return redirect(url_for('company.detail', slug=slug))
+
+    company = Company.query.filter_by(slug=slug).first_or_404()
+
+    if request.method == 'POST':
+        from app.llm.tasks import _save_revision
+
+        # Save old version to revision history
+        _save_revision(company, source='manual-edit')
+
+        company.ai_analysis = request.form.get('ai_analysis', '')
+        company.ai_analysis_at = datetime.utcnow()
+        db.session.commit()
+        flash(f'Analysis for {company.name} updated.', 'success')
+        return redirect(url_for('company.detail', slug=slug))
+
+    return render_template(
+        'company/edit_analysis.html',
+        company=company,
+    )
 
 
 def _get_sentiment_trend(company_id: int) -> dict:
