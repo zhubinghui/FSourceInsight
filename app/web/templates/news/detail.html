@@ -109,7 +109,7 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="card-body insight-content" style="font-size: 0.92rem;">
+            <div class="card-body" style="font-size: 0.92rem;">
                 {% if article.insight_zh and request.args.get('insight_lang', 'zh') == 'zh' %}
                 {{ article.insight_zh | markdown_light }}
                 {% elif article.insight_en %}

@@ -30,4 +30,3 @@ gunicorn>=22.0
 # Utils
 python-dotenv>=1.0
 python-slugify>=8.0
-markdown2>=2.5
