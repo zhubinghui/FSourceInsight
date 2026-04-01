@@ -21,6 +21,7 @@ class Company(db.Model):
     ai_analysis = db.Column(db.JSON)  # Structured analysis {overview, founders, core_tech, ...}
     ai_analysis_at = db.Column(db.DateTime)
     ai_revision_history = db.Column(db.JSON)  # [{timestamp, source, trigger, changes: [{field, old, new}]}]
+    ai_analysis_failures = db.Column(db.Integer, nullable=False, default=0)  # retry counter, skip after 3
     is_auto_created = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(

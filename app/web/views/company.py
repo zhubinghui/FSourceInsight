@@ -202,7 +202,24 @@ def detail(slug):
         trend_data_json=json.dumps(trend_data),
         sector_group=_get_sector_group(company.sector),
         sector_config=SECTOR_GROUPS.get(_get_sector_group(company.sector), {}),
+        sector_groups=list(SECTOR_GROUPS.keys()),
     )
+
+
+@company_bp.route('/<slug>/update-sector', methods=['POST'])
+@login_required
+def update_sector(slug):
+    """Update company sector group (admin only)."""
+    if not current_user.is_admin:
+        flash('Admin access required.', 'error')
+        return redirect(url_for('company.detail', slug=slug))
+    company = Company.query.filter_by(slug=slug).first_or_404()
+    new_sector = request.form.get('sector', '').strip()
+    if new_sector:
+        company.sector = new_sector
+        db.session.commit()
+        flash(f'Sector updated to "{new_sector}".', 'success')
+    return redirect(url_for('company.detail', slug=slug))
 
 
 @company_bp.route('/<slug>/generate-analysis', methods=['POST'])

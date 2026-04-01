@@ -287,24 +287,37 @@ def _infer_sector(analysis: dict) -> str | None:
 
 
 def _generate_analyses_for_new(source: StartupSource):
-    """Generate AI analysis for recently discovered companies from this source."""
+    """Generate AI analysis for companies pending analysis.
+
+    Skips companies with 3+ previous failures (retried on next scan).
+    Resets failure counter on next scan cycle.
+    """
     from app.llm.client import LLMClient
+
+    # Reset failure counters at the start of each scan — gives failed ones another chance
+    Company.query.filter(
+        Company.is_grenoble == True,
+        Company.ai_analysis.is_(None),
+        Company.ai_analysis_failures >= 3,
+    ).update({Company.ai_analysis_failures: 0})
+    db.session.commit()
 
     new_companies = (
         Company.query
-        .filter_by(is_grenoble=True, is_auto_created=True)
+        .filter_by(is_grenoble=True)
         .filter(Company.ai_analysis.is_(None))
+        .filter(Company.ai_analysis_failures < 3)
         .order_by(Company.created_at.desc())
-        .limit(10)
+        .limit(20)
         .all()
     )
 
     if not new_companies:
         return
 
-    try:
-        client = LLMClient()
-        for company in new_companies:
+    client = LLMClient()
+    for company in new_companies:
+        try:
             analysis = client.analyze_company(
                 name=company.name,
                 sector=company.sector,
@@ -317,15 +330,16 @@ def _generate_analyses_for_new(source: StartupSource):
             if isinstance(analysis, dict):
                 company.ai_analysis = analysis
                 company.ai_analysis_at = datetime.utcnow()
-                # Sync website from AI if company doesn't have one
+                company.ai_analysis_failures = 0
                 if not company.website and analysis.get('website'):
                     company.website = analysis['website']
-                # Auto-infer sector from analysis if not set
                 if not company.sector:
                     inferred = _infer_sector(analysis)
                     if inferred:
                         company.sector = inferred
                 db.session.commit()
                 logger.info(f'AI analysis generated for {company.name} (sector={company.sector})')
-    except Exception as e:
-        logger.warning(f'AI analysis generation failed: {e}')
+        except Exception as e:
+            company.ai_analysis_failures = (company.ai_analysis_failures or 0) + 1
+            db.session.commit()
+            logger.warning(f'AI analysis failed for {company.name} (attempt {company.ai_analysis_failures}/3): {e}')
