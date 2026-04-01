@@ -88,11 +88,12 @@ def _extract_companies_from_page(url: str) -> list[dict]:
         'facebook', 'instagram', 'technology research',
         'culture', 'institutionnel', 'recherche technologique',
         'naviguer', 'prisonnier', 'espaces', 'entre 2', 'acteur majeur',
-        'que vous soyez', 'innover',
+        'que vous soyez', 'innover', 'corps de texte',
+        'voir aussi', 'documents', 'objectifs', 'highlights',
     }
     for seg in soup.get_text(separator='|||').split('|||'):
         seg = seg.strip()
-        match = re.match(r'^([A-Z][A-Za-z0-9\-\' \.]{1,40}),\s+(.{10,300})', seg)
+        match = re.match(r'^([A-Za-z][A-Za-z0-9\-\' \.]{1,40})[,:]\s+(.{10,300})', seg)
         if match:
             name = match.group(1).strip()
             desc = match.group(2).strip()[:150]
