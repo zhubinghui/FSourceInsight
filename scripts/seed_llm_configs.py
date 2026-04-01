@@ -32,7 +32,7 @@ CONFIGS = [
         'temperature': 0.3,
         'cost_per_1k_input': 0.00014,
         'cost_per_1k_output': 0.00028,
-        'tasks': ['translate', 'digest', 'summarize', 'sentiment'],
+        'tasks': ['translate', 'digest', 'summarize', 'sentiment', 'insight'],
     },
     # ── OpenAI gpt-5.4-mini: structured output + analysis ───────
     # Input: $2.50/M tokens, Output: $10.00/M tokens
@@ -62,7 +62,7 @@ CONFIGS = [
         'temperature': 0.3,
         'cost_per_1k_input': 0.00015,
         'cost_per_1k_output': 0.0006,
-        'tasks': ['translate', 'summarize', 'ner', 'classify', 'sentiment'],
+        'tasks': ['translate', 'summarize', 'ner', 'classify', 'sentiment', 'insight'],
     },
     # ── Anthropic Claude: premium option (disabled by default) ──
     # Enable via Admin UI when you need highest-quality insight.
