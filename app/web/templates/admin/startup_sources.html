@@ -1,0 +1,76 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Startup Discovery Sources{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Startup Sources</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3>Startup Discovery Sources</h3>
+        <small class="text-fs-secondary">Portfolio pages and directories to scan for new Grenoble startups</small>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" action="{{ url_for('admin.startup_scan_now') }}" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-fs-primary btn-sm"
+                    onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Scanning...';">
+                <i class="bi bi-play-fill"></i> Scan All Now
+            </button>
+        </form>
+        <a href="{{ url_for('admin.startup_source_new') }}" class="btn btn-fs-ghost btn-sm">
+            <i class="bi bi-plus-lg"></i> Add Source
+        </a>
+    </div>
+</div>
+
+<div class="card card-fs">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size: 0.88rem;">
+            <thead>
+                <tr class="text-fs-secondary" style="font-size: 0.82rem;">
+                    <th>Name</th><th>URL</th><th>Status</th><th>Last Scan</th><th>Found</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for source in sources %}
+                <tr>
+                    <td class="fw-medium">{{ source.name }}</td>
+                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <a href="{{ source.url }}" target="_blank" class="text-decoration-none text-fs-secondary" style="font-size: 0.82rem;">
+                            {{ source.url | replace('https://', '') | truncate(50) }} <i class="bi bi-box-arrow-up-right" style="font-size: 0.7rem;"></i>
+                        </a>
+                    </td>
+                    <td>
+                        {% if source.is_active %}
+                        <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger" style="font-size: 0.7rem;">Disabled</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-fs-muted" style="font-size: 0.82rem;">
+                        {{ source.last_scanned_at.strftime('%Y-%m-%d %H:%M') if source.last_scanned_at else 'Never' }}
+                    </td>
+                    <td>{{ source.companies_found or 0 }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('admin.startup_source_edit', source_id=source.id) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ url_for('admin.startup_source_delete', source_id=source.id) }}" style="display:inline"
+                                  onsubmit="return confirm('Delete {{ source.name }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-fs-muted py-4">No startup sources configured. <a href="{{ url_for('admin.startup_source_new') }}">Add one</a>.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="text-fs-muted mt-2" style="font-size: 0.78rem;">
+    <i class="bi bi-info-circle"></i> Auto-scan runs daily at 2:30 AM. Newly discovered startups are automatically added to the Grenoble Ecosystem Map with AI analysis.
+</div>
+{% endblock %}

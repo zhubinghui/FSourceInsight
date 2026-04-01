@@ -1,0 +1,46 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if source else 'New' }} Startup Source{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.startup_sources') }}" class="text-decoration-none">Startup Sources</a></li>
+<li class="breadcrumb-item active">{{ 'Edit' if source else 'New' }}</li>
+{% endblock %}
+{% block content %}
+<h3 class="mb-4">{{ 'Edit: ' + source.name if source else 'New Startup Discovery Source' }}</h3>
+
+<div class="card card-fs">
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+                <label class="form-label">Name *</label>
+                <input type="text" class="form-control" name="name" required
+                       value="{{ source.name if source else '' }}" placeholder="Linksium Startups">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">URL *</label>
+                <input type="url" class="form-control" name="url" required
+                       value="{{ source.url if source else '' }}"
+                       placeholder="https://www.linksium.fr/nos-startups">
+                <div class="form-text">Portfolio page, member directory, or startup program page to scan.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" name="description"
+                       value="{{ source.description or '' if source else '' }}"
+                       placeholder="Grenoble tech transfer office startup portfolio">
+            </div>
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" name="is_active" id="is_active"
+                       {{ 'checked' if not source or source.is_active }}>
+                <label class="form-check-label" for="is_active">Active</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-fs-primary">{{ 'Save' if source else 'Create' }}</button>
+                <a href="{{ url_for('admin.startup_sources') }}" class="btn btn-fs-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

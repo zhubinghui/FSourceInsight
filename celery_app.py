@@ -22,6 +22,7 @@ def make_celery(app=None):
         enable_utc=True,
         include=[
             'app.crawlers.tasks',
+            'app.crawlers.startup_discovery',
             'app.llm.tasks',
             'app.email.tasks',
         ],
@@ -46,6 +47,10 @@ def make_celery(app=None):
             'crawl-health-check': {
                 'task': 'app.crawlers.tasks.check_crawl_health',
                 'schedule': crontab(hour='*/6', minute=0),  # Every 6 hours
+            },
+            'startup-discovery': {
+                'task': 'app.crawlers.startup_discovery.scan_startup_sources',
+                'schedule': crontab(hour=2, minute=30),  # Daily at 2:30 AM
             },
         },
     )

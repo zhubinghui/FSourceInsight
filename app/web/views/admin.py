@@ -12,6 +12,7 @@ from app.models.source import NewsSource, CrawlLog
 from app.models.article import Article, ArticleCompany
 from app.models.company import Company
 from app.models.llm import LLMConfig, LLMUsageLog
+from app.models.startup_source import StartupSource
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -449,6 +450,62 @@ def llm_reprocess():
 
     flash(f'Enqueued {len(unprocessed)} articles for LLM processing.', 'success')
     return redirect(url_for('admin.dashboard'))
+
+
+# ── Startup Discovery Sources ────────────────────────────────────
+
+@admin_bp.route('/startup-sources')
+def startup_sources():
+    sources = StartupSource.query.order_by(StartupSource.name).all()
+    return render_template('admin/startup_sources.html', sources=sources)
+
+
+@admin_bp.route('/startup-sources/new', methods=['GET', 'POST'])
+def startup_source_new():
+    if request.method == 'POST':
+        source = StartupSource(
+            name=request.form.get('name', '').strip(),
+            url=request.form.get('url', '').strip(),
+            description=request.form.get('description', '').strip() or None,
+            is_active=request.form.get('is_active') == 'on',
+        )
+        db.session.add(source)
+        db.session.commit()
+        flash(f'Startup source "{source.name}" created.', 'success')
+        return redirect(url_for('admin.startup_sources'))
+    return render_template('admin/startup_source_form.html', source=None)
+
+
+@admin_bp.route('/startup-sources/<int:source_id>/edit', methods=['GET', 'POST'])
+def startup_source_edit(source_id):
+    source = StartupSource.query.get_or_404(source_id)
+    if request.method == 'POST':
+        source.name = request.form.get('name', '').strip()
+        source.url = request.form.get('url', '').strip()
+        source.description = request.form.get('description', '').strip() or None
+        source.is_active = request.form.get('is_active') == 'on'
+        db.session.commit()
+        flash(f'Startup source "{source.name}" updated.', 'success')
+        return redirect(url_for('admin.startup_sources'))
+    return render_template('admin/startup_source_form.html', source=source)
+
+
+@admin_bp.route('/startup-sources/<int:source_id>/delete', methods=['POST'])
+def startup_source_delete(source_id):
+    source = StartupSource.query.get_or_404(source_id)
+    name = source.name
+    db.session.delete(source)
+    db.session.commit()
+    flash(f'Startup source "{name}" deleted.', 'success')
+    return redirect(url_for('admin.startup_sources'))
+
+
+@admin_bp.route('/startup-sources/scan-now', methods=['POST'])
+def startup_scan_now():
+    from app.crawlers.startup_discovery import scan_startup_sources
+    scan_startup_sources.delay()
+    flash('Startup discovery scan queued.', 'success')
+    return redirect(url_for('admin.startup_sources'))
 
 
 @admin_bp.route('/crawl-all-now', methods=['POST'])
