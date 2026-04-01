@@ -84,14 +84,15 @@ def _extract_companies_from_page(url: str) -> list[dict]:
     noise = {
         'start-ups', 'suivant', 'programme', 'startup', 'contact',
         'direction', 'recherche', 'actualit', 'innover', 'navigation',
-        'cea', 'leti', 'page', 'linkedin', 'you tube', 'videos', 'twitter',
-        'facebook', 'instagram', 'technology research', 'direct analysis',
+        'cea-leti', 'page', 'linkedin', 'you tube', 'videos', 'twitter',
+        'facebook', 'instagram', 'technology research',
         'culture', 'institutionnel', 'recherche technologique',
-        'naviguer', 'prisonnier', 'espaces', 'entre 2',
+        'naviguer', 'prisonnier', 'espaces', 'entre 2', 'acteur majeur',
+        'que vous soyez', 'innover',
     }
     for seg in soup.get_text(separator='|||').split('|||'):
         seg = seg.strip()
-        match = re.match(r'^([A-Z][A-Za-z0-9\-\' ]{2,30}),\s+(.{15,200})', seg)
+        match = re.match(r'^([A-Z][A-Za-z0-9\-\' \.]{1,40}),\s+(.{10,300})', seg)
         if match:
             name = match.group(1).strip()
             desc = match.group(2).strip()[:150]
