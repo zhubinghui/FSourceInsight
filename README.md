@@ -130,6 +130,7 @@ docker compose exec -T web python scripts/seed_sources.py
 docker compose exec -T web python scripts/seed_companies.py
 docker compose exec -T web python scripts/seed_categories.py
 docker compose exec -T web python scripts/seed_llm_configs.py
+docker compose exec -T web python scripts/seed_ecosystem.py
 
 # ── 8. Verify deployment ────────────────────────────────────
 docker compose ps                      # All 6 containers should be Up
