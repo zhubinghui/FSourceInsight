@@ -170,7 +170,8 @@ COMPANY_ANALYSIS_SYSTEM = (
     '  "cn_competitor_names": "中国对标企业名称（1-3家，逗号分隔）",\n'
     '  "business_status": "经营现状：融资阶段、团队规模、主要客户、近期动态",\n'
     '  "recommendation": "重点关注/持续监控/一般了解",\n'
-    '  "recommendation_reason": "一句话理由"\n'
+    '  "recommendation_reason": "一句话理由",\n'
+    '  "website": "公司官网URL（如已知），如 https://www.example.com。未知写空字符串"\n'
     '}\n\n'
     "RULES: 全部用中文。简洁专业。如无信息如实说明。不要客套开场白。"
 )

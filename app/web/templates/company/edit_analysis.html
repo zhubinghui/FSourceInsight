@@ -23,6 +23,13 @@
 
     <div class="card card-fs mb-3">
         <div class="card-body">
+            <label class="form-label fw-semibold"><i class="bi bi-globe"></i> 公司主页</label>
+            <input type="url" class="form-control" name="website" value="{{ data.get('website', '') }}" placeholder="https://www.example.com">
+        </div>
+    </div>
+
+    <div class="card card-fs mb-3">
+        <div class="card-body">
             <label class="form-label fw-semibold"><i class="bi bi-people"></i> 创始人与来源</label>
             <div class="row g-3">
                 <div class="col-md-6">

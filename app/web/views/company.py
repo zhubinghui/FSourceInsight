@@ -263,6 +263,7 @@ def edit_analysis(slug):
         from app.llm.tasks import _save_revision
 
         new_data = {
+            'website': request.form.get('website', '').strip(),
             'overview': request.form.get('overview', '').strip(),
             'founders': request.form.get('founders', '').strip(),
             'spinoff_source': request.form.get('spinoff_source', '').strip(),

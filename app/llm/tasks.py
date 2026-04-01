@@ -224,6 +224,7 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
 
 
 ANALYSIS_FIELDS = [
+    ('website', '公司主页'),
     ('overview', '公司概况'),
     ('founders', '创始人'),
     ('spinoff_source', 'Spin-off来源'),

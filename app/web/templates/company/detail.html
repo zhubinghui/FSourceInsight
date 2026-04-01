@@ -85,6 +85,18 @@
                         <div>{{ a.overview or '-' }}</div>
                     </div>
 
+                    {# 公司主页 #}
+                    {% if a.website or company.website %}
+                    <div class="mb-3">
+                        <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-globe"></i> 公司主页</div>
+                        {% set site_url = a.website or company.website %}
+                        <a href="{{ site_url }}" target="_blank" class="text-decoration-none" style="color: var(--fs-blue);">
+                            {{ site_url | replace('https://', '') | replace('http://', '') | truncate(40) }}
+                            <i class="bi bi-box-arrow-up-right" style="font-size: 0.75rem;"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+
                     {# 创始人与来源 #}
                     <div class="mb-3">
                         <div class="fw-semibold text-fs-secondary mb-1" style="font-size: 0.78rem;"><i class="bi bi-people"></i> 创始人与来源</div>
