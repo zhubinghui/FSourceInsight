@@ -36,33 +36,62 @@ def _extract_companies_from_page(url: str) -> list[dict]:
     companies = []
     seen = set()
 
-    # Fetch first page
+    # Fetch page(s) — handle SharePoint-style pagination for CEA sites
+    pages_to_parse = []
     resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, 'lxml')
+    pages_to_parse.append(soup)
+
+    # Check for SharePoint pagination (Voir aussi / Suivant links)
+    # Extract all unique GUID pagination parameters from page links
+    page_text = soup.get_text()
+    if 'Suivant' in page_text:
+        guid_params = set()
+        for a in soup.select('a[href*="g_"]'):
+            href = a.get('href', '')
+            gm = re.search(r'(g_[a-f0-9_]+)=(\d+)', href)
+            if gm:
+                guid_params.add(gm.group(1))
+
+        for param in guid_params:
+            for pg in range(1, 10):
+                sep = '&' if '?' in url else '?'
+                pg_url = f'{url}{sep}{param}={pg}'
+                try:
+                    r2 = requests.get(pg_url, headers=HEADERS, timeout=15)
+                    if r2.status_code != 200:
+                        break
+                    pg_soup = BeautifulSoup(r2.text, 'lxml')
+                    pages_to_parse.append(pg_soup)
+                    if 'Suivant' not in pg_soup.get_text():
+                        break
+                except Exception:
+                    break
 
     # Strategy 1: data-name attributes (Craft CMS / Linksium)
-    for item in soup.select('[data-name][data-description]'):
-        name = item.get('data-name', '').strip()
-        desc = item.get('data-description', '').strip()
-        year = item.get('data-year', '').strip()
-        link = item.get('data-link', '').strip()
-        if not name or len(name) < 2 or name.lower() in seen:
-            continue
-        if name.lower() in ('calque 1',):
-            continue
-        seen.add(name.lower())
-        website = f'https://{link}' if link and not link.startswith('http') else link
-        companies.append({
-            'name': name,
-            'description': desc[:200] if desc else None,
-            'website': website or None,
-            'year': year or None,
-        })
+    for ps in pages_to_parse:
+        for item in ps.select('[data-name][data-description]'):
+            name = item.get('data-name', '').strip()
+            desc = item.get('data-description', '').strip()
+            year = item.get('data-year', '').strip()
+            link = item.get('data-link', '').strip()
+            if not name or len(name) < 2 or name.lower() in seen:
+                continue
+            if name.lower() in ('calque 1',):
+                continue
+            seen.add(name.lower())
+            website = f'https://{link}' if link and not link.startswith('http') else link
+            companies.append({
+                'name': name,
+                'description': desc[:200] if desc else None,
+                'website': website or None,
+                'year': year or None,
+            })
 
-    # Strategy 2: Directory links with pagination
-    _extract_directory_links(soup, url, seen, companies)
-    # Paginate: try /page/2/, /page/3/, ...
+    # Strategy 2: Directory links with pagination (/page/N/)
+    for ps in pages_to_parse:
+        _extract_directory_links(ps, url, seen, companies)
     if 'member-directory' in url or 'annuaire' in url:
         base_url = url.rstrip('/')
         for page_num in range(2, 50):
@@ -71,16 +100,15 @@ def _extract_companies_from_page(url: str) -> list[dict]:
                 r = requests.get(page_url, headers=HEADERS, timeout=15)
                 if r.status_code != 200:
                     break
-                page_soup = BeautifulSoup(r.text, 'lxml')
+                ps = BeautifulSoup(r.text, 'lxml')
                 before = len(companies)
-                _extract_directory_links(page_soup, url, seen, companies)
+                _extract_directory_links(ps, url, seen, companies)
                 if len(companies) == before:
-                    break  # No new companies on this page
+                    break
             except Exception:
                 break
 
     # Strategy 3: Text blocks with company names (CEA-Leti pattern)
-    # Noise filter list
     noise = {
         'start-ups', 'suivant', 'programme', 'startup', 'contact',
         'direction', 'recherche', 'actualit', 'innover', 'navigation',
@@ -88,29 +116,31 @@ def _extract_companies_from_page(url: str) -> list[dict]:
         'facebook', 'instagram', 'technology research',
         'culture', 'institutionnel', 'recherche technologique',
         'naviguer', 'prisonnier', 'espaces', 'entre 2', 'acteur majeur',
-        'que vous soyez', 'innover', 'corps de texte',
+        'que vous soyez', 'corps de texte',
         'voir aussi', 'documents', 'objectifs', 'highlights',
+        'innovation days', 'appel a candidatures', 'hubup',
+        'letidays', 'lemaire', 'axelle',
     }
-    for seg in soup.get_text(separator='|||').split('|||'):
-        seg = seg.strip()
-        match = re.match(r'^([A-Za-z][A-Za-z0-9\-\' \.]{1,40})[,:]\s+(.{10,300})', seg)
-        if match:
-            name = match.group(1).strip()
-            desc = match.group(2).strip()[:150]
-            if name.lower() in seen:
-                continue
-            if any(skip in name.lower() for skip in noise):
-                continue
-            # Must have a description that looks like a product/tech description
-            if not any(c.isalpha() for c in desc[:20]):
-                continue
-            seen.add(name.lower())
-            companies.append({
-                'name': name,
-                'description': desc,
-                'website': None,
-                'year': None,
-            })
+    for ps in pages_to_parse:
+        for seg in ps.get_text(separator='|||').split('|||'):
+            seg = seg.strip()
+            match = re.match(r'^([A-Za-z][A-Za-z0-9\-\' \.]{1,40})[,:]\s+(.{10,300})', seg)
+            if match:
+                name = match.group(1).strip()
+                desc = match.group(2).strip()[:150]
+                if name.lower() in seen:
+                    continue
+                if any(skip in name.lower() for skip in noise):
+                    continue
+                if not any(c.isalpha() for c in desc[:20]):
+                    continue
+                seen.add(name.lower())
+                companies.append({
+                    'name': name,
+                    'description': desc,
+                    'website': None,
+                    'year': None,
+                })
 
     return companies
 
