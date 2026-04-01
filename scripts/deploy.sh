@@ -171,19 +171,30 @@ timeout 60 bash -c 'until docker compose exec -T mysql mysqladmin ping -h localh
 
 info "All services started"
 
-# ── Step 6: Database migration and seed ──────────────────────
-info "Step 6/8: Running database migrations and seeding data..."
+# ── Step 6: Database initialization ──────────────────────────
+info "Step 6/8: Initializing database..."
 
 docker compose exec -T web flask db upgrade
 
-docker compose exec -T web python scripts/seed_sources.py
-docker compose exec -T web python scripts/seed_companies.py
-docker compose exec -T web python scripts/seed_categories.py
-docker compose exec -T web python scripts/seed_llm_configs.py
-docker compose exec -T web python scripts/seed_ecosystem.py
-docker compose exec -T web python scripts/seed_grenoble_ecosystem.py
-
-info "Database initialized"
+DUMP_FILE="scripts/data/fsourceinsight_full.sql.gz"
+if [ -f "$DUMP_FILE" ]; then
+    info "Full database dump found — restoring complete dataset..."
+    MYSQL_PASS=$(grep '^MYSQL_PASSWORD=' .env | cut -d= -f2)
+    gunzip -c "$DUMP_FILE" | docker compose exec -T mysql \
+        mysql -u fsourceinsight -p"${MYSQL_PASS}" fsourceinsight
+    # Re-run migrations in case dump is from older schema
+    docker compose exec -T web flask db upgrade
+    info "Database restored from dump (all data included)"
+else
+    info "No dump file — running seed scripts..."
+    docker compose exec -T web python scripts/seed_sources.py
+    docker compose exec -T web python scripts/seed_companies.py
+    docker compose exec -T web python scripts/seed_categories.py
+    docker compose exec -T web python scripts/seed_llm_configs.py
+    docker compose exec -T web python scripts/seed_ecosystem.py
+    docker compose exec -T web python scripts/seed_grenoble_ecosystem.py
+    info "Database seeded (run crawl + LLM to populate articles)"
+fi
 
 # ── Step 7: Verify health ───────────────────────────────────
 info "Step 7/8: Verifying deployment..."

@@ -110,14 +110,22 @@ echo "Waiting for MySQL..."
 until docker compose exec -T mysql mysqladmin ping -h localhost --silent 2>/dev/null; do sleep 2; done
 echo "MySQL ready."
 
-# ── Step 7: Initialize database + full ecosystem data ───────
+# ── Step 7: Initialize database ─────────────────────────────
 docker compose exec -T web flask db upgrade
-docker compose exec -T web python scripts/seed_sources.py
-docker compose exec -T web python scripts/seed_companies.py
-docker compose exec -T web python scripts/seed_categories.py
-docker compose exec -T web python scripts/seed_llm_configs.py
-docker compose exec -T web python scripts/seed_ecosystem.py
-docker compose exec -T web python scripts/seed_grenoble_ecosystem.py
+
+# Option A: Full restore (recommended — includes all articles + AI analyses)
+MYSQL_PASS=$(grep '^MYSQL_PASSWORD=' .env | cut -d= -f2)
+gunzip -c scripts/data/fsourceinsight_full.sql.gz | \
+    docker compose exec -T mysql mysql -u fsourceinsight -p"${MYSQL_PASS}" fsourceinsight
+docker compose exec -T web flask db upgrade  # re-apply any newer migrations
+
+# Option B: Seed only (if dump file unavailable — no articles, needs crawl+LLM)
+# docker compose exec -T web python scripts/seed_sources.py
+# docker compose exec -T web python scripts/seed_companies.py
+# docker compose exec -T web python scripts/seed_categories.py
+# docker compose exec -T web python scripts/seed_llm_configs.py
+# docker compose exec -T web python scripts/seed_ecosystem.py
+# docker compose exec -T web python scripts/seed_grenoble_ecosystem.py
 
 # ── Step 8: Verify deployment ───────────────────────────────
 docker compose ps
