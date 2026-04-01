@@ -133,6 +133,9 @@
 
             <div class="sidebar-section">Content</div>
             <ul class="sidebar-nav">
+                <li><a href="{{ url_for('admin.sector_groups') }}" class="{{ 'active' if 'sector_group' in (request.endpoint or '') }}">
+                    <i class="bi bi-grid-3x3-gap"></i> Sector Groups
+                </a></li>
                 <li><a href="{{ url_for('admin.startup_sources') }}" class="{{ 'active' if 'startup' in (request.endpoint or '') }}">
                     <i class="bi bi-rocket-takeoff"></i> Ecosystem Sources
                 </a></li>

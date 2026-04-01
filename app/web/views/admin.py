@@ -13,6 +13,7 @@ from app.models.article import Article, ArticleCompany
 from app.models.company import Company
 from app.models.llm import LLMConfig, LLMUsageLog
 from app.models.startup_source import StartupSource
+from app.models.sector_group import SectorGroup
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -460,6 +461,58 @@ def llm_reprocess():
 
     flash(f'Enqueued {len(unprocessed)} articles for LLM processing.', 'success')
     return redirect(url_for('admin.dashboard'))
+
+
+# ── Sector Groups ────────────────────────────────────────────────
+
+@admin_bp.route('/sector-groups')
+def sector_groups():
+    groups = SectorGroup.all_ordered()
+    return render_template('admin/sector_groups.html', groups=groups)
+
+
+@admin_bp.route('/sector-groups/new', methods=['GET', 'POST'])
+def sector_group_new():
+    if request.method == 'POST':
+        keywords_raw = request.form.get('keywords', '')
+        sg = SectorGroup(
+            name=request.form.get('name', '').strip(),
+            icon=request.form.get('icon', 'grid').strip(),
+            color=request.form.get('color', '#64748B').strip(),
+            keywords=[k.strip() for k in keywords_raw.split(',') if k.strip()] or None,
+            sort_order=int(request.form.get('sort_order', 0)),
+        )
+        db.session.add(sg)
+        db.session.commit()
+        flash(f'Sector group "{sg.name}" created.', 'success')
+        return redirect(url_for('admin.sector_groups'))
+    return render_template('admin/sector_group_form.html', group=None)
+
+
+@admin_bp.route('/sector-groups/<int:group_id>/edit', methods=['GET', 'POST'])
+def sector_group_edit(group_id):
+    sg = SectorGroup.query.get_or_404(group_id)
+    if request.method == 'POST':
+        sg.name = request.form.get('name', sg.name).strip()
+        sg.icon = request.form.get('icon', sg.icon).strip()
+        sg.color = request.form.get('color', sg.color).strip()
+        keywords_raw = request.form.get('keywords', '')
+        sg.keywords = [k.strip() for k in keywords_raw.split(',') if k.strip()] or None
+        sg.sort_order = int(request.form.get('sort_order', sg.sort_order))
+        db.session.commit()
+        flash(f'Sector group "{sg.name}" updated.', 'success')
+        return redirect(url_for('admin.sector_groups'))
+    return render_template('admin/sector_group_form.html', group=sg)
+
+
+@admin_bp.route('/sector-groups/<int:group_id>/delete', methods=['POST'])
+def sector_group_delete(group_id):
+    sg = SectorGroup.query.get_or_404(group_id)
+    name = sg.name
+    db.session.delete(sg)
+    db.session.commit()
+    flash(f'Sector group "{name}" deleted.', 'success')
+    return redirect(url_for('admin.sector_groups'))
 
 
 # ── Startup Discovery Sources ────────────────────────────────────

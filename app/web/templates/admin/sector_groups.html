@@ -1,0 +1,57 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Sector Groups{% endblock %}
+{% block breadcrumb %}<li class="breadcrumb-item active">Sector Groups</li>{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3>Ecosystem Sector Groups</h3>
+        <small class="text-fs-secondary">Categories used in the Grenoble Ecosystem Map</small>
+    </div>
+    <a href="{{ url_for('admin.sector_group_new') }}" class="btn btn-fs-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Add Group
+    </a>
+</div>
+
+<div class="card card-fs">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size: 0.88rem;">
+            <thead>
+                <tr class="text-fs-secondary" style="font-size: 0.82rem;">
+                    <th style="width:40px;">Order</th><th>Name</th><th>Icon</th><th>Color</th><th>Keywords</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for g in groups %}
+                <tr>
+                    <td class="text-fs-muted">{{ g.sort_order }}</td>
+                    <td class="fw-medium">
+                        <span style="color: {{ g.color }};"><i class="bi bi-{{ g.icon }}"></i></span>
+                        {{ g.name }}
+                    </td>
+                    <td class="text-fs-muted" style="font-size: 0.82rem;">bi-{{ g.icon }}</td>
+                    <td>
+                        <span style="display:inline-block; width:14px; height:14px; border-radius:3px; background:{{ g.color }}; vertical-align:middle;"></span>
+                        <code style="font-size:0.75rem;">{{ g.color }}</code>
+                    </td>
+                    <td style="font-size: 0.8rem; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        {{ (g.keywords or []) | join(', ') }}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('admin.sector_group_edit', group_id=g.id) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            <form method="post" action="{{ url_for('admin.sector_group_delete', group_id=g.id) }}" style="display:inline"
+                                  onsubmit="return confirm('Delete {{ g.name }}?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-fs-muted py-4">No sector groups. <a href="{{ url_for('admin.sector_group_new') }}">Create one</a>.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

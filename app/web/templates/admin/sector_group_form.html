@@ -1,0 +1,61 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Edit' if group else 'New' }} Sector Group{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.sector_groups') }}" class="text-decoration-none">Sector Groups</a></li>
+<li class="breadcrumb-item active">{{ 'Edit' if group else 'New' }}</li>
+{% endblock %}
+{% block content %}
+<h3 class="mb-4">{{ 'Edit: ' + group.name if group else 'New Sector Group' }}</h3>
+
+<div class="card card-fs">
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" class="form-control" name="name" required
+                               value="{{ group.name if group else '' }}" placeholder="Semiconductor">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keywords <small class="text-fs-muted">(comma-separated, for auto-classification)</small></label>
+                        <input type="text" class="form-control" name="keywords"
+                               value="{{ (group.keywords or []) | join(', ') if group else '' }}"
+                               placeholder="semiconductor, chip, wafer, mems">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Icon <small class="text-fs-muted">(Bootstrap Icons name, e.g. cpu, robot, eye)</small></label>
+                        <div class="input-group">
+                            <span class="input-group-text">bi-</span>
+                            <input type="text" class="form-control" name="icon"
+                                   value="{{ group.icon if group else 'grid' }}" placeholder="cpu">
+                        </div>
+                        <div class="form-text"><a href="https://icons.getbootstrap.com/" target="_blank">Browse icons</a></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Color</label>
+                            <input type="color" class="form-control form-control-color" name="color"
+                                   value="{{ group.color if group else '#64748B' }}">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Sort Order</label>
+                            <input type="number" class="form-control" name="sort_order"
+                                   value="{{ group.sort_order if group else 0 }}" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-fs-primary">{{ 'Save' if group else 'Create' }}</button>
+                <a href="{{ url_for('admin.sector_groups') }}" class="btn btn-fs-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -48,6 +48,7 @@ def create_app(config_name=None):
     # Import all models for Alembic detection
     from .models import setting  # noqa: F401
     from .models import startup_source  # noqa: F401
+    from .models import sector_group  # noqa: F401
 
     # Register blueprints
     from .web.views.news import news_bp

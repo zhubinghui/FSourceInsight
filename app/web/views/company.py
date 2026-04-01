@@ -12,63 +12,25 @@ from app.models.article import Article, ArticleCompany
 
 company_bp = Blueprint('company', __name__)
 
-# Sector group mapping: normalize fine-grained sectors into visual groups
-SECTOR_GROUPS = {
-    'Semiconductor': {
-        'icon': 'cpu',
-        'color': '#2563EB',
-        'keywords': ['semiconductor', 'chip', 'wafer', 'mems', 'ic design', 'fabricat', 'silicon'],
-    },
-    'AI & Computing': {
-        'icon': 'robot',
-        'color': '#7C3AED',
-        'keywords': ['ai', 'machine learning', 'computing', 'processor', 'neuromorphic', 'quantum', 'digital system'],
-    },
-    'Photonics & Sensors': {
-        'icon': 'eye',
-        'color': '#0891B2',
-        'keywords': ['photonic', 'sensor', 'lidar', 'infrared', 'optic', 'vision', 'display', 'oled', 'micro-led', 'led', 'laser', 'camera'],
-    },
-    'MedTech & Health': {
-        'icon': 'heart-pulse',
-        'color': '#DC2626',
-        'keywords': ['medtech', 'health', 'biotech', 'medical', 'diagnostic', 'pharma', 'implant', 'therapeut'],
-    },
-    'Energy & CleanTech': {
-        'icon': 'lightning-charge',
-        'color': '#059669',
-        'keywords': ['energy', 'cleantech', 'power', 'battery', 'climat', 'solar', 'hydrogen', 'recycl'],
-    },
-    'IoT & Connectivity': {
-        'icon': 'wifi',
-        'color': '#F97316',
-        'keywords': ['iot', 'connected', 'rfid', 'smart city', 'telecom'],
-    },
-    'Software & Digital': {
-        'icon': 'code-slash',
-        'color': '#6366F1',
-        'keywords': ['software', 'saas', 'digital', 'fintech', 'cyber', 'data', 'blockchain', 'platform', 'algorithm'],
-    },
-    'Materials & Chemistry': {
-        'icon': 'droplet-half',
-        'color': '#A16207',
-        'keywords': ['material', 'chemistry', 'nano', 'coating', 'polymer', 'ceramic', 'glass'],
-    },
-    'Research & Ecosystem': {
-        'icon': 'mortarboard',
-        'color': '#64748B',
-        'keywords': ['research', 'university', 'cluster', 'incubator', 'transfer', 'facilit'],
-    },
-}
+from app.models.sector_group import SectorGroup
+
+
+def _get_sector_groups():
+    """Get sector groups from DB. Falls back to empty dict if table is empty."""
+    return SectorGroup.as_dict()
 
 
 def _get_sector_group(sector: str) -> str:
-    """Map a fine-grained sector string to a visual group name."""
+    """Map a sector string to a visual group name using DB-stored keywords."""
     if not sector:
         return 'Other'
+    # If the sector exactly matches a group name, use it directly
+    groups = _get_sector_groups()
+    if sector in groups:
+        return sector
     sector_lower = sector.lower()
-    for group_name, cfg in SECTOR_GROUPS.items():
-        if any(kw in sector_lower for kw in cfg['keywords']):
+    for group_name, cfg in groups.items():
+        if any(kw in sector_lower for kw in cfg.get('keywords', [])):
             return group_name
     return 'Other'
 
@@ -106,11 +68,12 @@ def index():
             group = _get_sector_group(c.sector)
             grouped[group].append(c)
 
-        # Sort groups by SECTOR_GROUPS order, then 'Other' last
+        # Sort groups by DB order, then 'Other' last
+        sector_groups = _get_sector_groups()
         ordered_groups = []
-        for group_name in SECTOR_GROUPS:
+        for group_name in sector_groups:
             if group_name in grouped:
-                ordered_groups.append((group_name, SECTOR_GROUPS[group_name], grouped[group_name]))
+                ordered_groups.append((group_name, sector_groups[group_name], grouped[group_name]))
         if 'Other' in grouped:
             ordered_groups.append(('Uncategorized', {'icon': 'question-circle', 'color': '#94A3B8'}, grouped['Other']))
 
@@ -122,7 +85,7 @@ def index():
             sectors=sectors,
             current_sector=sector,
             grenoble_only=grenoble_only,
-            sector_groups=SECTOR_GROUPS,
+            sector_groups=sector_groups,
         )
     else:
         # List view (with search/filter/pagination)
@@ -201,8 +164,8 @@ def detail(slug):
         sentiment_stats=sentiment_stats,
         trend_data_json=json.dumps(trend_data),
         sector_group=_get_sector_group(company.sector),
-        sector_config=SECTOR_GROUPS.get(_get_sector_group(company.sector), {}),
-        sector_groups=list(SECTOR_GROUPS.keys()),
+        sector_config=_get_sector_groups().get(_get_sector_group(company.sector), {}),
+        sector_groups=list(_get_sector_groups().keys()),
     )
 
 
