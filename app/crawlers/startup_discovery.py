@@ -28,16 +28,18 @@ HEADERS = {
 def _extract_companies_from_page(url: str) -> list[dict]:
     """Extract company names and metadata from a startup portfolio/directory page.
 
-    Uses multiple strategies:
-    1. data-name attributes (Linksium pattern)
-    2. Company name + description in text blocks (CEA-Leti pattern)
-    3. Directory links with company names
+    Uses multiple strategies and handles pagination:
+    1. data-name attributes (Linksium/Craft CMS pattern)
+    2. Directory links with pagination (Minalogic pattern)
+    3. Company name + description in text blocks (CEA-Leti pattern)
     """
+    companies = []
+    seen = set()
+
+    # Fetch first page
     resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, 'lxml')
-    companies = []
-    seen = set()
 
     # Strategy 1: data-name attributes (Craft CMS / Linksium)
     for item in soup.select('[data-name][data-description]'):
@@ -58,49 +60,47 @@ def _extract_companies_from_page(url: str) -> list[dict]:
             'year': year or None,
         })
 
-    # Strategy 2: Links to company detail pages in directories
-    for a_tag in soup.select('a[href]'):
-        href = a_tag.get('href', '')
-        text = a_tag.get_text(strip=True)
-        if not text or len(text) < 3 or len(text) > 60:
-            continue
-        if text.lower() in seen:
-            continue
-        # Skip navigation/generic links
-        if any(skip in text.lower() for skip in [
-            'home', 'contact', 'about', 'menu', 'search', 'back',
-            'next', 'previous', 'page', 'filter', 'all', 'more',
-            'news', 'event', 'login', 'member', 'directory',
-        ]):
-            continue
-        # Must look like a company detail link
-        if any(kw in href.lower() for kw in [
-            'member-directory/', 'startup', 'portfolio', '/company/',
-            'annuaire/', 'nos-startups/',
-        ]):
-            if text.lower() not in seen:
-                seen.add(text.lower())
-                full_url = href if href.startswith('http') else None
-                companies.append({
-                    'name': text,
-                    'description': None,
-                    'website': full_url,
-                    'year': None,
-                })
+    # Strategy 2: Directory links with pagination
+    _extract_directory_links(soup, url, seen, companies)
+    # Paginate: try /page/2/, /page/3/, ...
+    if 'member-directory' in url or 'annuaire' in url:
+        base_url = url.rstrip('/')
+        for page_num in range(2, 50):
+            page_url = f'{base_url}/page/{page_num}/'
+            try:
+                r = requests.get(page_url, headers=HEADERS, timeout=15)
+                if r.status_code != 200:
+                    break
+                page_soup = BeautifulSoup(r.text, 'lxml')
+                before = len(companies)
+                _extract_directory_links(page_soup, url, seen, companies)
+                if len(companies) == before:
+                    break  # No new companies on this page
+            except Exception:
+                break
 
     # Strategy 3: Text blocks with company names (CEA-Leti pattern)
+    # Noise filter list
+    noise = {
+        'start-ups', 'suivant', 'programme', 'startup', 'contact',
+        'direction', 'recherche', 'actualit', 'innover', 'navigation',
+        'cea', 'leti', 'page', 'linkedin', 'you tube', 'videos', 'twitter',
+        'facebook', 'instagram', 'technology research', 'direct analysis',
+        'culture', 'institutionnel', 'recherche technologique',
+        'naviguer', 'prisonnier', 'espaces', 'entre 2',
+    }
     for seg in soup.get_text(separator='|||').split('|||'):
         seg = seg.strip()
-        match = re.match(r'^([A-Z][A-Za-z0-9\- ]{2,30}),\s+(.{10,200})', seg)
+        match = re.match(r'^([A-Z][A-Za-z0-9\-\' ]{2,30}),\s+(.{15,200})', seg)
         if match:
             name = match.group(1).strip()
             desc = match.group(2).strip()[:150]
             if name.lower() in seen:
                 continue
-            if any(skip in name.lower() for skip in [
-                'cea', 'leti', 'page', 'programme', 'contact', 'direction',
-                'recherche', 'actualit', 'innover', 'navigation',
-            ]):
+            if any(skip in name.lower() for skip in noise):
+                continue
+            # Must have a description that looks like a product/tech description
+            if not any(c.isalpha() for c in desc[:20]):
                 continue
             seen.add(name.lower())
             companies.append({
@@ -111,6 +111,42 @@ def _extract_companies_from_page(url: str) -> list[dict]:
             })
 
     return companies
+
+
+def _extract_directory_links(soup, base_url: str, seen: set, companies: list):
+    """Extract company names from directory-style link lists."""
+    skip_texts = {
+        'home', 'contact', 'about', 'menu', 'search', 'back',
+        'next', 'previous', 'page', 'filter', 'all', 'more',
+        'news', 'event', 'login', 'members', 'directory',
+        'members directory', 'member directory',
+    }
+    for a_tag in soup.select('a[href]'):
+        href = a_tag.get('href', '')
+        text = a_tag.get_text(strip=True)
+        if not text or len(text) < 3 or len(text) > 80:
+            continue
+        if text.lower() in seen or text.lower() in skip_texts:
+            continue
+        # Skip pagination links
+        if '/page/' in href:
+            continue
+        # Must look like a company detail link
+        if any(kw in href.lower() for kw in [
+            'member-directory/', 'startup/', 'portfolio/', '/company/',
+            'annuaire/', 'nos-startups/',
+        ]):
+            # Skip links that are just the directory index
+            if href.rstrip('/').endswith(('member-directory', 'annuaire', 'nos-startups')):
+                continue
+            seen.add(text.lower())
+            full_url = href if href.startswith('http') else None
+            companies.append({
+                'name': text,
+                'description': None,
+                'website': full_url,
+                'year': None,
+            })
 
 
 @celery.task(name='app.crawlers.startup_discovery.scan_startup_sources',
