@@ -462,6 +462,23 @@ def crawl_logs():
     return render_template('admin/crawl_logs.html', logs=logs)
 
 
+@admin_bp.route('/crawl-logs/<int:log_id>')
+def crawl_log_detail(log_id):
+    """Show articles crawled in a specific crawl session."""
+    log = CrawlLog.query.get_or_404(log_id)
+    # Find articles from this source crawled between started_at and finished_at
+    query = Article.query.filter(Article.source_id == log.source_id)
+    if log.finished_at:
+        query = query.filter(
+            Article.crawled_at >= log.started_at,
+            Article.crawled_at <= log.finished_at,
+        )
+    else:
+        query = query.filter(Article.crawled_at >= log.started_at)
+    articles = query.order_by(Article.crawled_at.desc()).all()
+    return render_template('admin/crawl_log_detail.html', log=log, articles=articles)
+
+
 # ── Users & Email ─────────────────────────────────────────────────
 
 LANGUAGES = [('zh', '中文'), ('en', 'English'), ('fr', 'Français')]

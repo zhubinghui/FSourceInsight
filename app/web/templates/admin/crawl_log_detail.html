@@ -1,0 +1,71 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Crawl Detail{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin.crawl_logs') }}" class="text-decoration-none">Crawl Logs</a></li>
+<li class="breadcrumb-item active">{{ log.source.name if log.source }} — {{ log.started_at.strftime('%Y-%m-%d %H:%M') }}</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h3 class="mb-0">{{ log.source.name if log.source }}</h3>
+        <span class="text-fs-muted" style="font-size: 0.85rem;">
+            {{ log.started_at.strftime('%Y-%m-%d %H:%M') }}
+            &middot;
+            <span class="badge bg-{{ 'success' if log.status == 'success' else 'danger' }}">{{ log.status }}</span>
+            &middot; Found {{ log.articles_found }}, New {{ log.articles_new }}
+        </span>
+    </div>
+    <a href="{{ url_for('admin.crawl_logs') }}" class="btn btn-fs-ghost btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+{% if articles %}
+<div class="card card-fs">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size: 0.88rem;">
+            <thead>
+                <tr class="text-fs-secondary" style="font-size: 0.82rem;">
+                    <th style="width: 50%;">Title</th>
+                    <th>Published</th>
+                    <th>LLM</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('news.detail', article_id=article.id) }}" class="text-decoration-none fw-medium">
+                            {{ article.title_zh or article.title_en or article.title_fr or '(no title)' }}
+                        </a>
+                        {% if article.title_fr and article.title_zh %}
+                        <div class="text-fs-muted" style="font-size: 0.78rem; font-style: italic;">{{ article.title_fr[:80] }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-fs-muted" style="font-size: 0.82rem;">
+                        {{ article.published_at.strftime('%m-%d %H:%M') if article.published_at else '-' }}
+                    </td>
+                    <td>
+                        {% if article.llm_processed %}
+                        <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">Processed</span>
+                        {% else %}
+                        <span class="badge bg-warning-subtle text-warning" style="font-size: 0.7rem;">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ article.url }}" target="_blank" class="text-decoration-none text-fs-muted" title="Original">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-fs-muted">
+    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+    <p class="mt-2">No articles found for this crawl session.</p>
+</div>
+{% endif %}
+{% endblock %}
