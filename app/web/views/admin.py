@@ -40,6 +40,13 @@ def dashboard():
         func.coalesce(func.sum(LLMUsageLog.cost_usd), 0)
     ).filter(LLMUsageLog.created_at >= today).scalar()
 
+    # Grenoble ecosystem stats
+    grenoble_total = Company.query.filter_by(is_grenoble=True).count()
+    grenoble_analyzed = Company.query.filter(
+        Company.is_grenoble == True, Company.ai_analysis.isnot(None)
+    ).count()
+    startup_source_count = StartupSource.query.filter_by(is_active=True).count()
+
     return render_template(
         'admin/dashboard.html',
         source_count=source_count,
@@ -48,6 +55,9 @@ def dashboard():
         company_count=company_count,
         recent_crawls=recent_crawls,
         today_cost=float(today_cost or 0),
+        grenoble_total=grenoble_total,
+        grenoble_analyzed=grenoble_analyzed,
+        startup_source_count=startup_source_count,
     )
 
 

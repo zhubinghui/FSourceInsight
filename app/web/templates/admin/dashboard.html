@@ -60,6 +60,42 @@
     </div>
 </div>
 
+{# ── Grenoble Ecosystem Progress ── #}
+{% if grenoble_total > 0 %}
+<div class="card card-fs mt-3" style="border-left: 3px solid var(--fs-orange);">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0" style="font-weight: 600; font-size: 0.9rem;">
+                <i class="bi bi-geo-alt-fill" style="color: var(--fs-orange);"></i> Grenoble Ecosystem
+            </h6>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin.startup_sources') }}" class="btn btn-fs-ghost" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">
+                    <i class="bi bi-rocket-takeoff"></i> Sources ({{ startup_source_count }})
+                </a>
+                <a href="{{ url_for('company.index') }}" class="btn btn-fs-ghost" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">
+                    <i class="bi bi-geo-alt"></i> Map
+                </a>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div>
+                <span class="fw-bold" style="font-size: 1.3rem;">{{ grenoble_total }}</span>
+                <span class="text-fs-muted" style="font-size: 0.82rem;">companies</span>
+            </div>
+            <div class="flex-grow-1">
+                <div class="progress" style="height: 8px; border-radius: 4px;">
+                    <div class="progress-bar" style="width: {{ (grenoble_analyzed * 100 / grenoble_total) | int }}%; background: var(--fs-orange);" title="{{ grenoble_analyzed }} analyzed"></div>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="fw-bold" style="color: var(--fs-orange);">{{ grenoble_analyzed }}</span>
+                <span class="text-fs-muted" style="font-size: 0.82rem;">/ {{ grenoble_total }} AI analyzed ({{ (grenoble_analyzed * 100 / grenoble_total) | int }}%)</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Quick links row 2 -->
 <div class="row mt-3">
     <div class="col-md-2">
