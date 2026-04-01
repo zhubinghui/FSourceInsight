@@ -51,16 +51,22 @@ def crawl_all_sources():
     """Daily crawl: fetch all active sources. Triggered by Beat at configured hour."""
     from app.models.setting import SystemSetting
 
-    # Check if the configured hour matches (allows admin to override the Beat default)
-    # Beat fires at the crontab hour, but admin might have changed the setting
-    # after Beat started. The setting is the source of truth.
+    # Check if the configured hour matches in the configured timezone
     configured_hour = SystemSetting.get_int('crawl_daily_hour', 1)
-    from datetime import datetime
-    current_hour = datetime.utcnow().hour
-    # Allow ±1 hour tolerance for timezone/scheduling drift
+    configured_tz = SystemSetting.get('crawl_timezone', 'Europe/Paris')
+
+    try:
+        from zoneinfo import ZoneInfo
+        from datetime import datetime as dt
+        local_now = dt.now(ZoneInfo(configured_tz))
+        current_hour = local_now.hour
+    except Exception:
+        current_hour = datetime.utcnow().hour
+
+    # Allow ±1 hour tolerance for scheduling drift
     if abs(current_hour - configured_hour) > 1 and abs(current_hour - configured_hour) < 23:
-        logger.info(f'Skipping daily crawl: current hour {current_hour} != configured {configured_hour}')
-        return {'skipped': True, 'reason': f'hour mismatch: {current_hour} vs {configured_hour}'}
+        logger.info(f'Skipping daily crawl: current hour {current_hour} ({configured_tz}) != configured {configured_hour}')
+        return {'skipped': True, 'reason': f'hour mismatch: {current_hour} vs {configured_hour} ({configured_tz})'}
 
     sources = NewsSource.query.filter_by(is_active=True).all()
     scheduled = 0

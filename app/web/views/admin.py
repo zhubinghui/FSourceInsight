@@ -451,6 +451,17 @@ def llm_reprocess():
     return redirect(url_for('admin.dashboard'))
 
 
+@admin_bp.route('/crawl-all-now', methods=['POST'])
+def crawl_all_now():
+    """Trigger immediate crawl of all active sources."""
+    from app.crawlers.tasks import crawl_source
+    sources = NewsSource.query.filter_by(is_active=True).all()
+    for source in sources:
+        crawl_source.delay(source.id)
+    flash(f'Crawl queued for {len(sources)} active sources.', 'success')
+    return redirect(url_for('admin.settings'))
+
+
 # ── Crawl Logs ────────────────────────────────────────────────────
 
 @admin_bp.route('/crawl-logs')
@@ -624,6 +635,10 @@ def settings():
         if check_interval:
             SystemSetting.set(key='crawl_check_interval_hours', value=check_interval,
                               description='Frequency check interval (hours)')
+        crawl_tz = request.form.get('crawl_timezone', '').strip()
+        if crawl_tz:
+            SystemSetting.set(key='crawl_timezone', value=crawl_tz,
+                              description='Timezone for daily crawl schedule')
         db.session.commit()
         flash('Settings updated.', 'success')
         return redirect(url_for('admin.settings'))
@@ -651,6 +666,7 @@ def settings():
     # Crawl schedule
     crawl_daily_hour = SystemSetting.get_int('crawl_daily_hour', 1)
     crawl_check_interval = SystemSetting.get_int('crawl_check_interval_hours', 6)
+    crawl_timezone = SystemSetting.get('crawl_timezone', 'Europe/Paris')
 
     # LLM provider status
     llm_keys = {}
@@ -664,6 +680,7 @@ def settings():
         highlight_settings=highlight_settings,
         crawl_daily_hour=crawl_daily_hour,
         crawl_check_interval=crawl_check_interval,
+        crawl_timezone=crawl_timezone,
         llm_keys=llm_keys,
     )
 

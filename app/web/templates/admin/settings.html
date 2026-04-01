@@ -118,10 +118,17 @@
                     <tr>
                         <td class="text-fs-secondary">Daily Crawl Time</td>
                         <td>
-                            <div class="input-group input-group-sm" style="width: 140px;">
-                                <input type="number" class="form-control" name="crawl_daily_hour"
-                                       value="{{ crawl_daily_hour }}" min="0" max="23" form="settings-form">
-                                <span class="input-group-text">:00 UTC</span>
+                            <div class="d-flex gap-1 align-items-center">
+                                <div class="input-group input-group-sm" style="width: 100px;">
+                                    <input type="number" class="form-control" name="crawl_daily_hour"
+                                           value="{{ crawl_daily_hour }}" min="0" max="23" form="settings-form">
+                                    <span class="input-group-text">:00</span>
+                                </div>
+                                <select class="form-select form-select-sm" name="crawl_timezone" form="settings-form" style="width: 180px;">
+                                    {% for tz in ['Europe/Paris', 'UTC', 'Asia/Shanghai', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo'] %}
+                                    <option value="{{ tz }}" {{ 'selected' if crawl_timezone == tz }}>{{ tz }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </td>
                     </tr>
@@ -147,7 +154,14 @@
                 <div class="text-fs-muted mt-2" style="font-size: 0.75rem;">
                     <i class="bi bi-info-circle"></i> Daily crawl fetches all sources at the configured hour. Frequency check additionally crawls overdue sources at the set interval.
                 </div>
-                <div class="mt-2">
+                <div class="d-flex gap-2 mt-2">
+                    <form method="post" action="{{ url_for('admin.crawl_all_now') }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-fs-primary btn-sm"
+                                onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Crawling...';">
+                            <i class="bi bi-play-fill"></i> Crawl All Now
+                        </button>
+                    </form>
                     <a href="{{ url_for('admin.sources') }}" class="btn btn-fs-ghost btn-sm">
                         <i class="bi bi-rss"></i> Sources
                     </a>
