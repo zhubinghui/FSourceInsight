@@ -6,8 +6,8 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h3>Startup Discovery Sources</h3>
-        <small class="text-fs-secondary">Portfolio pages and directories to scan for new Grenoble startups</small>
+        <h3>Ecosystem Discovery Sources</h3>
+        <small class="text-fs-secondary">Startup portfolios, member directories, and research lab pages</small>
     </div>
     <div class="d-flex gap-2">
         <form method="post" action="{{ url_for('admin.startup_scan_now') }}" style="display: inline;">
@@ -28,13 +28,20 @@
         <table class="table table-hover mb-0" style="font-size: 0.88rem;">
             <thead>
                 <tr class="text-fs-secondary" style="font-size: 0.82rem;">
-                    <th>Name</th><th>URL</th><th>Status</th><th>Last Scan</th><th>Found</th><th>Actions</th>
+                    <th>Name</th><th>Type</th><th>URL</th><th>Status</th><th>Last Scan</th><th>Found</th><th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for source in sources %}
                 <tr>
                     <td class="fw-medium">{{ source.name }}</td>
+                    <td>
+                        {% if source.source_type == 'research_lab' %}
+                        <span class="badge" style="background: var(--fs-purple); font-size: 0.68rem;">Lab</span>
+                        {% else %}
+                        <span class="badge badge-investment" style="font-size: 0.68rem;">Startup</span>
+                        {% endif %}
+                    </td>
                     <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         <a href="{{ source.url }}" target="_blank" class="text-decoration-none text-fs-secondary" style="font-size: 0.82rem;">
                             {{ source.url | replace('https://', '') | truncate(50) }} <i class="bi bi-box-arrow-up-right" style="font-size: 0.7rem;"></i>
@@ -63,7 +70,7 @@
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="6" class="text-center text-fs-muted py-4">No startup sources configured. <a href="{{ url_for('admin.startup_source_new') }}">Add one</a>.</td></tr>
+                <tr><td colspan="7" class="text-center text-fs-muted py-4">No sources configured. <a href="{{ url_for('admin.startup_source_new') }}">Add one</a>.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

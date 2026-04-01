@@ -25,10 +25,17 @@
                 <div class="form-text">Portfolio page, member directory, or startup program page to scan.</div>
             </div>
             <div class="mb-3">
+                <label class="form-label">Type *</label>
+                <select name="source_type" class="form-select" required>
+                    <option value="startup" {{ 'selected' if not source or source.source_type == 'startup' }}>Startup / Company Directory</option>
+                    <option value="research_lab" {{ 'selected' if source and source.source_type == 'research_lab' }}>Research Lab / Institute</option>
+                </select>
+            </div>
+            <div class="mb-3">
                 <label class="form-label">Description</label>
                 <input type="text" class="form-control" name="description"
                        value="{{ source.description or '' if source else '' }}"
-                       placeholder="Grenoble tech transfer office startup portfolio">
+                       placeholder="Portfolio page, member directory, or lab homepage">
             </div>
             <div class="form-check mb-3">
                 <input type="checkbox" class="form-check-input" name="is_active" id="is_active"

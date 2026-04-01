@@ -134,7 +134,7 @@
             <div class="sidebar-section">Content</div>
             <ul class="sidebar-nav">
                 <li><a href="{{ url_for('admin.startup_sources') }}" class="{{ 'active' if 'startup' in (request.endpoint or '') }}">
-                    <i class="bi bi-rocket-takeoff"></i> Startup Sources
+                    <i class="bi bi-rocket-takeoff"></i> Ecosystem Sources
                 </a></li>
                 <li><a href="{{ url_for('admin.sources') }}" class="{{ 'active' if 'source' in (request.endpoint or '') and 'startup' not in (request.endpoint or '') }}">
                     <i class="bi bi-rss"></i> Sources

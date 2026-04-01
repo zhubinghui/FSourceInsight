@@ -476,6 +476,7 @@ def startup_source_new():
         source = StartupSource(
             name=request.form.get('name', '').strip(),
             url=request.form.get('url', '').strip(),
+            source_type=request.form.get('source_type', 'startup'),
             description=request.form.get('description', '').strip() or None,
             is_active=request.form.get('is_active') == 'on',
         )
@@ -492,10 +493,11 @@ def startup_source_edit(source_id):
     if request.method == 'POST':
         source.name = request.form.get('name', '').strip()
         source.url = request.form.get('url', '').strip()
+        source.source_type = request.form.get('source_type', source.source_type)
         source.description = request.form.get('description', '').strip() or None
         source.is_active = request.form.get('is_active') == 'on'
         db.session.commit()
-        flash(f'Startup source "{source.name}" updated.', 'success')
+        flash(f'Source "{source.name}" updated.', 'success')
         return redirect(url_for('admin.startup_sources'))
     return render_template('admin/startup_source_form.html', source=source)
 

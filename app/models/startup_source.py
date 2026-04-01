@@ -3,10 +3,11 @@ from app.extensions import db
 
 
 class StartupSource(db.Model):
-    """Configurable sources for discovering new Grenoble startups.
+    """Configurable sources for discovering Grenoble ecosystem entities.
 
-    Each entry is a URL (portfolio page, member directory, etc.)
-    that is periodically scraped to find new company names.
+    Supports both startups (portfolio pages, directories) and research
+    labs (institutional pages). Type field controls how discovered
+    entities are tagged in the Company table.
     """
     __tablename__ = 'startup_source'
 
@@ -14,6 +15,7 @@ class StartupSource(db.Model):
     name = db.Column(db.String(200), nullable=False)
     url = db.Column(db.String(500), nullable=False)
     description = db.Column(db.String(500))
+    source_type = db.Column(db.String(50), nullable=False, default='startup')  # startup, research_lab
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     last_scanned_at = db.Column(db.DateTime)
     companies_found = db.Column(db.Integer, default=0)

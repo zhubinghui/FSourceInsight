@@ -212,20 +212,23 @@ def scan_startup_sources():
                 if alias_match:
                     continue
 
-                # Create new company
+                # Create new company — type depends on source
+                stage = 'research_institute' if source.source_type == 'research_lab' else 'startup'
+                sector = 'Research Institute' if source.source_type == 'research_lab' else None
                 company = Company(
                     name=name,
                     slug=slug,
                     description=entry.get('description'),
                     website=entry.get('website'),
                     is_grenoble=True,
-                    company_stage='startup',
+                    company_stage=stage,
+                    sector=sector,
                     is_auto_created=True,
                 )
                 db.session.add(company)
                 db.session.flush()
                 new_count += 1
-                logger.info(f'Discovered new startup: {name} (from {source.name})')
+                logger.info(f'Discovered new {source.source_type}: {name} (from {source.name})')
 
             source.last_scanned_at = datetime.utcnow()
             source.companies_found = len(discovered)
