@@ -246,6 +246,43 @@ def scan_startup_sources():
     return {'sources_scanned': len(sources), 'new_companies': total_new}
 
 
+# Sector inference from AI analysis text
+_SECTOR_RULES = [
+    ('Semiconductor', ['semiconductor', 'chip', 'wafer', 'mems', 'photonic', 'silicon', '芯片', '半导体', '晶圆', '硅基']),
+    ('AI / Machine Learning', ['artificial intelligence', 'machine learning', 'deep learning', 'neural', 'ai ', ' ai', '人工智能', '机器学习', '深度学习', 'llm']),
+    ('MedTech / Health', ['medical', 'health', 'diagnostic', 'pharma', 'biolog', 'surgery', 'implant', 'biotech', 'therapeut', '医疗', '诊断', '生物', '药']),
+    ('Sensors / Photonics', ['sensor', 'lidar', 'infrared', 'optic', 'vision', 'camera', 'laser', 'display', 'oled', 'led', '传感', '激光', '光学']),
+    ('Energy / CleanTech', ['energy', 'battery', 'solar', 'hydrogen', 'power', 'climat', 'recycl', 'green', '能源', '电池', '氢', '光伏', '回收']),
+    ('IoT / Connected', ['iot', 'connected', 'rfid', 'smart city', 'wearable', '物联网', '智能', '可穿戴']),
+    ('Quantum', ['quantum', 'qubit', '量子']),
+    ('Software / Digital', ['software', 'saas', 'platform', 'digital', 'blockchain', 'cyber', 'algorithm', 'data analyt', '软件', '平台', '数据', '区块链']),
+    ('Materials / Chemistry', ['material', 'chemistry', 'nano', 'coating', 'polymer', 'ceramic', '材料', '化学', '纳米', '涂层']),
+    ('Robotics / Automation', ['robot', 'autonomous', 'drone', 'automation', '机器人', '自动化', '无人']),
+]
+
+
+def _infer_sector(analysis: dict) -> str | None:
+    """Infer a sector from AI analysis overview + core_tech text."""
+    text = ' '.join([
+        analysis.get('overview', '') or '',
+        analysis.get('core_tech', '') or '',
+        analysis.get('business_status', '') or '',
+    ]).lower()
+
+    if not text.strip():
+        return None
+
+    best_sector = None
+    best_score = 0
+    for sector_name, keywords in _SECTOR_RULES:
+        score = sum(1 for kw in keywords if kw in text)
+        if score > best_score:
+            best_score = score
+            best_sector = sector_name
+
+    return best_sector if best_score > 0 else None
+
+
 def _generate_analyses_for_new(source: StartupSource):
     """Generate AI analysis for recently discovered companies from this source."""
     from app.llm.client import LLMClient
@@ -280,7 +317,12 @@ def _generate_analyses_for_new(source: StartupSource):
                 # Sync website from AI if company doesn't have one
                 if not company.website and analysis.get('website'):
                     company.website = analysis['website']
+                # Auto-infer sector from analysis if not set
+                if not company.sector:
+                    inferred = _infer_sector(analysis)
+                    if inferred:
+                        company.sector = inferred
                 db.session.commit()
-                logger.info(f'AI analysis generated for {company.name}')
+                logger.info(f'AI analysis generated for {company.name} (sector={company.sector})')
     except Exception as e:
         logger.warning(f'AI analysis generation failed: {e}')

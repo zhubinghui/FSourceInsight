@@ -17,7 +17,7 @@ SECTOR_GROUPS = {
     'Semiconductor': {
         'icon': 'cpu',
         'color': '#2563EB',
-        'keywords': ['semiconductor', 'chip', 'wafer', 'mems', 'ic design', 'fabricat'],
+        'keywords': ['semiconductor', 'chip', 'wafer', 'mems', 'ic design', 'fabricat', 'silicon'],
     },
     'AI & Computing': {
         'icon': 'robot',
@@ -27,17 +27,17 @@ SECTOR_GROUPS = {
     'Photonics & Sensors': {
         'icon': 'eye',
         'color': '#0891B2',
-        'keywords': ['photonic', 'sensor', 'lidar', 'infrared', 'optic', 'vision', 'display', 'oled', 'micro-led', 'led'],
+        'keywords': ['photonic', 'sensor', 'lidar', 'infrared', 'optic', 'vision', 'display', 'oled', 'micro-led', 'led', 'laser', 'camera'],
     },
     'MedTech & Health': {
         'icon': 'heart-pulse',
         'color': '#DC2626',
-        'keywords': ['medtech', 'health', 'biotech', 'medical', 'diagnostic', 'pharma', 'implant'],
+        'keywords': ['medtech', 'health', 'biotech', 'medical', 'diagnostic', 'pharma', 'implant', 'therapeut'],
     },
     'Energy & CleanTech': {
         'icon': 'lightning-charge',
         'color': '#059669',
-        'keywords': ['energy', 'cleantech', 'power', 'battery', 'climat'],
+        'keywords': ['energy', 'cleantech', 'power', 'battery', 'climat', 'solar', 'hydrogen', 'recycl'],
     },
     'IoT & Connectivity': {
         'icon': 'wifi',
@@ -47,7 +47,12 @@ SECTOR_GROUPS = {
     'Software & Digital': {
         'icon': 'code-slash',
         'color': '#6366F1',
-        'keywords': ['software', 'saas', 'digital', 'fintech', 'cyber', 'data'],
+        'keywords': ['software', 'saas', 'digital', 'fintech', 'cyber', 'data', 'blockchain', 'platform', 'algorithm'],
+    },
+    'Materials & Chemistry': {
+        'icon': 'droplet-half',
+        'color': '#A16207',
+        'keywords': ['material', 'chemistry', 'nano', 'coating', 'polymer', 'ceramic', 'glass'],
     },
     'Research & Ecosystem': {
         'icon': 'mortarboard',
@@ -107,7 +112,7 @@ def index():
             if group_name in grouped:
                 ordered_groups.append((group_name, SECTOR_GROUPS[group_name], grouped[group_name]))
         if 'Other' in grouped:
-            ordered_groups.append(('Other', {'icon': 'grid', 'color': '#94A3B8'}, grouped['Other']))
+            ordered_groups.append(('Uncategorized', {'icon': 'question-circle', 'color': '#94A3B8'}, grouped['Other']))
 
         return render_template(
             'company/index.html',
