@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from celery_app import celery
 from app.extensions import db
@@ -57,8 +58,7 @@ def crawl_all_sources():
 
     try:
         from zoneinfo import ZoneInfo
-        from datetime import datetime as dt
-        local_now = dt.now(ZoneInfo(configured_tz))
+        local_now = datetime.now(ZoneInfo(configured_tz))
         current_hour = local_now.hour
     except Exception:
         current_hour = datetime.utcnow().hour
@@ -95,7 +95,6 @@ def schedule_due_crawls():
     if redis_client:
         last_check = redis_client.get(gate_key)
         if last_check:
-            from datetime import datetime
             elapsed = (datetime.utcnow() - datetime.fromisoformat(last_check.decode())).total_seconds()
             if elapsed < interval_hours * 3600:
                 return {'skipped': True, 'next_in_hours': round((interval_hours * 3600 - elapsed) / 3600, 1)}
@@ -117,7 +116,7 @@ def schedule_due_crawls():
 @celery.task(name='app.crawlers.tasks.check_crawl_health', queue='crawl')
 def check_crawl_health():
     """Check for stale or failing sources and log warnings."""
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     from app.models.source import CrawlLog
 
     now = datetime.utcnow()
