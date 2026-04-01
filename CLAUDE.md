@@ -36,6 +36,7 @@ docker compose exec web python scripts/seed_companies.py
 docker compose exec web python scripts/seed_categories.py
 docker compose exec web python scripts/seed_llm_configs.py
 docker compose exec web python scripts/seed_ecosystem.py
+docker compose exec web python scripts/seed_grenoble_ecosystem.py
 
 # Manual crawl
 docker compose exec web python scripts/run_crawl.py --list
