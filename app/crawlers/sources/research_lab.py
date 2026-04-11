@@ -34,6 +34,11 @@ LAB_PAGES = {
         'https://www-verimag.imag.fr/Historique-des-faits-marquants.html?lang=fr',
         'https://www-verimag.imag.fr/Publications.html?lang=fr',
     ],
+    'grenoblealpes': [
+        'https://www.grenoblealpesmetropole.fr/45-nos-actualites.htm',
+        'https://www.grenoblealpesmetropole.fr/938-l-actualite-pour-les-pros.htm',
+        'https://www.grenoblealpesmetropole.fr/915-l-agenda-de-la-metropole.htm',
+    ],
 }
 
 
@@ -81,14 +86,15 @@ class ResearchLabCrawler(BaseCrawler):
                     ]):
                         continue
 
-                    # Must look like content (news, publication, event)
+                    # Must look like content (news, publication, event, communique)
                     if any(kw in href.lower() for kw in [
                         'actualit', 'news', 'publication', 'article',
                         'event', 'seminaire', 'fait-marquant', 'recherche',
-                        'projet',
+                        'projet', 'communique', 'agenda', 'presse',
                     ]) or any(kw in text.lower() for kw in [
                         'publication', 'paper', 'conference', 'workshop',
                         'thesis', 'soutenance', 'prix', 'award',
+                        'inaugur', 'lancement', 'ouverture',
                     ]):
                         if href in seen:
                             continue
@@ -128,4 +134,10 @@ class TIMALabCrawler(ResearchLabCrawler):
 @register_crawler('verimag')
 class VERIMAGCrawler(ResearchLabCrawler):
     """VERIMAG — Verification, Modeling and Analysis."""
+    pass
+
+
+@register_crawler('grenoblealpes')
+class GrenobleAlpesCrawler(ResearchLabCrawler):
+    """Grenoble Alpes Metropole — local government news and events."""
     pass
