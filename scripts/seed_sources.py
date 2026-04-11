@@ -281,7 +281,7 @@ SOURCES = [
         'name': 'TIMC Lab News',
         'slug': 'timc-lab',
         'url': 'https://www.timc.fr/',
-        'feed_url': 'https://www.timc.fr/feed',
+        'feed_url': 'https://www.timc.fr/rss.xml',
         'feed_type': 'rss',
         'category': 'institutional',
         'crawl_frequency_minutes': 720,
