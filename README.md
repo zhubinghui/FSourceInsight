@@ -1,10 +1,10 @@
 # FSourceInsight
 
-French Tech Intelligence Sourcing Platform with AI-powered analysis. Aggregates 28 active news sources (including research lab crawlers), processes articles through a mixed DeepSeek/OpenAI LLM pipeline, and provides Grenoble ecosystem insights with 509 companies, AI-generated analysis, and competitor comparison.
+French Tech Intelligence Sourcing Platform with AI-powered analysis. Aggregates 30 active news sources (including research lab crawlers), processes articles through a mixed DeepSeek/OpenAI LLM pipeline, and provides Grenoble ecosystem insights with 509 companies, AI-generated analysis, and competitor comparison.
 
 ## Features
 
-- **28 active news sources**: National French tech media, Grenoble regional outlets, CEA research labs (Leti, List, IRIG), research lab crawlers (Spintec, LIG, GIPSA-lab, TIMA, VERIMAG, Neel, TIMC, Clinatec), startup ecosystem (Linksium, Inovallee)
+- **30 active news sources**: National French tech media (FrenchWeb, Silicon.fr, Maddyness, VIPress, Sifted, Le Monde Informatique), Grenoble regional (Le Dauphine, Place Gre'net, BrefEco, GrenobleAlpes, Inovallee), CEA group (Leti, List, Enterprise), research labs (Spintec, LIG, GIPSA-lab, TIMA, VERIMAG, Neel, TIMC, Clinatec), institutional (STMicro, Soitec, AENEAS, EPIC, Minalogic, Linksium, Inria, French Tech Alps)
 - **Mixed LLM pipeline**: DeepSeek (bulk tasks) + OpenAI (structured output) with automatic fallback — translation, summarization, NER, sentiment, classification, insight generation
 - **Priority highlights**: Tech Breakthrough > Research > Investment > Events, with configurable time windows
 - **Grenoble Ecosystem Map**: 509 companies organized by 9 configurable sector groups, with AI-generated analysis in Chinese, competitor comparison, and auto-refresh on news
@@ -158,7 +158,7 @@ docker compose logs beat --tail 5          # Should show "Starting..."
 
 | Script | Data | Count |
 |--------|------|-------|
-| seed_sources.py | News crawl sources (28 active) | 34 |
+| seed_sources.py | News crawl sources (30 active) | 34 |
 | seed_companies.py | Core Grenoble companies + CEA-Leti spin-offs | 73 |
 | seed_categories.py | Tech categories | 14 |
 | seed_llm_configs.py | LLM providers (DeepSeek + OpenAI + Anthropic) | 4 |
@@ -237,7 +237,7 @@ with app.app_context():
 ## Architecture
 
 ```
-News Sources (28) --> Crawlers (RSS/HTML) --> MySQL --> LLM Pipeline --> Web UI / Email
+News Sources (30) --> Crawlers (RSS/HTML) --> MySQL --> LLM Pipeline --> Web UI / Email
                                                           |
                                               DeepSeek: translate, digest, summarize, sentiment, insight (fallback)
                                               OpenAI:   NER, classify, insight (primary), company analysis
