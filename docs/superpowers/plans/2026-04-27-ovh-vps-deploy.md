@@ -50,25 +50,31 @@ ROOT_PASS=$(grep '^MYSQL_ROOT_PASSWORD=' .env | cut -d= -f2)
 docker compose exec -T mysql mysqldump \
   -u root -p"${ROOT_PASS}" \
   --single-transaction --routines --triggers --no-tablespaces \
-  fsourceinsight | gzip > scripts/data/fsourceinsight_full.sql.gz
+  fsourceinsight 2>/dev/null | gzip > scripts/data/fsourceinsight_full.sql.gz
 ```
 
-Expected: command exits 0. `mysqldump: [Warning] Using a password on the command line interface can be insecure.` is OK to ignore (it's local).
+Expected: command exits 0. **Note:** `2>/dev/null` is required — without it, the `[Warning] Using a password on the command line interface can be insecure.` line gets piped into the gzip stream and ends up as the FIRST line of the dump, which makes MySQL choke during restore (Task 8).
 
 - [ ] **Step 3: Sanity-check the dump**
 
 ```bash
 ls -lh scripts/data/fsourceinsight_full.sql.gz
-gunzip -c scripts/data/fsourceinsight_full.sql.gz | head -20
+gunzip -c scripts/data/fsourceinsight_full.sql.gz | head -5
+echo "--- table count ---"
 gunzip -c scripts/data/fsourceinsight_full.sql.gz | grep -c '^INSERT INTO'
+echo "--- row sample ---"
+# Spot-check that company/article rows are actually in there:
+gunzip -c scripts/data/fsourceinsight_full.sql.gz | grep -c "INSERT INTO \`company\`"
+gunzip -c scripts/data/fsourceinsight_full.sql.gz | grep -c "INSERT INTO \`article\`"
 ```
 
 Expected:
-- File size 1–10 MB (probably grew slightly since last dump).
-- `head` shows `-- MySQL dump 10.x` header and `CREATE DATABASE` / `USE` lines.
-- INSERT count is **>= 100** (sanity threshold).
+- File size 2–10 MB.
+- First line of `head` is `-- MySQL dump 10.x ...` (NOT a `[Warning]` line — if you see a warning, redo Step 2 with `2>/dev/null`).
+- Total `INSERT INTO` count: **>= 10** (roughly one or more per non-empty table; large tables get split into batches by `--net-buffer-length`).
+- `company` count >= 1, `article` count >= 1 (article often gets split into many batches because rows are large — that's normal).
 
-If the file is < 100 KB or has 0 INSERT statements, **STOP** — the local DB may be empty. Investigate before proceeding.
+If the file is < 100 KB or the `company`/`article` INSERT counts are 0, **STOP** — the local DB may be empty. Investigate before proceeding.
 
 ---
 
@@ -77,7 +83,11 @@ If the file is < 100 KB or has 0 INSERT statements, **STOP** — the local DB ma
 **Files:**
 - Create: `docker-compose.caddy.yml`
 
-**Why:** The default `docker-compose.prod.yml` binds the bundled nginx container to `0.0.0.0:80/443`. On this VPS those ports belong to the system Caddy. This overlay disables the nginx container entirely (via Compose `profiles`) and exposes `web` only on `127.0.0.1:8800` so Caddy can reverse-proxy to it.
+**Why:** Two problems with `docker-compose.prod.yml` as it stands:
+1. It tries to disable the bundled nginx container by binding it to host 80/443, which conflicts with the system Caddy already on those ports.
+2. It writes `ports: []` and `volumes: []` for several services — but **Docker Compose merges list values additively**, so those clears don't take effect. Without intervention, deploying `prod.yml` on the VPS would publicly expose MySQL on 3306 and Redis on 6380 (Docker's iptables rules can bypass ufw), and the `web/worker/beat` containers would fail to start because they'd try to bind-mount `/Users/zhubinghui/...` (which doesn't exist on the VPS).
+
+This overlay fixes both with `!override` (Compose v2.20+ YAML tag) — it replaces merged lists instead of appending — and uses a Compose `profile` to gate the nginx container off.
 
 - [ ] **Step 1: Create the file**
 
@@ -87,12 +97,16 @@ Create `/Users/zhubinghui/Projects/FSourceInsight/docker-compose.caddy.yml` with
 # Overlay for hosts where a system Caddy already terminates TLS on 80/443.
 # Layer ORDER: docker-compose.yml + docker-compose.prod.yml + docker-compose.caddy.yml
 #
-# Effect:
-#   - The bundled nginx container is disabled via the "nginx-disabled" profile
-#     (Compose only starts services whose profile is active; we never activate
-#     this profile, so nginx stays off).
-#   - The web container binds to 127.0.0.1:8800 only (loopback). Caddy on the
-#     host reverse-proxies fsourceinsight.eu / www.fsourceinsight.eu to it.
+# Why this overlay exists:
+#   1. Bundled nginx container is disabled (Caddy on the host fronts everything).
+#   2. The base compose file uses dev port mappings (web 8001, mysql 3306, redis 6380)
+#      and a source bind-mount (.:/app). Docker Compose merges list values
+#      ADDITIVELY across layers, so prod.yml's "ports: []" / "volumes: []" do
+#      NOT clear the base entries. We use the YAML tag `!override` (Compose
+#      v2.20+) to replace the merged list, ensuring:
+#        - mysql/redis are NOT exposed to the host (internal Docker network only)
+#        - web is bound only to 127.0.0.1:8800 for Caddy to reverse-proxy
+#        - no source bind-mount (image content is authoritative in production)
 #
 # Usage:
 #   docker compose -f docker-compose.yml \
@@ -102,29 +116,49 @@ Create `/Users/zhubinghui/Projects/FSourceInsight/docker-compose.caddy.yml` with
 
 services:
   nginx:
-    profiles: ["nginx-disabled"]
+    profiles: ["nginx-disabled"]   # never activated → never started
 
   web:
-    ports:
+    ports: !override
       - "127.0.0.1:8800:8000"
+    volumes: !override []
+
+  worker:
+    volumes: !override []
+
+  beat:
+    volumes: !override []
+
+  mysql:
+    ports: !override []
+
+  redis:
+    ports: !override []
 ```
 
 - [ ] **Step 2: Validate the merged compose config**
 
 ```bash
 cd /Users/zhubinghui/Projects/FSourceInsight
-docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.prod.yml \
-  -f docker-compose.caddy.yml \
-  config | grep -A 3 '^  web:' | head -10
+MERGED=$(docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.caddy.yml config 2>&1)
+
+# 2a: web should bind ONLY to 127.0.0.1:8800
+echo "=== web ports ==="; echo "$MERGED" | grep -A 80 '^  web:' | grep -B 1 -A 5 'ports:' | head -10
+
+# 2b: mysql ports should be empty / absent
+echo "=== mysql ports ==="; echo "$MERGED" | awk '/^  mysql:/{f=1} f && /^  [a-z]+:/ && !/^  mysql:/{f=0} f' | grep -A 5 'ports:' || echo "(no ports section — good)"
+
+# 2c: redis ports should be empty / absent
+echo "=== redis ports ==="; echo "$MERGED" | awk '/^  redis:/{f=1} f && /^  [a-z]+:/ && !/^  redis:/{f=0} f' | grep -A 5 'ports:' || echo "(no ports section — good)"
+
+# 2d: web volumes should be absent (no bind-mount)
+echo "=== web volumes ==="; echo "$MERGED" | grep -A 80 '^  web:' | grep -B 1 -A 5 'volumes:' | head -10 || echo "(no volumes — good)"
 ```
 
-Expected: under `web:`, you see something like:
-```
-    ports:
-      - "127.0.0.1:8800:8000"
-```
+Expected:
+- 2a: web ports show only one entry — `host_ip: 127.0.0.1`, `published: "8800"`, `target: 8000`.
+- 2b, 2c: mysql and redis sections have no `ports:` (or just `ports:` with no list items).
+- 2d: web volumes section either absent or empty — **no `source: /Users/zhubinghui/...`**.
 
 - [ ] **Step 3: Confirm nginx is excluded from the default profile**
 

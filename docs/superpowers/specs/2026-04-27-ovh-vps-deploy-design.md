@@ -105,11 +105,22 @@ services:
   nginx:
     profiles: ["nginx-disabled"]   # don't start; Caddy fronts everything
   web:
-    ports:
+    ports: !override
       - "127.0.0.1:8800:8000"      # localhost-only; Caddy proxies to this
+    volumes: !override []
+  worker:
+    volumes: !override []
+  beat:
+    volumes: !override []
+  mysql:
+    ports: !override []
+  redis:
+    ports: !override []
 ```
 
-Layered as the **third** file (after `docker-compose.yml` and `docker-compose.prod.yml`) so it overrides the prod nginx port bindings.
+Layered as the **third** file (after `docker-compose.yml` and `docker-compose.prod.yml`).
+
+**Why `!override` is required:** Docker Compose merges list values additively across layered files. Although `docker-compose.prod.yml` writes `ports: []` and `volumes: []` for several services to "clear" them, the merge keeps the base file's entries — meaning a vanilla `prod.yml` deployment would publicly expose MySQL on 3306 and Redis on 6380 (Docker's iptables can bypass ufw), and would try to bind-mount the developer's local source path inside the containers. The `!override` YAML tag (Compose v2.20+) replaces the merged list with the new value, fixing both issues.
 
 ## 9. Risks and Mitigations
 

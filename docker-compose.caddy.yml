@@ -1,0 +1,40 @@
+# Overlay for hosts where a system Caddy already terminates TLS on 80/443.
+# Layer ORDER: docker-compose.yml + docker-compose.prod.yml + docker-compose.caddy.yml
+#
+# Why this overlay exists:
+#   1. Bundled nginx container is disabled (Caddy on the host fronts everything).
+#   2. The base compose file uses dev port mappings (web 8001, mysql 3306, redis 6380)
+#      and a source bind-mount (.:/app). Docker Compose merges list values
+#      ADDITIVELY across layers, so prod.yml's "ports: []" / "volumes: []" do
+#      NOT clear the base entries. We use the YAML tag `!override` (Compose
+#      v2.20+) to replace the merged list, ensuring:
+#        - mysql/redis are NOT exposed to the host (internal Docker network only)
+#        - web is bound only to 127.0.0.1:8800 for Caddy to reverse-proxy
+#        - no source bind-mount (image content is authoritative in production)
+#
+# Usage:
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.prod.yml \
+#                  -f docker-compose.caddy.yml \
+#                  up -d --build
+
+services:
+  nginx:
+    profiles: ["nginx-disabled"]   # never activated → never started
+
+  web:
+    ports: !override
+      - "127.0.0.1:8800:8000"
+    volumes: !override []
+
+  worker:
+    volumes: !override []
+
+  beat:
+    volumes: !override []
+
+  mysql:
+    ports: !override []
+
+  redis:
+    ports: !override []
