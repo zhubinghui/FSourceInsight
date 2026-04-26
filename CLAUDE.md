@@ -113,6 +113,14 @@ Registry pattern: `@register_crawler('source-slug')` in `app/crawlers/sources/*.
 3. Add import in `app/crawlers/sources/__init__.py`
 4. Add entry in `scripts/seed_sources.py` and run it
 
+## Implementation Discipline
+
+When executing a written implementation plan (e.g., a deployment in `docs/superpowers/specs/`):
+
+- If reality diverges from the plan — a step fails, a precondition turns out wrong, the environment differs from what the spec assumed — **update the plan first, then act**.
+- The plan is the source of truth for what we're doing and why. A plan that no longer matches what's happening is worse than no plan.
+- Specifically: edit the relevant spec/plan file in `docs/superpowers/specs/` (or the in-session task list) to record the change and the reason, then continue. Don't silently work around the discrepancy.
+
 ### Production Deployment
 
 ```bash
