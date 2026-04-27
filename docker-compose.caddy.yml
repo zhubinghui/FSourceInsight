@@ -30,6 +30,9 @@ services:
   worker:
     volumes: !override []
 
+  worker_fast:
+    volumes: !override []
+
   beat:
     volumes: !override []
 

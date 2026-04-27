@@ -29,6 +29,19 @@ services:
         limits:
           memory: 1G
 
+  worker_fast:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    volumes: []
+    restart: always
+    environment:
+      FLASK_ENV: production
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
   beat:
     volumes: []
     restart: always

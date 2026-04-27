@@ -27,6 +27,22 @@ services:
         condition: service_started
     volumes:
       - .:/app
+    command: celery -A celery_app worker -l info -Q llm -c 4 -n llm@%h
+    restart: unless-stopped
+
+  worker_fast:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    env_file: .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - .:/app
+    command: celery -A celery_app worker -l info -Q crawl,email -c 2 -n fast@%h
     restart: unless-stopped
 
   beat:
