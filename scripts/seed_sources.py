@@ -104,7 +104,7 @@ SOURCES = [
     {
         'name': 'La Tribune AURA',
         'slug': 'tribune-aura',
-        'url': 'https://www.latribune.fr/region/auvergne-rhone-alpes',
+        'url': 'https://www.latribune.fr/auvergne-rhone-alpes-75/',
         'feed_url': None,
         'feed_type': 'html_scrape',
         'category': 'regional',
@@ -239,6 +239,15 @@ SOURCES = [
         'feed_type': 'html_scrape',
         'category': 'institutional',
         'crawl_frequency_minutes': 1440,
+    },
+    {
+        'name': 'Systematic Paris-Region',
+        'slug': 'systematic-paris',
+        'url': 'https://systematic-paris-region.org',
+        'feed_url': 'https://systematic-paris-region.org/feed/',
+        'feed_type': 'rss',
+        'category': 'institutional',
+        'crawl_frequency_minutes': 360,
     },
     # Grenoble research lab news
     {
