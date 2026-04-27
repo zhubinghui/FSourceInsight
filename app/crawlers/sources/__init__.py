@@ -5,7 +5,6 @@ from . import silicon_fr  # noqa: F401
 from . import stmicro  # noqa: F401
 from . import maddyness  # noqa: F401
 from . import french_tech_alps  # noqa: F401
-from . import minalogic  # noqa: F401
 from . import cea_leti  # noqa: F401
 from . import place_grenet  # noqa: F401
 from . import tribune_aura  # noqa: F401

@@ -31,7 +31,7 @@ class SoitecCrawler(BaseCrawler):
             text = a_tag.get_text(strip=True)
             if not text or len(text) < 15:
                 continue
-            if '/press-release/' not in href and '/news/' not in href:
+            if '/press-release' not in href and '/news/' not in href:
                 continue
             full_url = href if href.startswith('http') else f'https://www.soitec.com{href}'
             if full_url in seen:
