@@ -234,11 +234,14 @@ sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
   -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# Write the apt source. We use `sudo bash -c` instead of `... | sudo tee` so a
+# stray newline in a copy-paste cannot split this into two commands.
+sudo bash -c 'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list'
+
+cat /etc/apt/sources.list.d/docker.list   # sanity-check
 ```
 
-Expected: writes `/etc/apt/sources.list.d/docker.list` with a `noble` line for Ubuntu 24.04.
+Expected: `cat` prints exactly one line: `deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable`.
 
 - [ ] **Step 3: Install Docker Engine + Compose plugin**
 
@@ -266,6 +269,8 @@ exit
 ssh ubuntu@149.56.142.99
 ```
 
+> **macOS gotcha:** if your `~/.ssh/config` has `ControlMaster auto` (or you're in a multiplexed session), the reconnect may reuse the old session and the `docker` group still won't be active. Test with `id`. If `docker` is missing from the group list but `getent group docker` on the VPS shows `ubuntu`, then run `exec newgrp docker` in the VPS shell to activate the group without disconnecting. This is a one-time workaround for the deploy session; future reconnects (after the multiplex socket times out) will pick up the group naturally.
+
 - [ ] **Step 6: Verify**
 
 ```bash
@@ -274,20 +279,24 @@ docker compose version
 docker ps
 ```
 
-Expected: versions print (Docker 27.x or 28.x; Compose v2.x). `docker ps` shows an empty table — **no `permission denied`**, no `sudo` needed.
+Expected: versions print (Docker **29.x** as of 2026-04, with Compose plugin v2.x bundled in). `docker ps` shows an empty table — **no `permission denied`**, no `sudo` needed.
+
+> If `apt-get install` printed a "Pending kernel upgrade" notice, ignore it for now — Docker works on the running kernel. Reboot the VPS only **after** the deployment is fully verified, so ai-router and FSourceInsight don't both bounce mid-deploy.
 
 ---
 
 ## Task 5: Configure GitHub access and clone repo
 
 **Files (on VPS):**
-- Create: `/opt/fsourceinsight/` (cloned from GitHub)
+- Create: `/home/ubuntu/FSourceInsight/` (cloned from GitHub)
 
 - [ ] **Step 1: Create install dir owned by ubuntu**
 
 ```bash
-sudo mkdir -p /opt/fsourceinsight
-sudo chown ubuntu:ubuntu /opt/fsourceinsight
+# Repo lives in the ubuntu user's home — no sudo needed.
+# Pick install dir under home (e.g., ~/FSourceInsight). The repo's clone
+# auto-creates the directory, so we only need to choose where to clone INTO.
+mkdir -p ~ && cd ~
 ```
 
 - [ ] **Step 2: Configure git identity (one-time)**
@@ -302,19 +311,19 @@ git config --global user.email "zhu.pinghey@gmail.com"
 When prompted for password, paste your GitHub Personal Access Token (not your GitHub password):
 
 ```bash
-git clone -b master https://github.com/zhubinghui/FSourceInsight.git /opt/fsourceinsight
+git clone -b master https://github.com/zhubinghui/FSourceInsight.git /home/ubuntu/FSourceInsight
 # Username: zhubinghui
 # Password: <paste PAT here>
 ```
 
-Expected: `Cloning into '/opt/fsourceinsight'...` and `Resolving deltas: ...` complete.
+Expected: `Cloning into '/home/ubuntu/FSourceInsight'...` and `Resolving deltas: ...` complete.
 
 > Optional hardening: cache the credential helper so you don't paste again on `git pull`. The default behavior is fine for now — git will simply ask again.
 
 - [ ] **Step 4: Verify dump and overlay are present**
 
 ```bash
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 ls -lh scripts/data/fsourceinsight_full.sql.gz
 ls -lh docker-compose.caddy.yml
 ```
@@ -326,12 +335,12 @@ Expected: both files exist; dump is the recent one (from Task 1).
 ## Task 6: Create production `.env`
 
 **Files (on VPS):**
-- Create: `/opt/fsourceinsight/.env`
+- Create: `/home/ubuntu/FSourceInsight/.env`
 
 - [ ] **Step 1: Generate the file with random secrets**
 
 ```bash
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))" 2>/dev/null || openssl rand -hex 32)
 MYSQL_PASS=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)
 MYSQL_ROOT_PASS=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)
@@ -387,7 +396,7 @@ Expected: `.env` created, mode `600`.
 - [ ] **Step 2: Add LLM API keys**
 
 ```bash
-nano /opt/fsourceinsight/.env
+nano /home/ubuntu/FSourceInsight/.env
 ```
 
 Set:
@@ -399,7 +408,7 @@ Save and exit (Ctrl-O, Enter, Ctrl-X).
 - [ ] **Step 3: Verify required values are non-empty**
 
 ```bash
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 for k in SECRET_KEY MYSQL_PASSWORD MYSQL_ROOT_PASSWORD DEEPSEEK_API_KEY OPENAI_API_KEY; do
   v=$(grep "^${k}=" .env | cut -d= -f2-)
   if [ -z "$v" ]; then echo "MISSING: $k"; else echo "OK: $k (len=${#v})"; fi
@@ -417,7 +426,7 @@ Expected: all 5 lines say `OK: ...` with non-zero lengths. If any say `MISSING`,
 - [ ] **Step 1: Build and start (detached)**
 
 ```bash
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 docker compose \
   -f docker-compose.yml \
   -f docker-compose.prod.yml \
@@ -460,7 +469,7 @@ Expected: `HTTP 200` (or possibly `HTTP 503` if DB tables don't exist yet — th
 - [ ] **Step 1: Apply migrations (creates empty schema)**
 
 ```bash
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 docker compose exec -T web flask db upgrade
 ```
 
@@ -603,34 +612,67 @@ Fill in your admin email and password. The endpoint becomes inactive after the f
 
 After creation, log in at `https://fsourceinsight.eu/auth/login` and confirm `/admin` loads.
 
-- [ ] **Step 2: Make backup script executable**
+- [ ] **Step 2: Write a Docker-aware backup wrapper**
+
+The repo's `scripts/backup_mysql.sh` was written for hosts where `mysql-client` is installed and the MySQL port is published — but in this all-Docker deployment we deliberately don't publish 3306 to the host (the `!override` in our compose overlay), and we don't install mysql-client on the host. The script's default `BACKUP_DIR=/var/backups/fsourceinsight` also requires root. We replace it with a small VPS-local wrapper at `/home/ubuntu/backup_fsourceinsight.sh` that runs `mysqldump` *inside* the container and writes to a user-owned directory.
 
 ```bash
-cd /opt/fsourceinsight
-chmod +x scripts/backup_mysql.sh
+cat > /home/ubuntu/backup_fsourceinsight.sh <<'BACKUP_EOF'
+#!/bin/bash
+# Docker-aware MySQL backup wrapper for FSourceInsight VPS deployment.
+# Calls mysqldump INSIDE the mysql container (the container does not publish
+# its port to the host) and writes to a user-owned directory.
+set -euo pipefail
+
+REPO_DIR="/home/ubuntu/FSourceInsight"
+BACKUP_DIR="${BACKUP_DIR:-/home/ubuntu/fsourceinsight-backups}"
+RETENTION_DAYS="${RETENTION_DAYS:-30}"
+
+cd "$REPO_DIR"
+mkdir -p "$BACKUP_DIR"
+
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="${BACKUP_DIR}/fsourceinsight_${TIMESTAMP}.sql.gz"
+MYSQL_PASS=$(grep '^MYSQL_PASSWORD=' .env | cut -d= -f2)
+
+echo "[$(date)] Starting backup → ${BACKUP_FILE}"
+docker compose exec -T mysql mysqldump \
+  -u fsourceinsight -p"${MYSQL_PASS}" \
+  --single-transaction --routines --triggers --no-tablespaces \
+  fsourceinsight 2>/dev/null | gzip > "${BACKUP_FILE}"
+
+SIZE=$(du -h "${BACKUP_FILE}" | cut -f1)
+echo "[$(date)] Backup complete (${SIZE})"
+
+DELETED=$(find "${BACKUP_DIR}" -name '*.sql.gz' -mtime +${RETENTION_DAYS} -delete -print | wc -l)
+[ "${DELETED}" -gt 0 ] && echo "[$(date)] Pruned ${DELETED} backup(s) older than ${RETENTION_DAYS} days"
+echo "[$(date)] Done."
+BACKUP_EOF
+chmod +x /home/ubuntu/backup_fsourceinsight.sh
 ```
 
-- [ ] **Step 3: Install the daily backup cron**
+The wrapper lives outside the repo (it's deployment-specific and references absolute paths on this host). If we want it tracked in git, that's a follow-up — for now it's documented here.
 
-```bash
-CRON_CMD="0 2 * * * cd /opt/fsourceinsight && MYSQL_PASSWORD=\$(grep '^MYSQL_PASSWORD=' .env | cut -d= -f2) ./scripts/backup_mysql.sh >> /var/log/fsourceinsight-backup.log 2>&1"
-( crontab -l 2>/dev/null | grep -v 'fsourceinsight-backup.log' ; echo "$CRON_CMD" ) | crontab -
-crontab -l
-```
-
-Expected: crontab now contains the new line. The `grep -v` is idempotent — re-running won't create duplicates.
-
-- [ ] **Step 4: Test the backup script manually**
+- [ ] **Step 3: Install the daily backup cron pointing at the wrapper**
 
 ```bash
 sudo touch /var/log/fsourceinsight-backup.log
 sudo chown ubuntu:ubuntu /var/log/fsourceinsight-backup.log
-cd /opt/fsourceinsight
-MYSQL_PASSWORD=$(grep '^MYSQL_PASSWORD=' .env | cut -d= -f2) ./scripts/backup_mysql.sh
-ls -lh scripts/data/backups/ 2>/dev/null || ls -lh /opt/fsourceinsight/backups/ 2>/dev/null
+NEW_CRON="0 2 * * * /home/ubuntu/backup_fsourceinsight.sh >> /var/log/fsourceinsight-backup.log 2>&1"
+( crontab -l 2>/dev/null | grep -v 'fsourceinsight-backup.log' ; echo "$NEW_CRON" ) | crontab -
+crontab -l
 ```
 
-Expected: backup file (e.g., `fsourceinsight_YYYYMMDD-HHMMSS.sql.gz`) appears, sized similarly to the dump. If the backup script writes to a different path, follow whatever path it printed.
+Expected: `crontab -l` shows exactly one fsourceinsight line (the wrapper invocation). The `grep -v` is idempotent and replaces any prior fsourceinsight-backup line.
+
+- [ ] **Step 4: Run the wrapper once to verify**
+
+```bash
+/home/ubuntu/backup_fsourceinsight.sh
+ls -lh /home/ubuntu/fsourceinsight-backups/
+```
+
+Expected: prints `Starting backup → ...`, `Backup complete (5–6M)`, `Done.`. `ls` shows `fsourceinsight_YYYYMMDD_HHMMSS.sql.gz` of similar size to the source dump.
 
 - [ ] **Step 5: Final smoke test from outside the VPS**
 
@@ -650,7 +692,7 @@ Expected: all three FSourceInsight URLs respond `200` (or `301/302` redirect to 
 On the VPS:
 
 ```bash
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 docker compose logs --tail 30 worker
 docker compose logs --tail 30 beat
 ```
@@ -690,7 +732,7 @@ If any item fails, **update this plan** with what happened and how it was resolv
 
 ```bash
 # Stop and remove everything FSourceInsight
-cd /opt/fsourceinsight
+cd /home/ubuntu/FSourceInsight
 docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.caddy.yml down -v
 
 # Remove Caddy site block (restores ai-router-only)

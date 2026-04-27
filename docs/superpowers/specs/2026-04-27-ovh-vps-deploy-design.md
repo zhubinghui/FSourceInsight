@@ -65,7 +65,7 @@ Detailed exit conditions belong in the implementation plan; this section lists w
 
 1. **Local:** add `docker-compose.caddy.yml` (overlay), dump current MySQL data → `scripts/data/fsourceinsight_full.sql.gz`. Commit both in one commit, push to `master`.
 2. **VPS:** install Docker CE from official repo, add `ubuntu` to `docker` group.
-3. **VPS:** clone repo (HTTPS + PAT) into `/opt/fsourceinsight`.
+3. **VPS:** clone repo (HTTPS + PAT) into `/home/ubuntu/FSourceInsight`.
 4. **VPS:** create `.env` — random values for `SECRET_KEY`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD` (auto-generated); user pastes in real `DEEPSEEK_API_KEY` and `OPENAI_API_KEY`; `MAIL_*` left blank.
 5. **VPS:** add `docker-compose.caddy.yml` overlay that disables the nginx service via profile and binds `web` to `127.0.0.1:8800`.
 6. **VPS:** `docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.caddy.yml up -d --build`.
@@ -79,7 +79,7 @@ Detailed exit conditions belong in the implementation plan; this section lists w
 - `scripts/data/fsourceinsight_full.sql.gz` — refreshed from local MySQL (overwrites file)
 - New commit on `master` with the refreshed dump
 
-**On VPS, in `/opt/fsourceinsight`:**
+**On VPS, in `/home/ubuntu/FSourceInsight`:**
 - `docker-compose.caddy.yml` — new, version-controlled overlay (also committed to repo)
 - `.env` — new, **not** in git (`chmod 600`)
 
