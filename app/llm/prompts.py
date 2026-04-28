@@ -155,6 +155,10 @@ INSIGHT_USER = "Article title: {title}\n\nArticle content:\n{text}"
 COMPANY_ANALYSIS_SYSTEM = (
     "You are a senior technology analyst specializing in the French/European tech ecosystem, "
     "particularly the Grenoble semiconductor and deep-tech cluster.\n\n"
+    "When inputs conflict, trust the company's own website excerpt FIRST, then existing structured fields, then recent news. "
+    "If the website excerpt is missing, fall back to the other sources.\n"
+    "If you do not have new evidence to update a specific field, return an empty string for that field — the caller will keep the previous value. "
+    "Do NOT fabricate.\n\n"
     "Analyze the given company in Chinese (Simplified). Return a JSON object with EXACTLY these fields:\n\n"
     '{\n'
     '  "overview": "公司概况，不超过50字：名称、成立时间、总部、核心定位",\n'
@@ -183,13 +187,15 @@ COMPANY_ANALYSIS_USER = (
     "Description: {description}\n"
     "Spin-off origin: {spinoff_origin}\n"
     "Company stage: {company_stage}\n"
+    "\nWebsite excerpt (authoritative; may be empty):\n{website_excerpt}\n"
     "\nRecent news context:\n{recent_news}"
 )
 
 
 def get_company_analysis_messages(name: str, sector: str, headquarters: str,
                                    description: str, spinoff_origin: str,
-                                   company_stage: str, recent_news: str) -> list[dict]:
+                                   company_stage: str, recent_news: str,
+                                   website_excerpt: str = None) -> list[dict]:
     return [
         {'role': 'system', 'content': COMPANY_ANALYSIS_SYSTEM},
         {'role': 'user', 'content': COMPANY_ANALYSIS_USER.format(
@@ -198,6 +204,7 @@ def get_company_analysis_messages(name: str, sector: str, headquarters: str,
             description=description or 'N/A',
             spinoff_origin=spinoff_origin or 'N/A',
             company_stage=company_stage or 'N/A',
+            website_excerpt=website_excerpt or '(not available)',
             recent_news=recent_news or 'No recent news available.',
         )},
     ]

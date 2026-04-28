@@ -171,13 +171,42 @@
                     {% endif %}
                     {% if company.ai_revision_history %}
                     <span class="text-fs-muted" style="font-size: 0.75rem;">
-                        <i class="bi bi-clock-history"></i> {{ company.ai_revision_history | length }} revision(s)
-                        {% if current_user.is_authenticated and current_user.is_admin %}
-                        — <a href="{{ url_for('company.edit_analysis', slug=company.slug) }}" class="text-decoration-none">view history</a>
-                        {% endif %}
+                        <a href="#" class="text-decoration-none" data-bs-toggle="collapse" data-bs-target="#revisionHistory" role="button">
+                            <i class="bi bi-clock-history"></i> {{ company.ai_revision_history | length }} revision(s)
+                        </a>
                     </span>
                     {% endif %}
                 </div>
+
+                {# Expandable revision history #}
+                {% if company.ai_revision_history %}
+                <div class="collapse mt-2" id="revisionHistory">
+                    <div class="border-top pt-2" style="font-size: 0.78rem;">
+                        {% for rev in company.ai_revision_history | reverse %}
+                        <div class="mb-2 pb-2" {% if not loop.last %}style="border-bottom: 1px dashed var(--fs-card-border);"{% endif %}>
+                            <div class="d-flex justify-content-between text-fs-muted" style="font-size: 0.72rem;">
+                                <span><i class="bi bi-arrow-clockwise"></i> {{ rev.source }}</span>
+                                <span>{{ rev.timestamp[:19] | replace('T', ' ') }}</span>
+                            </div>
+                            {% if rev.trigger %}
+                            <div class="text-fs-muted" style="font-size: 0.72rem; font-style: italic;">{{ rev.trigger }}</div>
+                            {% endif %}
+                            {% if rev.changes %}
+                            <ul class="mb-0 mt-1 ps-3">
+                                {% for ch in rev.changes %}
+                                <li>
+                                    <span class="fw-semibold">{{ ch.field }}</span>:
+                                    {% if ch.old %}<span class="text-fs-muted text-decoration-line-through">{{ ch.old | truncate(80) }}</span> →{% endif %}
+                                    <span>{{ ch.new | truncate(120) if ch.new else '(cleared)' }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
                 {% else %}
                 <div class="text-center py-4 text-fs-muted">
                     <i class="bi bi-robot" style="font-size: 1.5rem; opacity: 0.3;"></i>

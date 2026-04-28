@@ -188,14 +188,26 @@ def update_sector(slug):
 @company_bp.route('/<slug>/generate-analysis', methods=['POST'])
 @login_required
 def generate_analysis(slug):
-    """Generate AI analysis for a company (admin only)."""
+    """Refresh AI analysis: crawl company website + recent news, merge non-empty fields."""
     if not current_user.is_admin:
         flash('Admin access required.', 'error')
         return redirect(url_for('company.detail', slug=slug))
 
     company = Company.query.filter_by(slug=slug).first_or_404()
 
-    # Gather recent news about this company
+    # 1. Try to crawl the company's homepage. The website URL may live either on
+    #    company.website (manual edit) or inside ai_analysis['website'] (LLM-set).
+    from app.utils.website_fetcher import fetch_website_excerpt
+
+    site_url = company.website
+    if not site_url and isinstance(company.ai_analysis, dict):
+        site_url = company.ai_analysis.get('website')
+
+    website_excerpt, fetch_status = (None, 'no_url')
+    if site_url:
+        website_excerpt, fetch_status = fetch_website_excerpt(site_url)
+
+    # 2. Gather recent news about this company.
     recent_articles = (
         Article.query
         .join(ArticleCompany)
@@ -222,12 +234,49 @@ def generate_analysis(slug):
             spinoff_origin=company.spinoff_origin,
             company_stage=company.company_stage,
             recent_news=recent_news,
+            website_excerpt=website_excerpt,
         )
-        _save_revision(company, new_data=analysis, source='ai-regenerate')
-        company.ai_analysis = analysis
+
+        # 3. Merge: only overwrite fields where the LLM produced a non-empty value.
+        old = company.ai_analysis if isinstance(company.ai_analysis, dict) else {}
+        merged = dict(old)
+        for key, val in analysis.items():
+            if key == 'competitors':
+                # The competitors table is replaced wholesale only if the new list is non-empty.
+                if isinstance(val, list) and val:
+                    merged['competitors'] = val
+                continue
+            if val not in (None, '', []):
+                merged[key] = val
+
+        # 4. Record revision (field-level diff vs. old) and persist.
+        revision_source = {
+            'ok': 'ai-refresh-website',
+            'too_thin': 'ai-refresh-news',
+            'http_error': 'ai-refresh-news',
+            'fetch_error': 'ai-refresh-news',
+            'no_url': 'ai-refresh-news',
+        }.get(fetch_status, 'ai-refresh-news')
+        revision_trigger = {
+            'ok': f'Crawled {site_url}',
+            'too_thin': f'{site_url} returned too little text (likely SPA)',
+            'http_error': f'{site_url} returned non-2xx',
+            'fetch_error': f'{site_url} unreachable',
+            'no_url': 'No website URL on record',
+        }.get(fetch_status, '')
+
+        _save_revision(company, new_data=merged, source=revision_source, trigger=revision_trigger)
+        company.ai_analysis = merged
         company.ai_analysis_at = datetime.utcnow()
         db.session.commit()
-        flash(f'AI analysis generated for {company.name}.', 'success')
+
+        if fetch_status == 'ok':
+            flash(f'Refreshed {company.name} from website + news.', 'success')
+        else:
+            flash(
+                f'Refreshed {company.name} from news only ({fetch_status} on {site_url or "no URL"}).',
+                'warning'
+            )
     except Exception as e:
         flash(f'Analysis failed: {e}', 'error')
 
