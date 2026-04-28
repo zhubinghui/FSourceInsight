@@ -248,6 +248,15 @@ SOURCES = [
         'category': 'institutional',
         'crawl_frequency_minutes': 360,
     },
+    {
+        'name': 'Serma Technologies',
+        'slug': 'serma-technologies',
+        'url': 'https://www.serma-technologies.com',
+        'feed_url': 'https://www.serma-technologies.com/en/feed/',
+        'feed_type': 'rss',
+        'category': 'institutional',
+        'crawl_frequency_minutes': 360,
+    },
     # Grenoble research lab news
     {
         'name': 'Spintec News',
