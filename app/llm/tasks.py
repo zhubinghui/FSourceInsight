@@ -281,3 +281,99 @@ def _save_revision(company, new_data=None, source='manual', trigger=''):
         'changes': changes,
     })
     company.ai_revision_history = history[-10:]
+
+
+@celery.task(name='app.llm.tasks.refresh_company_analysis', bind=True,
+             max_retries=2, default_retry_delay=60, queue='llm')
+def refresh_company_analysis(self, company_id: int):
+    """Async AI Refresh triggered by the company detail page.
+
+    Crawls the company homepage, runs LLM analyze_company with the website
+    excerpt, merges only non-empty fields onto the previous ai_analysis,
+    and records a revision tagged 'ai-refresh-website' or 'ai-refresh-news'.
+    """
+    from app.utils.website_fetcher import fetch_website_excerpt
+
+    company = db.session.get(Company, company_id)
+    if not company:
+        logger.error(f'refresh_company_analysis: company {company_id} not found')
+        return
+
+    site_url = None
+    if isinstance(company.ai_analysis, dict):
+        site_url = (company.ai_analysis.get('website') or '').strip() or None
+    if not site_url:
+        site_url = company.website
+
+    website_excerpt, fetch_status = (None, 'no_url')
+    if site_url:
+        website_excerpt, fetch_status = fetch_website_excerpt(site_url)
+    logger.info(
+        f'refresh_company_analysis: company={company.name} site={site_url} '
+        f'fetch_status={fetch_status} excerpt_len={len(website_excerpt or "")}'
+    )
+
+    recent_articles = (
+        Article.query
+        .join(ArticleCompany)
+        .filter(ArticleCompany.company_id == company.id)
+        .order_by(Article.published_at.desc())
+        .limit(5)
+        .all()
+    )
+    recent_news = '\n'.join([
+        f'- {a.title_fr or a.title_en or ""}'
+        for a in recent_articles
+    ]) if recent_articles else ''
+
+    try:
+        client = LLMClient()
+        analysis = client.analyze_company(
+            name=company.name,
+            sector=company.sector,
+            headquarters=company.headquarters,
+            description=company.description,
+            spinoff_origin=company.spinoff_origin,
+            company_stage=company.company_stage,
+            recent_news=recent_news,
+            website_excerpt=website_excerpt,
+        )
+    except Exception as exc:
+        logger.error(
+            f'refresh_company_analysis: LLM call failed for {company.name}: {exc}',
+            exc_info=True,
+        )
+        raise self.retry(exc=exc)
+
+    old = company.ai_analysis if isinstance(company.ai_analysis, dict) else {}
+    merged = dict(old)
+    for key, val in analysis.items():
+        if key == 'competitors':
+            if isinstance(val, list) and val:
+                merged['competitors'] = val
+            continue
+        if val not in (None, '', []):
+            merged[key] = val
+
+    revision_source = {
+        'ok': 'ai-refresh-website',
+        'too_thin': 'ai-refresh-news',
+        'http_error': 'ai-refresh-news',
+        'fetch_error': 'ai-refresh-news',
+        'no_url': 'ai-refresh-news',
+    }.get(fetch_status, 'ai-refresh-news')
+    revision_trigger = {
+        'ok': f'Crawled {site_url}',
+        'too_thin': f'{site_url} returned too little text (likely SPA)',
+        'http_error': f'{site_url} returned non-2xx',
+        'fetch_error': f'{site_url} unreachable',
+        'no_url': 'No website URL on record',
+    }.get(fetch_status, '')
+
+    _save_revision(company, new_data=merged, source=revision_source, trigger=revision_trigger)
+    company.ai_analysis = merged
+    company.ai_analysis_at = datetime.utcnow()
+    db.session.commit()
+    logger.info(
+        f'refresh_company_analysis: company={company.name} done source={revision_source}'
+    )
