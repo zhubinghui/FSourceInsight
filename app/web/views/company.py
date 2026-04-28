@@ -195,13 +195,17 @@ def generate_analysis(slug):
 
     company = Company.query.filter_by(slug=slug).first_or_404()
 
-    # 1. Try to crawl the company's homepage. The website URL may live either on
-    #    company.website (manual edit) or inside ai_analysis['website'] (LLM-set).
+    # 1. Try to crawl the company's homepage. ai_analysis['website'] is the
+    #    LLM-detected (and admin-editable) real homepage and takes priority;
+    #    company.website is often the discovery source (e.g. a directory listing)
+    #    and is used as a fallback only.
     from app.utils.website_fetcher import fetch_website_excerpt
 
-    site_url = company.website
-    if not site_url and isinstance(company.ai_analysis, dict):
-        site_url = company.ai_analysis.get('website')
+    site_url = None
+    if isinstance(company.ai_analysis, dict):
+        site_url = (company.ai_analysis.get('website') or '').strip() or None
+    if not site_url:
+        site_url = company.website
 
     website_excerpt, fetch_status = (None, 'no_url')
     if site_url:
