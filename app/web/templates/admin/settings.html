@@ -158,7 +158,7 @@
                     <form method="post" action="{{ url_for('admin.crawl_all_now') }}" style="display: inline;">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-fs-primary btn-sm"
-                                onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Crawling...';">
+                                onclick="const b=this; setTimeout(()=>{ b.disabled=true; b.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Crawling...'; }, 0);">
                             <i class="bi bi-play-fill"></i> Crawl All Now
                         </button>
                     </form>
