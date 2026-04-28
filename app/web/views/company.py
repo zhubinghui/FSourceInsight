@@ -203,7 +203,7 @@ def generate_analysis(slug):
         refresh_company_analysis.delay(company.id)
         flash(
             f'AI Refresh queued for {company.name}. '
-            f'Reload the page in 30-60 seconds to see the result.',
+            f'Reload the page in 1-2 minutes to see the result.',
             'success'
         )
     except Exception as e:
