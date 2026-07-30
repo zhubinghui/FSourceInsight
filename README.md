@@ -265,4 +265,4 @@ docker compose exec -T web flask db upgrade
 
 ## License
 
-Private project. Powered by ZhuBinghui.
+Private project. Powered by ZhuBinghui, LiRuxin.
