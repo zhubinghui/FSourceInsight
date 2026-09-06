@@ -1,0 +1,44 @@
+name: Offline regression tests
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements/*.txt
+      - run: pip install -r requirements/dev.txt
+      # No daemon, project .env, deployment, SMTP or paid model calls.
+      - run: docker compose version
+      - run: python -m pytest tests/ -q
+
+  mysql-integration:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    env:
+      # Disposable CI-only credentials, never a deployment database.
+      FSI_MYSQL_TEST_URL: mysql+pymysql://root:ci-only-not-production@m0-mysql:3306/fsource_m0_validation
+      FSI_DESTRUCTIVE_TESTS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    services:
+      m0-mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-only-not-production
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: fsource_m0_validation
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements/base.txt
+      - run: python -m unittest discover -s tests/integration -v

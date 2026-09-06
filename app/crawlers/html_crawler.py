@@ -1,5 +1,6 @@
 import hashlib
 from datetime import datetime
+from urllib.parse import urljoin, urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -115,11 +116,9 @@ class HTMLCrawler(BaseCrawler):
     def _resolve_url(self, href: str) -> str:
         if not href:
             return ''
-        if href.startswith('http'):
-            return href
-        # Relative URL - join with base
-        base = self.source.url.rstrip('/')
-        return f'{base}/{href.lstrip("/")}'
+        url = urljoin(self.source.url, href)
+        parsed = urlsplit(url)
+        return url if parsed.scheme in {'http', 'https'} and parsed.hostname else ''
 
     @staticmethod
     def _url_hash(url: str) -> str:

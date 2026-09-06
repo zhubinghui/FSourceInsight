@@ -11,7 +11,10 @@ COPY requirements/base.txt requirements/base.txt
 COPY requirements/prod.txt requirements/prod.txt
 RUN pip install --no-cache-dir -r requirements/prod.txt
 
-COPY . .
+COPY app/ app/
+COPY migrations/ migrations/
+COPY scripts/*.py scripts/
+COPY celery_app.py wsgi.py ./
 
 EXPOSE 8000
 

@@ -12,8 +12,8 @@
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
-                        <label class="form-label">Email *</label>
-                        <input type="email" class="form-control" name="email" required placeholder="your@email.com">
+                        <label class="form-label">Account</label>
+                        <p class="form-control-plaintext">{{ user.email }}</p>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Keywords (comma-separated)</label>
@@ -41,26 +41,14 @@
         <div class="card">
             <div class="card-header">Manage Subscriptions</div>
             <div class="card-body">
-                <form method="get" action="{{ url_for('subscription.manage') }}">
-                    <div class="mb-3">
-                        <label class="form-label">Enter your email to view/manage</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <button type="submit" class="btn btn-outline-primary w-100">Lookup</button>
-                </form>
+                <a href="{{ url_for('subscription.manage') }}" class="btn btn-outline-primary w-100">My Subscriptions</a>
             </div>
         </div>
 
         <div class="card mt-3">
             <div class="card-header">User Settings</div>
             <div class="card-body">
-                <form method="get" action="{{ url_for('subscription.settings') }}">
-                    <div class="mb-3">
-                        <label class="form-label">Enter your email</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <button type="submit" class="btn btn-outline-secondary w-100">Settings</button>
-                </form>
+                <a href="{{ url_for('subscription.settings') }}" class="btn btn-outline-secondary w-100">My Settings</a>
             </div>
         </div>
     </div>

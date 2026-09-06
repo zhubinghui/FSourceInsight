@@ -1,5 +1,7 @@
 # OVH VPS Deployment Implementation Plan
 
+> 历史首次安装计划（非当前维护 runbook）。2026-09-06 增量验证/发布采用 [新的受控发布计划](2026-09-06-ovh-m0-validation-deploy.md)。不要重跑旧 dump 恢复、down -v 或系统安装/入口重配步骤。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 > **Implementation discipline:** If reality diverges from this plan during execution (a step fails, environment differs from spec, etc.), **update this plan first, then act** — see CLAUDE.md "Implementation Discipline".

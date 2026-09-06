@@ -1,0 +1,24 @@
+# Deny by default: credentials, dumps, Git, local logs, tests and docs never
+# enter the build context. Runtime code is explicitly admitted below.
+**
+!app/
+!app/**
+!migrations/
+!migrations/**
+!requirements/
+!requirements/base.txt
+!requirements/prod.txt
+!scripts/
+!scripts/*.py
+!celery_app.py
+!wsgi.py
+
+# Defense in depth for files accidentally placed inside allowed directories.
+**/.env*
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.sql*
+**/*.log
+**/*.pem
+**/*.key

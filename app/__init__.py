@@ -42,8 +42,19 @@ def create_app(config_name=None):
 
     @login_manager.user_loader
     def load_user(user_id):
+        import hmac
         from .models.user import User
-        return db.session.get(User, int(user_id))
+        if not isinstance(user_id, str) or not user_id.isascii():
+            return None
+        try:
+            account_id, _ = user_id.split(':', 1)
+            user = db.session.get(User, int(account_id))
+        except (TypeError, ValueError):
+            return None
+        if (user and user.is_active and user.password_hash
+                and hmac.compare_digest(user.get_id(), user_id)):
+            return user
+        return None
 
     # Import all models for Alembic detection
     from .models import setting  # noqa: F401
@@ -122,7 +133,9 @@ def create_app(config_name=None):
             return ''
         from markupsafe import Markup, escape
         import re
-        lines = text.split('\n')
+        # Escape first, then introduce only renderer-owned formatting tags.
+        # Model output (including raw HTML or dangerous links) remains text.
+        lines = str(escape(text)).split('\n')
         out = []
         in_table = False
         for line in lines:

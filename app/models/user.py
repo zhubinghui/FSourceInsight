@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime
 from flask_login import UserMixin
 from app.extensions import db
@@ -24,6 +25,12 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return f'<User {self.email}>'
+
+    def get_id(self):
+        # Invalidate login/remember cookies when credentials change. Old integer
+        # session IDs intentionally require a new login after this security fix.
+        version = hashlib.sha256((self.password_hash or '').encode()).hexdigest()
+        return f'{self.id}:{version}'
 
     @property
     def is_active(self):

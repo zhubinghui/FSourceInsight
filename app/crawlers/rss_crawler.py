@@ -1,6 +1,5 @@
 import hashlib
 from datetime import datetime
-from time import mktime
 
 import feedparser
 
@@ -21,18 +20,17 @@ class RSSCrawler(BaseCrawler):
     def fetch_articles(self) -> list[RawArticle]:
         import requests
 
-        # Use requests to fetch with proper headers, then parse with feedparser
-        try:
-            resp = requests.get(
-                self.source.feed_url,
-                headers={'User-Agent': self.USER_AGENT, 'Accept': 'application/rss+xml, application/xml, text/xml'},
-                timeout=30,
-            )
-            resp.raise_for_status()
-            feed = feedparser.parse(resp.content)
-        except requests.RequestException:
-            # Fallback to feedparser direct fetch
-            feed = feedparser.parse(self.source.feed_url)
+        # One transport path: feedparser parses bytes and never hides HTTP errors
+        # by fetching the URL again without our timeout/headers.
+        self.empty_result_is_valid = False
+        resp = requests.get(
+            self.source.feed_url,
+            headers={'User-Agent': self.USER_AGENT, 'Accept': 'application/rss+xml, application/xml, text/xml'},
+            timeout=30,
+        )
+        resp.raise_for_status()
+        feed = feedparser.parse(resp.content)
+        self.empty_result_is_valid = bool(feed.version) and not feed.bozo and not feed.entries
 
         if feed.bozo and not feed.entries:
             raise RuntimeError(
@@ -108,7 +106,9 @@ class RSSCrawler(BaseCrawler):
             parsed = entry.get(field)
             if parsed:
                 try:
-                    return datetime.fromtimestamp(mktime(parsed))
+                    # feedparser already returns UTC; do not interpret it in
+                    # the worker's local timezone (including its DST offset).
+                    return datetime(*parsed[:6])
                 except (ValueError, OverflowError):
                     continue
         return None

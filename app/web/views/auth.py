@@ -1,3 +1,5 @@
+from urllib.parse import unquote, urlsplit
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -15,9 +17,18 @@ def login():
         password = request.form.get('password', '')
 
         user = User.query.filter_by(email=email).first()
-        if user and user.password_hash and check_password_hash(user.password_hash, password):
+        if (user and user.is_active and user.password_hash and len(password) <= 1024
+                and check_password_hash(user.password_hash, password)):
             login_user(user)
-            next_page = request.args.get('next')
+            next_page = request.args.get('next', '')
+            # Accept only local absolute paths. Reject browser-normalized slashes,
+            # controls and encoded authority components as well as external URLs.
+            decoded = unquote(next_page)
+            if (not decoded.startswith('/') or decoded.startswith('//')
+                    or '\\' in decoded or any(ord(c) < 32 or ord(c) == 127 for c in decoded)):
+                next_page = ''
+            elif urlsplit(decoded).netloc or urlsplit(decoded).scheme:
+                next_page = ''
             flash('Logged in successfully.', 'success')
             return redirect(next_page or url_for('news.index'))
         else:

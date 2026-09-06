@@ -28,6 +28,8 @@ def crawl_source(self, source_id: int):
     try:
         crawler = get_crawler(source)
         result = crawler.run()
+        if result.retryable:
+            raise RuntimeError('; '.join(result.errors))
         logger.info(
             f'Crawled {source.name}: found={result.articles_found}, new={result.articles_new}'
         )
@@ -41,6 +43,8 @@ def crawl_source(self, source_id: int):
             'found': result.articles_found,
             'new': result.articles_new,
             'errors': result.errors,
+            'status': result.status,
+            'retryable': result.retryable,
         }
     except Exception as exc:
         logger.error(f'Crawl task failed for {source.name}: {exc}')

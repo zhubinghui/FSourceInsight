@@ -841,8 +841,9 @@ def email_preview():
         return redirect(url_for('admin.dashboard'))
 
     return render_template(
-        'email/daily_digest.html',
+        'daily_digest.html',
         articles=digest['articles'],
+        top_insights=digest.get('top_insights', []),
         date=digest['date'],
         user=user,
     )

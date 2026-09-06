@@ -115,6 +115,14 @@ Registry pattern: `@register_crawler('source-slug')` in `app/crawlers/sources/*.
 
 ## Implementation Discipline
 
+### Test-driven development (required)
+
+- For subsequent features and bug fixes, use TDD: agree the public behavior, add a failing regression, make the smallest implementation change, then rerun the affected and full suites.
+- Work in small vertical slices; do not replace correctness assertions with tests that merely reproduce known defects.
+- Use synthetic data and isolated services. MySQL integration tests under `tests/integration/` require an explicitly provisioned disposable `m0-mysql` server and `fsource_m0_validation` database; never target production with destructive fixtures.
+- Production SQL inspection is read-only until validation passes and a backed-up deployment is authorized. Do not print credentials or commit database dumps.
+
+
 When executing a written implementation plan (e.g., a deployment in `docs/superpowers/specs/`):
 
 - If reality diverges from the plan — a step fails, a precondition turns out wrong, the environment differs from what the spec assumed — **update the plan first, then act**.

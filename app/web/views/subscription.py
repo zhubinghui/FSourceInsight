@@ -1,127 +1,106 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from werkzeug.security import generate_password_hash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
+from flask_login import current_user, login_required
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
-from app.models.user import User, KeywordSubscription
+from app.models.user import KeywordSubscription
 from app.models.company import Company
 
 subscription_bp = Blueprint('subscription', __name__)
 
 
+@subscription_bp.before_request
+@login_required
+def require_account_owner():
+    """Email is never an authentication credential, even for administrators."""
+    # Reject legacy cross-account links/forms rather than silently editing self.
+    emails = request.args.getlist('email') + request.form.getlist('email')
+    if any(email.strip() and email.strip() != current_user.email for email in emails):
+        abort(403)
+
+
 @subscription_bp.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
-        keywords_raw = request.form.get('keywords', '').strip()
+        keywords = [kw.strip() for kw in request.form.get('keywords', '').split(',') if kw.strip()]
         company_id = request.form.get('company_id', type=int)
-
-        if not email:
-            flash('Email is required.', 'error')
-            return redirect(url_for('subscription.index'))
-
-        # Get or create user
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            user = User(email=email, receive_daily_digest=True)
-            db.session.add(user)
-            db.session.flush()
+        if company_id:
+            company = db.get_or_404(Company, company_id)
+            keywords.append(company.name)
+        keywords = list(dict.fromkeys(keywords))
+        if len(keywords) > 50 or any(len(kw) > 200 for kw in keywords):
+            abort(400, description='Too many keywords or keyword longer than 200 characters.')
 
         added = 0
-
-        # Add keyword subscriptions (comma-separated)
-        if keywords_raw:
-            for kw in keywords_raw.split(','):
-                kw = kw.strip()
-                if not kw:
-                    continue
-                existing = KeywordSubscription.query.filter_by(
-                    user_id=user.id, keyword=kw
-                ).first()
-                if not existing:
-                    db.session.add(KeywordSubscription(user_id=user.id, keyword=kw))
-                    added += 1
-
-        # Add company name as keyword subscription
-        if company_id:
-            company = Company.query.get(company_id)
-            if company:
-                existing = KeywordSubscription.query.filter_by(
-                    user_id=user.id, keyword=company.name
-                ).first()
-                if not existing:
-                    db.session.add(KeywordSubscription(
-                        user_id=user.id, keyword=company.name
-                    ))
-                    added += 1
-
+        for keyword in keywords:
+            existing = KeywordSubscription.query.filter_by(
+                user_id=current_user.id, keyword=keyword
+            ).first()
+            if not existing:
+                db.session.add(KeywordSubscription(user_id=current_user.id, keyword=keyword))
+                added += 1
         db.session.commit()
-
         if added:
             flash(f'{added} subscription(s) added successfully.', 'success')
         else:
             flash('No new subscriptions added (may already exist).', 'info')
-
-        return redirect(url_for('subscription.manage', email=email))
+        return redirect(url_for('subscription.manage'))
 
     companies = Company.query.order_by(Company.name).all()
-    return render_template('subscription/index.html', companies=companies)
+    return render_template('subscription/index.html', companies=companies, user=current_user)
 
 
 @subscription_bp.route('/manage')
 def manage():
-    email = request.args.get('email', '').strip()
-    if not email:
-        return render_template('subscription/manage.html', user=None, subscriptions=[])
-
-    user = User.query.filter_by(email=email).first()
-    subscriptions = []
-    if user:
-        subscriptions = user.subscriptions.filter_by(is_active=True).all()
-
-    return render_template('subscription/manage.html', user=user, subscriptions=subscriptions)
+    # Include paused subscriptions so the owner can resume them.
+    subscriptions = current_user.subscriptions.order_by(KeywordSubscription.id).all()
+    return render_template('subscription/manage.html', user=current_user, subscriptions=subscriptions)
 
 
 @subscription_bp.route('/settings', methods=['GET', 'POST'])
 def settings():
-    """User preference settings (language, digest toggle)."""
-    email = request.args.get('email', '').strip()
+    """Preferences belong to the authenticated account; changing its password needs proof."""
+    user = current_user
     if request.method == 'POST':
-        email = request.form.get('email', '').strip()
+        language = request.form.get('preferred_language', user.preferred_language or 'zh')
+        name = request.form.get('name', '').strip()
+        new_password = request.form.get('password', '')
+        if language not in {'zh', 'en', 'fr'} or len(name) > 200:
+            abort(400, description='Invalid language or display name.')
+        if new_password:
+            old_password = request.form.get('current_password', '')
+            if (not 8 <= len(new_password) <= 1024 or len(old_password) > 1024
+                    or not user.password_hash
+                    or not check_password_hash(user.password_hash, old_password)):
+                abort(400, description='A valid current password and a new password of at least 8 characters are required.')
 
-    user = User.query.filter_by(email=email).first() if email else None
-
-    if request.method == 'POST' and user:
-        user.preferred_language = request.form.get('preferred_language', 'zh')
+        # Validate the entire request before changing any preferences or credentials.
+        user.preferred_language = language
         user.receive_daily_digest = request.form.get('receive_daily_digest') == 'on'
-        user.name = request.form.get('name', '').strip() or user.name
-
-        # Set password if provided (for first-time or change)
-        new_password = request.form.get('password', '').strip()
+        user.name = name or user.name
         if new_password:
             user.password_hash = generate_password_hash(new_password)
-
         db.session.commit()
         flash('Settings updated.', 'success')
-        return redirect(url_for('subscription.settings', email=email))
+        return redirect(url_for('subscription.settings'))
 
-    return render_template('subscription/settings.html', user=user, email=email)
+    return render_template('subscription/settings.html', user=user)
 
 
 @subscription_bp.route('/<int:sub_id>/delete', methods=['POST'])
 def delete(sub_id):
-    sub = KeywordSubscription.query.get_or_404(sub_id)
-    email = sub.user.email
+    sub = KeywordSubscription.query.filter_by(id=sub_id, user_id=current_user.id).first_or_404()
     db.session.delete(sub)
     db.session.commit()
     flash('Subscription removed.', 'success')
-    return redirect(url_for('subscription.manage', email=email))
+    return redirect(url_for('subscription.manage'))
 
 
 @subscription_bp.route('/<int:sub_id>/toggle', methods=['POST'])
 def toggle(sub_id):
-    sub = KeywordSubscription.query.get_or_404(sub_id)
+    sub = KeywordSubscription.query.filter_by(id=sub_id, user_id=current_user.id).first_or_404()
     sub.is_active = not sub.is_active
     db.session.commit()
     status = 'activated' if sub.is_active else 'paused'
     flash(f'Subscription "{sub.keyword}" {status}.', 'success')
-    return redirect(url_for('subscription.manage', email=sub.user.email))
+    return redirect(url_for('subscription.manage'))

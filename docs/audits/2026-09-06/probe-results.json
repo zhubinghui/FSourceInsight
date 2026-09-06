@@ -1,0 +1,105 @@
+[
+  {
+    "probe": "anonymous_admin_password_reset",
+    "status": "reproduced",
+    "evidence": "Anonymous CSRF-valid request changed isolated admin password; new password permits /admin/ (200)."
+  },
+  {
+    "probe": "stored_xss_output",
+    "status": "reproduced",
+    "evidence": "Article detail emits raw img/onerror from insight; paragraphs comparison escapes it. No browser script executed."
+  },
+  {
+    "probe": "email_template_paths",
+    "status": "reproduced",
+    "evidence": {
+      "missing": [
+        "email/daily_digest.html",
+        "email/keyword_alert.html"
+      ],
+      "actual_loadable": "daily_digest.html"
+    }
+  },
+  {
+    "probe": "digest_missing_highlights",
+    "status": "reproduced",
+    "evidence": "Sender does not pass top_insights, even if template path is patched; SMTP was mocked."
+  },
+  {
+    "probe": "html_url_resolution",
+    "status": "reproduced",
+    "evidence": {
+      "actual": "https://news.invalid/section/story/1",
+      "expected": "https://news.invalid/story/1"
+    }
+  },
+  {
+    "probe": "empty_crawl_success",
+    "status": "reproduced",
+    "evidence": "0 fetched / 0 new, crawl_log.status=success, no quality evidence."
+  },
+  {
+    "probe": "crawl_retry_swallowed",
+    "status": "reproduced",
+    "evidence": "crawl_source returned errors as a successful task result; retry() not called."
+  },
+  {
+    "probe": "batch_duplicates_and_rollback",
+    "status": "reproduced",
+    "evidence": "Batch duplicates pass dedup; save fails, error handler raises PendingRollbackError; log remains running."
+  },
+  {
+    "probe": "llm_commit_and_category_retry",
+    "status": "reproduced",
+    "evidence": "LLM usage commit persisted pending article+category; rollback cannot undo; category retry raises IntegrityError."
+  },
+  {
+    "probe": "company_cache_collision",
+    "status": "reproduced",
+    "evidence": "Changing news and non-empty website content produces identical company analysis cache key."
+  },
+  {
+    "probe": "seed_routing_mismatch",
+    "status": "reproduced",
+    "evidence": {
+      "ner": "openai/gpt-5.4-nano",
+      "classify": "openai/gpt-5.4-nano",
+      "insight": "deepseek/deepseek-chat"
+    }
+  },
+  {
+    "probe": "malformed_json_cached",
+    "status": "reproduced",
+    "evidence": "Malformed NER response becomes [] and is cached as a successful empty extraction."
+  },
+  {
+    "probe": "redis_failure_not_degraded",
+    "status": "reproduced",
+    "evidence": "Redis connection error propagates; advertised in-memory fallback not used."
+  },
+  {
+    "probe": "private_url_no_guard",
+    "status": "reproduced",
+    "evidence": "Private URL reaches mocked transport; no host/IP validation. No actual connection made."
+  },
+  {
+    "probe": "end_date_excludes_day",
+    "status": "reproduced",
+    "evidence": "date_to=2026-09-06 excludes a noon article on that date."
+  },
+  {
+    "probe": "revision_json_lost",
+    "status": "reproduced",
+    "evidence": "Appending revision in place then slicing lost new entry after commit/reload (history already non-empty)."
+  },
+  {
+    "probe": "daily_schedule_setting",
+    "status": "reproduced",
+    "evidence": "Beat remains fixed at 01:00; a configured 14:00 causes scheduled task to skip rather than reschedule."
+  },
+  {
+    "probe": "json_logging_not_json",
+    "status": "reproduced",
+    "evidence": "LOG_FORMAT=json formatter does not JSON-escape quotes/newlines."
+  }
+]

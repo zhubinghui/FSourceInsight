@@ -13,8 +13,9 @@ def send_digest_email(user, digest_data: dict):
     subject = f"[FSourceInsight] Daily Tech News Digest - {digest_data['date']}"
 
     html = render_template(
-        'email/daily_digest.html',
+        'daily_digest.html',
         articles=digest_data['articles'],
+        top_insights=digest_data.get('top_insights', []),
         date=digest_data['date'],
         user=user,
     )
@@ -51,7 +52,7 @@ def send_keyword_alert(user, matches: list[dict]):
     subject = f"[FSourceInsight] Keyword Alert - {len(matches)} new articles"
 
     html = render_template(
-        'email/keyword_alert.html',
+        'keyword_alert.html',
         matches=matches,
         user=user,
     )
