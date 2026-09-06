@@ -36,6 +36,28 @@
 - 首批实现文档：docs/audits/2026-09-06-m0-implementation.md。18 个原有 tracked 文件修改及新增测试/迁移/构建/CI/文档；HEAD 未变、无暂存修改。
 - 下一项是 0.5 LLM 事务/幂等/严格结构化输出/缓存与显式路由。M0 总状态保持进行中，M1–M4 尚未实施；该首批交付时尚未部署。
 
+## M0.5 本地开发（首批发布后，进行中）
+- HEAD d91863f，未提交/部署；本轮不访问 OVH，沿用离线环境和 mock provider/cache。
+- 用量回归先 2 failed（成功和失败调用均提前提交文章），独立配置/预算读取和用量 Session 后 2 passed。
+- pipeline 晚期失败回归真实复现 SQLite `database is locked`：单独换账本仍被旧 company flush 阻塞。新增 pipeline.py，只读快照→收集→独立事务应用；Celery/CLI 共用，关系去重、已有结果在 force 失败时保留。12 个模型调用阶段逐项中断重试及最终分类写入失败回滚通过。
+- JSON 契约先 16 failed/3 passed；严格对象/字段/类型/范围/日期/空文本校验后通过，格式错误照样记录 token/费用，绝不伪造空结果缓存。公司分析独立 task_type。
+- fallback 两项先失败（11次循环、预算未复查），加入 visited/最多3次/每次预算检查后通过；账本故障不重试付费。当前 LLM 子集 39 passed；尚待缓存完整性、显式路由和全套/迁移验证。
+- 工具/fixture 小错误：两次非唯一 oldText edit 被拒绝且无部分改动，改唯一上下文；Category fixture 的 name_fr 应为 name，修正后才得到真实锁失败。CLI 暂时引用被删除私有 helper 的 ImportError 已用共享 pipeline 修复并回归。MySQL离线DDL对保留字role加反引号，断言修正，不修改合法DDL。
+- 缓存先17 failed/2 passed，再改完整有效messages/版本/config/参数和实际fallback归属；坏缓存/响应缓存Redis故障允许miss，temperature=0保留。路由先6 failed/1 passed，再共享primary→fallback/priority/cost/id，Admin表单、矩阵与新seed同步，旧配置不覆盖。
+- 新增迁移d472只加role/priority，SQLite旧数据保持+MySQL离线DDL通过。原MySQL旧Enum fixture改用旧列SQL避免新ORM访问不存在列；新增3项LLM实机测试（独立用量/FK、晚期回滚、双消费者），当前10项均未实跑。
+- SDK隐藏重试/非stop结束4项先失败再修；元数据only含空白/空HTML无深度洞察，force无正文清理旧digest。实际provider归属、legacy关系恢复/人工情感保留、源输入中途变化拒绝覆盖均回归。
+- 本地最终131 passed / 10 skipped；LLM77、迁移2、既有52。123 AST、40模板、shell、flake8 E9/F63/F7/F82、git diff --check通过。文档：docs/audits/2026-09-06-m05-implementation.md。M0仍待隔离MySQL新代码验证，不部署，不宣称CI已运行。
+
+## M0.5 隔离验收续轮（2026-09-06）
+- 用户在下一步隔离MySQL验收后确认“OK，继续”。新计划 docs/superpowers/plans/2026-09-06-m05-mysql-validation.md；仅隔离验收，不部署/提交、不迁移生产库。
+- SSH france-vps只读盘点：d91863f干净，MySQL/web现有镜像可用；可用RAM3981MiB/磁盘22GiB。源快照156文件，SHA256 6dacabbfd75b7174dfd21505765b62e02db9c663f355fa528438d1a1c50981ba。
+- 资源fsi-m05-20260906131354：独立internal网络/卷/MySQL8.0.46，无宿主端口；MySQL768MiB/1CPU，runner512MiB/1CPU，只读/cap-drop/无生产凭据。
+- 初次runner收集前exit1：Start directory is not importable。先记录计划偏差，核实目录700归ubuntu、cap-drop root无DAC覆盖，改runner为1000:1000（不放宽权限/隔离）后10/10通过15.672秒，再完整复跑10/10通过15.639秒。业务代码/断言未修改。
+- 新head d472迁移model diff0、旧任务费用/FK/配置保持、爬虫基础/并发、LLM独立账本父行锁/最终失败回滚/重复消费者均通过。依赖Python3.12.14/Flask3.1.3/SQLAlchemy2.0.52/Alembic1.19.2/PyMySQL1.2.0/LiteLLM1.100.0。
+- 已核对所有原有容器ID/StartedAt/RestartCount逐行相同，health正常；13:18UTC精确清理测试容器/卷/internal网络/凭据，服务器checkout仍干净d91863f。未读取生产env/备份，未付费/爬取/邮件。
+- 无敏感信息源快照/日志归档至 /home/ubuntu/fsourceinsight-validation/m05-20260906131354；完整报告 docs/audits/2026-09-06-m05-mysql-validation.md。M0批准基础切片已完成代码与验收，0.5尚未部署，下一阶段M1.1；未来新构建候选仍需复验。
+- 清理后本地全套131 passed/10 skipped（20.59秒），156个源文件哈希与实跑快照逐一相同、下载日志哈希/文档链接围栏/diff check通过；无暂存，HEAD仍d91863f。本轮只有计划/验收文档改动，未改变被验收的业务代码。
+
 ## OVH 验证/发布授权后
 - 用户允许登录 OVH 验证 SQL，验证后提交部署；后续明确 TDD，规则已加入 CLAUDE.md。新维护计划 2026-09-06-ovh-m0-validation-deploy.md，不重跑旧安装/dump流程。
 - IP SSH 首次 publickey 拒绝；被动配置发现 france-vps 指向同一服务器和专用身份，按别名成功登录，无私钥/密钥值读取。

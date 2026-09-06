@@ -5,6 +5,9 @@ Each task has a system prompt and a user prompt template.
 User prompts use Python str.format() placeholders.
 """
 
+# Bump when the task semantics change, even if message text remains unchanged.
+PROMPT_VERSION = '2026-09-06.1'
+
 TRANSLATE_SYSTEM = (
     "You are a professional translator specializing in French technology news. "
     "Translate the given French text to {lang_name}. "

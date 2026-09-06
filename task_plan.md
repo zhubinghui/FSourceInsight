@@ -4,7 +4,7 @@
 - 用户要求：全量检查当前项目、提出具体优化点，并依照给定流程图设计动态 Agent 爬虫改造。
 - 基线：master，bf9cc61b94556e00218af267db82bf42a3b80eef；初始工作区干净。
 - 审查与方案已完成。用户已同意 5 项默认建议并授权开始实施：V1 仅新闻、schema 人工批准、元数据可保存但仅标题不生成深度洞察、隔离公开页面渲染、3 轮/US$0.20 每次/US$1 每日且受总预算约束。
-- 最新授权：允许登录 OVH 部署环境验证 SQL，验证通过后提交并部署当前首批 M0 修复；后续开发明确采用 TDD。先只读盘点，在隔离 MySQL 测试实例/库用合成数据验收，再备份与受控部署。仍不读取/输出 .env 密钥或备份内容、不触发额外真实爬取/付费 LLM/邮件，不干扰同机 ai-router。
+- 最新授权：用户明确要求先提交部署已验收的M0.5，按 docs/superpowers/plans/2026-09-06-m05-deploy.md 执行。核对/CI/备份/实际候选隔离复验后仅迁移扩展列和切换四个应用服务。仍不读取/输出.env密钥或备份内容、不触发额外真实爬取/付费LLM/邮件，不干扰同机ai-router。
 
 ## 阶段
 1. [complete] 核对项目结构、现有行为和用户流程图。
@@ -14,7 +14,7 @@
 5. [complete] 已复跑保存后的 18 项探针并核对结果一致，文档链接/行号范围/代码块检查通过；确认 Git 基线未变、业务代码无修改。报告明确未验证范围，实施待用户确认范围/发布/内容/浏览器/预算。
 
 ## 实施阶段（用户已授权，不使用子代理）
-6. [in_progress] M0 首批安全/爬虫/邮件/生产收口已部署858a14b；52项本地回归+7项MySQL实机+CI通过，c821生产迁移完成。0.5 LLM事务/契约/路由仍待实现，M0不标为全部完成。
+6. [complete] M0当前已批准基础切片代码/验收完成。首批已部署858a14b/c821；0.5本地131项及隔离MySQL两轮10项通过，d472仍未提交/部署。后续硬预算/消息可靠性/网络安全等不在此完成声明内。
 7. [pending] M1 确定性 schema 引擎、Safe Fetch、质量门禁。
 8. [pending] M2 配置版本/审批、认领/可靠交付、调度。
 9. [pending] M3 有界学习、预算账本与候选验证。
@@ -25,6 +25,12 @@
 12. [complete] 独立 MySQL8.0.46/合成数据 7项通过，包含空库/旧Enum/已有VARCHAR/JSON和counter/回滚/并发；新增迁移跳过重复ALTER，先red后green。
 13. [complete] 提交ea96dde与运维门禁修复858a14b；备份、旧镜像保留，最终候选7项MySQL复验通过后部署。仅四个应用服务重建，MySQL/Redis/Caddy/其他项目未改。
 14. [complete] 公网health/login/www 200，匿名有效CSRF被拒绝、worker就绪、生产model diff0；临时资源已精确清理，发布和回滚点已记录。M0.5及Agent另行按TDD继续。
+
+## M0.5 当前交付与后续
+- [complete] 先红后绿：独立用量、只读收集/原子应用、12步失败重试、关系幂等、严格JSON/结束原因、完整版本化缓存、显式主备路由与CLI/Admin兼容。
+- [complete] 本地77项LLM+2项迁移+52项既有回归通过；123 AST/40模板/shell/静态错误检查通过。详见 docs/audits/2026-09-06-m05-implementation.md。
+- [complete] 按 docs/superpowers/plans/2026-09-06-m05-mysql-validation.md 完成OVH独立MySQL8.0.46两轮10/10实跑；未提交/部署或迁移生产库，线上容器身份/启动时间/重启数未变。临时资源/凭据已清理，见 docs/audits/2026-09-06-m05-mysql-validation.md。
+- [in_progress] 用户已授权优先提交部署M0.5，完成CI/备份/候选复验/受控迁移和切换，再记录发布回滚点。M1.1暂后移；并发硬预算、lease/outbox、Redis断路器异常和Safe Fetch仍未修。
 
 ## 已批准的验证接口
 - HTTP：登录、本人偏好/订阅、跨用户访问、文章详情、邮件预览。
@@ -40,9 +46,9 @@
 - 全面检查不等于生产实测，报告中区分代码证据、可执行验证和待验证推断。
 
 ## 偏差与错误
-- 实施期：Docker socket 不存在可用目标、PATH 无 mysqld；MySQL 8 空库/旧数据迁移和并发行为仍为上线阻塞，当前只有 MySQL 离线 DDL 与 SQLite 集成测试证据。
+- 历史实施期本地Docker socket不可用/PATH无mysqld；后来首批和M0.5均通过OVH专用隔离MySQL实测补齐，不能将本地skip算通过。
 - SQLite legacy SAVEPOINT 提前提交在“第二条插入失败”回归中复现；已先更新实施计划，再在 SQLite 路径显式 BEGIN，13 项爬虫测试通过。
-- 0.5 需先消除业务提前 flush，再独立写用量账本，避免父行 FK/SQLite 写锁；不机械替换 Session。先独立完成 0.6/0.7，LLM 代码本轮未改。
+- 历史首批0.5曾因提前flush/FK锁风险推迟；已消除SQLite写锁且MySQL两轮验证通过，没有机械替换Session后直接上线。隔离runner首轮因cap-drop root不能读取ubuntu的700目录在收集前失败，改为UID1000后通过，未改变业务断言。
 - 本地 pytest --collect-only 返回 exit 5：仓库无实际测试函数，不是测试通过。替代验证为离线缺陷探针、AST/shell 检查、Compose 配置合并和迁移离线 SQL；不得声称完整集成测试通过。
 - 本机 Python 3.14/3.12 均无 Flask/Celery/pytest 等项目依赖，无法直接执行 pytest。已先调整验证计划：临时 Python 3.12 venv，依赖版本在验证记录中注明；不将新解析版本视为生产版本。
 - 工作流 9a58ff2f-f6ae-4ffc-ac1b-593d81f7b190 的三个子代理均启动失败（web-security、llm-data、ops-tests）。错误：Background children require pi installed as the npm package (@earendil-works/pi-coding-agent) with its dependencies; /opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent does not provide @earendil-works/pi-server, @earendil-works/pi-server/unix, @earendil-works/pi-client/unix, so the async runner cannot create child sessions. A standalone pi binary cannot run background children.

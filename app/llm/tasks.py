@@ -3,10 +3,10 @@ from datetime import datetime
 
 from celery_app import celery
 from app.extensions import db
-from app.models.article import Article, ArticleCompany, ArticleCategory
+from app.models.article import Article, ArticleCompany
 from app.models.company import Company
-from app.models.category import Category
 from app.llm.client import LLMClient
+from app.llm.pipeline import process_article
 
 logger = logging.getLogger(__name__)
 
@@ -14,162 +14,22 @@ logger = logging.getLogger(__name__)
 @celery.task(name='app.llm.tasks.process_article_llm', bind=True,
              max_retries=2, default_retry_delay=120, queue='llm',
              rate_limit='10/m')
-def process_article_llm(self, article_id: int):
-    """Full LLM processing pipeline for a single article."""
-    article = db.session.get(Article, article_id)
-    if not article:
-        logger.error(f'Article {article_id} not found')
-        return
-
-    if article.llm_processed:
-        logger.info(f'Article {article_id} already processed, skipping')
-        return
-
-    client = LLMClient()
-    text = article.content_fr or article.title_fr
-
+def process_article_llm(self, article_id: int, force=False, skip_translate=False):
+    """Full pipeline; the shared implementation also serves the manual CLI."""
     try:
-        # 1. Translate title
-        article.title_zh = client.translate(article.title_fr, 'zh', article.id)
-        article.title_en = client.translate(article.title_fr, 'en', article.id)
-
-        # 2. Digest content (detailed rewrite, not literal translation)
-        if article.content_fr:
-            article.content_zh = client.digest(
-                article.title_fr, article.content_fr, 'zh', article.id
-            )
-            article.content_en = client.digest(
-                article.title_fr, article.content_fr, 'en', article.id
-            )
-
-        # 3. Generate summaries
-        article.summary_fr = client.summarize(text, 'fr', article.id)
-        article.summary_zh = client.summarize(text, 'zh', article.id)
-        article.summary_en = client.summarize(text, 'en', article.id)
-
-        # 3. Extract companies (NER)
-        companies = client.extract_companies(text, article.id)
-        _link_companies(article, companies, client, text)
-
-        # 4. Classify categories + detect highlights
-        classify_result = client.classify_category(text, article.id)
-        _link_categories(article, classify_result['categories'])
-        article.highlights = classify_result['highlights'] or None
-        if classify_result.get('event_date'):
-            try:
-                from datetime import date
-                article.event_date = date.fromisoformat(classify_result['event_date'])
-            except (ValueError, TypeError):
-                pass
-
-        # 5. Generate strategic insight analysis
-        article.insight_zh = client.generate_insight(
-            article.title_fr, text, 'zh', article.id
-        )
-        article.insight_en = client.generate_insight(
-            article.title_fr, text, 'en', article.id
-        )
-
-        # Mark as processed with provider/model info
-        config = client._get_config('translate') or client._get_config('summarize')
-        article.llm_processed = True
-        article.llm_processed_at = datetime.utcnow()
-        if config:
-            article.llm_provider = config.provider
-            article.llm_model = config.model
-        db.session.commit()
-
-        # 6. Auto-refresh AI analysis for linked companies that already have one
-        _refresh_company_analyses(article, client)
-
-        logger.info(f'LLM processing complete for article {article_id}')
-
+        applied = process_article(article_id, force=force, skip_translate=skip_translate)
     except Exception as exc:
         logger.error(f'LLM processing failed for article {article_id}: {exc}')
         db.session.rollback()
         raise self.retry(exc=exc)
-
-
-def _link_companies(article: Article, extracted: list[dict],
-                    client: LLMClient, text: str):
-    """Link extracted companies to the article, with sentiment analysis."""
-    from slugify import slugify
-
-    linked_company_ids = set()
-
-    for entry in extracted:
-        name = entry.get('name', '').strip()
-        if not name or len(name) < 2:
-            continue
-
-        slug = slugify(name)
-
-        # Try to find existing company by name or alias
-        company = Company.query.filter_by(slug=slug).first()
-        if not company:
-            # Check aliases
-            all_companies = Company.query.all()
-            for c in all_companies:
-                if c.aliases and name.lower() in [a.lower() for a in c.aliases]:
-                    company = c
-                    break
-
-        if not company:
-            company = Company(
-                name=name, slug=slug, is_auto_created=True,
-                spinoff_origin=entry.get('spinoff_origin'),
-                company_stage=entry.get('company_stage'),
-            )
-            db.session.add(company)
-            db.session.flush()
-        else:
-            # Enrich existing company with spin-off info if newly discovered
-            if not company.spinoff_origin and entry.get('spinoff_origin'):
-                company.spinoff_origin = entry['spinoff_origin']
-            if not company.company_stage and entry.get('company_stage'):
-                company.company_stage = entry['company_stage']
-
-        # Skip if this company was already linked to this article
-        if company.id in linked_company_ids:
-            continue
-        existing = ArticleCompany.query.filter_by(
-            article_id=article.id, company_id=company.id
-        ).first()
-        if existing:
-            continue
-        linked_company_ids.add(company.id)
-
-        # Sentiment analysis for this company
-        sentiment_data = client.analyze_sentiment(text, name, article.id)
-
-        ac = ArticleCompany(
-            article_id=article.id,
-            company_id=company.id,
-            sentiment=sentiment_data.get('sentiment', 'neutral'),
-            sentiment_score=sentiment_data.get('score', 0.0),
-            mention_count=entry.get('mentions', 1),
-            is_primary=entry.get('is_primary', False),
-            extracted_by='llm',
-        )
-        db.session.add(ac)
-
-
-def _link_categories(article: Article, classified: list[dict]):
-    """Link classified categories to the article."""
-    for entry in classified:
-        slug = entry.get('category', '').strip()
-        confidence = entry.get('confidence', 0.5)
-
-        category = Category.query.filter_by(slug=slug).first()
-        if not category:
-            continue
-
-        ac = ArticleCategory(
-            article_id=article.id,
-            category_id=category.id,
-            confidence=confidence,
-        )
-        db.session.add(ac)
+    if applied:
+        # Best-effort follow-up cannot roll back a committed article. It is not
+        # a durable outbox; delivery/recovery is deferred to M2.
+        db.session.expire_all()
+        article = db.session.get(Article, article_id)
+        if article:
+            _refresh_company_analyses(article, LLMClient())
+        logger.info(f'LLM processing complete for article {article_id}')
 
 
 def _refresh_company_analyses(article: Article, client: LLMClient):
@@ -220,6 +80,7 @@ def _refresh_company_analyses(article: Article, client: LLMClient):
             db.session.commit()
             logger.info(f'Auto-refreshed AI analysis for {company.name}')
         except Exception as e:
+            db.session.rollback()
             logger.warning(f'Failed to refresh analysis for {company.name}: {e}')
 
 

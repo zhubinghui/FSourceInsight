@@ -66,4 +66,12 @@
 - 隔离同版本MySQL7项实机通过，包括空库/合法旧JSON/计数回填/旧Enum/FK和费用保持/晚期写失败回滚/双会话竞争；最终候选镜像重复通过。生产readonly model diff=0。本地MySQL不可用的旧阻塞已由这批远程验证解除。
 - 发布gate曾因Celery registered字符串附带[rate_limit=10/m]误判；自动回滚后定位，CLI真实协议回归先失败再修复，负例保留。
 - 858a14b最终部署成功，c821已应用；公网/匿名CSRF/worker/容器身份检查通过。52项本地测试+7项MySQL及CI通过，临时资源已清理，备份回滚点保留。
-- M0.5未实现、完整Safe Fetch/schema/Agent仍未开始；部署首批安全修复不代表这些剩余风险消失。
+- 首批发布时M0.5未实现、Safe Fetch/schema/Agent未开始；后续本地M0.5状态见下，不代表已部署。
+
+## M0.5 后续本地证据
+- 独立账本的首个green并未解决管线写锁：晚期LLM回归真实报SQLite database is locked，进一步改为独立只读快照/收集/原子应用后通过。12步逐一中断、最终SQL失败、历史关系重试与CLI force保护已有结果均有回归。
+- malformed JSON/截断应计费但不成功缓存；温度0、标题、企业所有输入、prompt版本、实际fallback均影响缓存。旧key命名空间不再使用，未来发布会冷缓存，不应批量强制重算。
+- role是MySQL需引用的标识符；Alembic正确生成反引号。新revision d472保留既有配置/费用，只加兼容默认列。旧schema测试须显式旧列INSERT，不能用增加了新属性的ORM模型。
+- 本地开发轮131 passed/10 MySQL skipped；后续用户确认继续隔离验收，MySQL8.0.46两轮10/10通过，新代码FK/行锁/迁移已有直接证据。M2/M3预算与交付、M1网络/质量、断路器Redis控制仍是剩余风险。
+- 隔离runner虽默认root，但cap-drop ALL移除了DAC绕过权限，不能读取ubuntu的700目录/600源码。以拥有者UID1000运行可保留全部隔离而完成验收；首轮收集失败不是业务代码red。
+- 10项实测使用源快照只读覆盖现有web依赖镜像，不是重新构建的候选镜像。未来发布需复验；测试资源已全部精确清理，原有容器ID/StartedAt/RestartCount不变，未迁移/重启生产服务。

@@ -4,7 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h2><i class="bi bi-diagram-3"></i> LLM Task Routing</h2>
-        <small class="text-fs-secondary">Which model handles which task. Cost-aware routing picks the cheapest active provider.</small>
+        <small class="text-fs-secondary">Configured order: primary before fallback, then priority, input cost and ID. Runtime skips open circuits.</small>
     </div>
     <a href="{{ url_for('admin.llm_config') }}" class="btn btn-fs-ghost btn-sm"><i class="bi bi-gear"></i> Edit Configs</a>
 </div>
@@ -17,7 +17,7 @@
                 <thead>
                     <tr style="font-size: 0.82rem;" class="text-fs-secondary">
                         <th style="width: 140px;">Task</th>
-                        <th>Active Provider</th>
+                        <th>Configured First Provider</th>
                         <th>Model</th>
                         <th>Cost (input/1K)</th>
                         <th>Cost (output/1K)</th>
@@ -51,10 +51,7 @@
                         <td>${{ '%.5f' % (primary.cost_per_1k_input or 0) }}</td>
                         <td>${{ '%.5f' % (primary.cost_per_1k_output or 0) }}</td>
                         <td>
-                            {% set fallbacks = [] %}
-                            {% for c in configs if c.tasks and task in c.tasks and c.id != primary.id %}
-                                {% if fallbacks.append(c) %}{% endif %}
-                            {% endfor %}
+                            {% set fallbacks = route_candidates[task][1:] %}
                             {% if fallbacks %}
                                 {% for fb in fallbacks[:2] %}
                                 <span class="text-fs-muted" style="font-size: 0.8rem;">{{ fb.provider }}/{{ fb.model }}</span>{{ ', ' if not loop.last }}
@@ -97,7 +94,7 @@
                 </div>
                 <div class="fw-semibold mb-1">{{ config.model }}</div>
                 <div class="text-fs-muted" style="font-size: 0.82rem;">
-                    Temp: {{ config.temperature }} | Max tokens: {{ config.max_tokens }}
+                    {{ config.role }} / priority {{ config.priority }} | Temp: {{ config.temperature }} | Max tokens: {{ config.max_tokens }}
                 </div>
                 <div class="mt-2 d-flex flex-wrap gap-1">
                     {% for task in (config.tasks or []) %}
@@ -121,8 +118,9 @@
 
 <div class="text-fs-muted" style="font-size: 0.82rem;">
     <i class="bi bi-info-circle"></i>
-    Routing logic: for each task, the system picks the cheapest active provider (by input cost).
-    If a provider fails 5 times, the circuit breaker opens and the next cheapest is used.
+    Assigned tasks precede default configurations. Within each group: primary → fallback,
+    lower priority → input cost → ID. Company analysis inherits insight only if unassigned.
+    Runtime skips open circuits and tries at most three distinct configurations. Budget checks are not hard reservations.
     Edit configurations at <a href="{{ url_for('admin.llm_config') }}">LLM Config</a>.
 </div>
 {% endblock %}

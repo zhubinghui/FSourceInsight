@@ -1,7 +1,7 @@
 # 动态爬虫 Agent 分阶段实施计划
 
 - 日期：2026-09-06；基线 `bf9cc61b94556e00218af267db82bf42a3b80eef`。
-- 状态：**用户已批准执行；M0 进行中，M1–M4 待实施。未部署。**
+- 状态：**M0基础切片代码/验收完成，首批已部署；0.5本地131项及隔离MySQL两轮10项通过，尚未提交/部署。M1–M4待实施。**
 - 设计依据：[架构草案](../specs/2026-09-06-dynamic-crawler-agent-design.md)、[审查清单](../../audits/2026-09-06-project-audit.md)。
 - 工作方式：用户要求不使用子代理；后续在主会话单写者实施。需要修改范围/验证方式时先更新本计划。
 - 每一小步要求“失败用例→最小实现→回归验证→记录差异”。下面的 commit 标题是建议切片，不代表已创建或授权推送。
@@ -36,11 +36,11 @@
 | 0.2 Insight HTML | 本地通过 | 文章详情 HTML 安全及 Markdown 排版回归 |
 | 0.3 构建/生产配置 | 已验证部署 | 3 项离线测试；两个 Compose 组合 + allowlist，实际镜像/公网绑定已检查 |
 | 0.4 用量类型迁移 | 实机/部署通过 | MySQL8.0.46隔离验证通过；生产本来已VARCHAR，迁移跳过重复ALTER并推进至c821，model diff=0 |
-| 0.5 LLM 可靠性 | 待实现 | 业务无写入收集阶段→独立用量→一次应用；严格契约/缓存/显式路由仍未修复 |
+| 0.5 LLM 可靠性 | 本地/实机通过，未部署 | 77项LLM+2项迁移本地通过；隔离MySQL两轮10/10通过，含model diff0、账本/FK/并发/回滚；新head d472尚未部署 |
 | 0.6 爬虫基础 | 本地/MySQL通过 | 13 项离线测试；MySQL竞争写入/晚期失败回滚已验证；进程崩溃/消息窗口仍待M2 |
 | 0.7 邮件模板 | 本地通过 | 两类模板/Top Insights/预览/SMTP 失败记录共 2 项；投递幂等/真实退订仍在后续切片 |
 
-首批后补齐运维门禁测试，合计本地 **52 passed**，另 **7项 MySQL 实机通过**，CI两个job通过；已部署代码858a14b。M0尚余0.5，M1–M4未开始，Agent未上线。详见 [实施记录](../../audits/2026-09-06-m0-implementation.md) 和 [OVH验收/发布记录](../../audits/2026-09-06-ovh-sql-validation.md)。
+首批部署858a14b时本地52项、MySQL7项、CI两个job通过，见 [首批实施记录](../../audits/2026-09-06-m0-implementation.md) 和 [OVH发布记录](../../audits/2026-09-06-ovh-sql-validation.md)。后续0.5本地131项、隔离MySQL两轮10项已通过，见 [M0.5实机验收](../../audits/2026-09-06-m05-mysql-validation.md)；尚未提交/部署0.5，M1–M4未开始，Agent未上线。
 
 ## M0：先消除高风险缺陷，建立验证环境
 
@@ -68,6 +68,11 @@
 - 严禁用 drop/create 或导入生产 dump 来掩盖迁移问题。
 
 ### 0.5 `fix(llm): separate usage ledger from business transactions`
+- 当前结果：本地全套131 passed/10 MySQL skipped，另在受控OVH隔离MySQL8.0.46连续两轮10/10通过。代码明细见 [M0.5实施记录](../../audits/2026-09-06-m05-implementation.md)，实机证据见 [独立验收记录](../../audits/2026-09-06-m05-mysql-validation.md)，不复用首批7项结论。
+- 边界：主会话单写者、TDD；本地开发轮不连接OVH。用户随后确认继续隔离验收，已完成并精确清理临时资源，不连接生产库、不付费调用、不重启现有服务。M0.5未提交/部署。
+- 垂直切片：①独立用量且不 autoflush 调用者；②Celery/CLI 共用只读收集→原子应用，失败重试和既有关系去重；③JSON 契约/有界 fallback（每配置最多一次）及失败费用；④按完整有效 messages、prompt/契约版本、模型和参数缓存；⑤显式 priority/role、Admin 与迁移/seed 兼容。
+- 路由迁移采用兼容默认值，保留已有 tasks/选型；seed 只给新记录设置明确主备。管理员显式修改后才改变既有优先级。company_analysis 独立计账/契约，未配置时兼容 insight 路由。
+- 无并发硬预算/lease/outbox 承诺；响应缓存允许 miss，账本持久化失败必须中止，不能误判供应商失败并重复付费。调用者不能在持有已 flush 的业务写锁时调用 LLM；文章 pipeline 必须从根源消除这种写锁。
 - 改 LLM 用量独立事务；分类/公司关系幂等；每步骤中断重试测试。
 - 实施细化：不能只把 commit 换成独立 Session。现有 pipeline 在下一次模型调用前就 flush Article/Company，独立用量 INSERT 又含 Article FK，可能在 MySQL 等待外层尚未提交的父行锁；SQLite 也会遭遇写锁。先让 LLM 阶段收集结果且不写业务表，再单事务应用结果，最后刷新企业。这项需单独完成并验证，不能用 SQLite 内存共享连接伪造独立事务保证。
 - 严格 JSON 结果校验，失败不记正常空结果缓存；补完整输入/prompt 版本缓存。

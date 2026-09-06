@@ -73,7 +73,9 @@ Cost-optimized routing across providers — configured in DB (`llm_config` table
 - **OpenAI gpt-5.4-nano**: fallback for all simple tasks when primary provider is down
 - **Anthropic Claude**: disabled premium option, enable via Admin UI
 
-`LLMClient._get_config()` selects the cheapest active provider for each task type. Circuit breaker (`app/llm/circuit_breaker.py`) auto-opens after 5 consecutive failures per provider, recovers after 5 min. Fallback to next cheapest provider is automatic.
+Routing (`app/llm/routing.py`) orders assigned configs before defaults, then `role` (primary before fallback), `priority` (lower first), input cost and ID. Open circuits are skipped, including defaults. Each public request makes at most 3 provider attempts, with LiteLLM retries disabled and a 60-second per-request timeout. These are not an article-wide deadline or concurrent hard budget.
+
+The strategy above describes **fresh seed defaults**. Migration `d472ac9e6102` adds compatible role/priority defaults without rewriting existing tasks or provider choices; existing installations need explicit Admin edits to adopt a new primary/fallback policy. `company_analysis` is a separate usage/contract task, inheriting insight routing only if it has no explicit assignment. Circuit breaker Redis failure recovery and single-probe half-open behavior still require hardening.
 
 LLM config is managed via Admin UI (`/admin/llm-config`). API keys are stored as env var names in DB (e.g., `DEEPSEEK_API_KEY`), never raw keys.
 
@@ -89,7 +91,9 @@ Executed by `process_article_llm` Celery task (rate-limited 10/min):
 6. **Category classification + highlight detection** — OpenAI — local_research/investment/local_event
 7. **Strategic insight** (zh, en) — OpenAI
 
-All prompts are in `app/llm/prompts.py`. Responses cached in Redis (7 days). Usage/cost logged to `llm_usage_log` table.
+All prompts are in `app/llm/prompts.py`. The shared Celery/CLI pipeline (`app/llm/pipeline.py`) takes a read-only snapshot, collects model results without business writes, then applies article/company/category changes in one transaction. Only-title/empty-body articles do not generate deep insights. Company refresh happens after article commit and is currently best-effort, not an outbox.
+
+Responses are cached in Redis for 7 days, keyed by complete effective messages, prompt/contract versions, provider/model/endpoint and generation parameters. Only validated responses are cached; malformed JSON and truncated/refused output are paid failures, not fabricated empty results. Usage/cost is committed independently to `llm_usage_log`; never call the client while holding flushed business write locks. Unknown token/cost and crash windows still need M3 reservations/reconciliation.
 
 ### Crawler System
 
@@ -102,8 +106,8 @@ Registry pattern: `@register_crawler('source-slug')` in `app/crawlers/sources/*.
 ### Key Design Decisions
 
 - **LLM config in DB, not code** — switch providers/models from Admin UI without deploys
-- **`response_format: {"type": "json_object"}`** used for NER/sentiment/classify — DeepSeek sometimes wraps JSON in markdown code blocks, so `LLMClient._extract_json()` strips them
-- **`_link_companies` deduplication** — checks both in-memory set and DB to prevent duplicate `article_company` rows from partial retry
+- **Structured responses** — NER/sentiment/classify/company_analysis request JSON objects; `app/llm/contracts.py` accepts fenced JSON but validates exact structure/types/ranges before caching or business writes.
+- **Relation idempotency** — pipeline application deduplicates company/category links, tolerates historical partial retries and preserves manual company sentiment. MySQL final row locking prevents duplicate application of an already processed article, but does not prevent duplicate paid calls (leases remain future work).
 - **Docker port mapping** — dev uses non-standard ports (8001/8080/6380) to avoid conflicts; prod override resets nginx to 80/443 and hides internal service ports
 
 ### Adding a New News Source

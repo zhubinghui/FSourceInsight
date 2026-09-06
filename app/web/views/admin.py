@@ -290,7 +290,7 @@ def merge_companies():
 
 # ── LLM Config CRUD ──────────────────────────────────────────────
 
-TASK_TYPES = ['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight']
+from app.llm.routing import TASK_TYPES, ordered_configs
 
 @admin_bp.route('/llm-config')
 def llm_config():
@@ -355,6 +355,15 @@ def llm_config_toggle(config_id):
 
 
 def _save_llm_config_from_form(config: LLMConfig) -> LLMConfig:
+    from flask import abort
+    role = request.form.get('role', config.role or 'primary')
+    try:
+        priority = int(request.form.get('priority', config.priority if config.priority is not None else 100))
+    except (ValueError, TypeError):
+        abort(400, description='Priority must be an integer between 0 and 10000')
+    if role not in ('primary', 'fallback') or not 0 <= priority <= 10000:
+        abort(400, description='Invalid LLM route role or priority')
+    config.role, config.priority = role, priority
     config.provider = request.form.get('provider', '').strip()
     config.model = request.form.get('model', '').strip()
     config.api_key_env_var = request.form.get('api_key_env_var', '').strip() or None
@@ -707,14 +716,11 @@ def toggle_user_admin(user_id):
 def llm_routing():
     """Visual matrix of which model handles which task."""
     configs = LLMConfig.query.filter_by(is_active=True).order_by(LLMConfig.id).all()
-    all_tasks = ['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight']
-
-    # Build routing matrix: for each task, which config would be selected (cheapest)
-    routing = {}
-    for task in all_tasks:
-        candidates = [c for c in configs if c.tasks and task in c.tasks]
-        candidates.sort(key=lambda c: float(c.cost_per_1k_input or 999))
-        routing[task] = candidates[0] if candidates else None
+    all_tasks = TASK_TYPES
+    # Same configured primary/fallback order as the runtime client.
+    route_candidates = {task: ordered_configs(configs, task) for task in all_tasks}
+    routing = {task: candidates[0] if candidates else None
+               for task, candidates in route_candidates.items()}
 
     # Get circuit breaker status
     try:
@@ -728,7 +734,7 @@ def llm_routing():
         'admin/llm_routing.html',
         configs=configs,
         all_tasks=all_tasks,
-        routing=routing,
+        routing=routing, route_candidates=route_candidates,
         cb_status=cb_status,
     )
 

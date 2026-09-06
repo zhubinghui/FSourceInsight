@@ -44,6 +44,20 @@
 
         <div class="col-md-6">
             <div class="mb-3">
+                <label class="form-label">Routing role</label>
+                <select name="role" class="form-select" required>
+                    {% for role in ['primary', 'fallback'] %}
+                    <option value="{{ role }}" {{ 'selected' if (config.role if config else 'primary') == role }}>{{ role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Routing priority (lower first within role)</label>
+                <input name="priority" class="form-control" type="number" min="0" max="10000" required
+                       value="{{ config.priority if config else 100 }}">
+                <div class="form-text">Primary before fallback, then priority, input cost, ID. Existing configurations keep their order until explicitly edited.</div>
+            </div>
+            <div class="mb-3">
                 <label class="form-label">Max Tokens</label>
                 <input type="number" class="form-control" name="max_tokens"
                        value="{{ config.max_tokens if config else 4096 }}">

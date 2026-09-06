@@ -6,8 +6,8 @@ Mixed-provider strategy for cost optimisation:
   - OpenAI gpt-5.4-nano: ultra-cheap fallback for simple tasks
   - Anthropic Claude: premium option, disabled by default
 
-Cost-aware routing in LLMClient picks the cheapest active config per task.
-Seed order (= DB id) is the tiebreaker.
+Routing uses role (primary before fallback), then priority, input cost, DB id.
+Only NEW records get these defaults; existing administrator choices are untouched.
 
 API keys must be set as environment variables — never stored in DB.
 """
@@ -32,7 +32,8 @@ CONFIGS = [
         'temperature': 0.3,
         'cost_per_1k_input': 0.00014,
         'cost_per_1k_output': 0.00028,
-        'tasks': ['translate', 'digest', 'summarize', 'sentiment', 'insight'],
+        'role': 'primary', 'priority': 100,
+        'tasks': ['translate', 'digest', 'summarize', 'sentiment'],
     },
     # ── OpenAI gpt-5.4-mini: structured output + analysis ───────
     # Input: $2.50/M tokens, Output: $10.00/M tokens
@@ -47,7 +48,8 @@ CONFIGS = [
         'temperature': 0.3,
         'cost_per_1k_input': 0.0025,
         'cost_per_1k_output': 0.01,
-        'tasks': ['ner', 'classify', 'insight'],
+        'role': 'primary', 'priority': 100,
+        'tasks': ['ner', 'classify', 'insight', 'company_analysis'],
     },
     # ── OpenAI gpt-5.4-nano: ultra-cheap fallback ───────────────
     # Input: $0.15/M tokens, Output: $0.60/M tokens
@@ -62,7 +64,8 @@ CONFIGS = [
         'temperature': 0.3,
         'cost_per_1k_input': 0.00015,
         'cost_per_1k_output': 0.0006,
-        'tasks': ['translate', 'summarize', 'ner', 'classify', 'sentiment', 'insight'],
+        'role': 'fallback', 'priority': 100,
+        'tasks': ['translate', 'digest', 'summarize', 'ner', 'classify', 'sentiment', 'insight', 'company_analysis'],
     },
     # ── Anthropic Claude: premium option (disabled by default) ──
     # Enable via Admin UI when you need highest-quality insight.
@@ -76,7 +79,8 @@ CONFIGS = [
         'temperature': 0.3,
         'cost_per_1k_input': 0.003,
         'cost_per_1k_output': 0.015,
-        'tasks': ['translate', 'summarize', 'digest', 'ner', 'insight'],
+        'role': 'fallback', 'priority': 200,
+        'tasks': ['translate', 'summarize', 'digest', 'ner', 'insight', 'company_analysis'],
     },
 ]
 

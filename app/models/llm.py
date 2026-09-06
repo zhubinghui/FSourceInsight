@@ -12,6 +12,9 @@ class LLMConfig(db.Model):
     api_base_url = db.Column(db.String(500))  # For custom endpoints / Ollama
     is_default = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
+    # Compatibility defaults preserve existing cost/id order until an admin edits it.
+    role = db.Column(db.String(16), nullable=False, default='primary', server_default='primary')
+    priority = db.Column(db.Integer, nullable=False, default=100, server_default='100')
     max_tokens = db.Column(db.Integer, default=4096)
     temperature = db.Column(db.Float, default=0.3)
     cost_per_1k_input = db.Column(db.Numeric(10, 6))

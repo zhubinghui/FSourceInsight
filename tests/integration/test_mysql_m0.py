@@ -15,7 +15,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'c821b4f7d901'
+HEAD = 'd472ac9e6102'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -85,18 +85,20 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertFalse(column['nullable'])
 
     def test_old_enum_usage_and_foreign_keys_survive_upgrade(self):
-        from app.models.llm import LLMConfig, LLMUsageLog
+        from app.models.llm import LLMUsageLog
         from app.models.source import NewsSource
         from app.models.article import Article
         self.upgrade(PREVIOUS)
-        config = LLMConfig(provider='synthetic', model='synthetic', tasks=['translate'])
+        # Historical schema does not have the new role/priority columns. Seed it
+        # with explicit old columns, not today's ORM constructor.
+        self.db.session.execute(text("INSERT INTO llm_config (id,provider,model,tasks,is_active,is_default,created_at) VALUES (42,'synthetic','owner-choice','[\"translate\"]',1,0,NOW())"))
         source = NewsSource(name='Synthetic', slug='synthetic', url='https://test.invalid', category='national')
-        self.db.session.add_all([config, source])
+        self.db.session.add(source)
         self.db.session.flush()
         article = Article(source_id=source.id, external_id='legacy', url='https://test.invalid/a', title_fr='Legacy article')
         self.db.session.add(article)
         self.db.session.flush()
-        config_id, article_id = config.id, article.id
+        config_id, article_id = 42, article.id
         self.db.session.add(LLMUsageLog(config_id=config_id, article_id=article_id, task_type='translate', cost_usd='0.025'))
         self.db.session.commit()
         self.upgrade()
@@ -107,6 +109,10 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertEqual(LLMUsageLog.query.filter_by(task_type='translate').one().article_id, article_id)
         self.assertEqual(str(LLMUsageLog.query.filter_by(task_type='translate').one().cost_usd), '0.025000')
         self.assertEqual(Article.query.one().title_fr, 'Legacy article')
+        from app.models.llm import LLMConfig
+        config = self.db.session.get(LLMConfig, 42)
+        self.assertEqual((config.model, config.tasks, config.role, config.priority),
+                         ('owner-choice', ['translate'], 'primary', 100))
 
     def test_legacy_company_json_and_counter_backfill(self):
         self.upgrade('0dae407b3532')
@@ -193,6 +199,114 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertTrue(all(not r.errors for r in results))
         self.assertEqual(Article.query.count(), 1)
         self.assertEqual(CrawlLog.query.filter_by(status='success').count(), 2)
+
+    def make_llm_article(self):
+        from app.models.article import Article
+        from app.models.category import Category
+        from app.models.llm import LLMConfig
+        self.upgrade()
+        source_id = self.make_source()
+        article = Article(source_id=source_id, title_fr='Synthetic title', content_fr='Synthetic research news',
+                          url='https://test.invalid/llm')
+        self.db.session.add_all([article, Category(name='Research', slug='research'),
+                                 LLMConfig(provider='synthetic', model='test', is_default=True,
+                                           tasks=['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight'],
+                                           cost_per_1k_input='0.01', cost_per_1k_output='0.02')])
+        self.db.session.flush()
+        article_id = article.id
+        self.db.session.commit()
+        self.db.session.remove()
+        # Keep a regression from hanging at MySQL's usual 50-second lock timeout.
+        def short_locks(connection, record, proxy):
+            with connection.cursor() as cursor:
+                cursor.execute('SET SESSION innodb_lock_wait_timeout=3')
+        event.listen(self.db.engine, 'checkout', short_locks)
+        self.addCleanup(event.remove, self.db.engine, 'checkout', short_locks)
+        self.enterContext(patch('app.llm.client.redis_client', None))
+        self.enterContext(patch('app.llm.circuit_breaker.redis_client', None))
+        return article_id
+
+    @staticmethod
+    def llm_reply(**kwargs):
+        import json
+        from types import SimpleNamespace
+        system = kwargs['messages'][0]['content']
+        if 'Named Entity Recognition' in system:
+            content = json.dumps({'companies': [{'name': 'Fixture Corp', 'mentions': 1, 'is_primary': True}]})
+        elif 'sentiment analysis specialist' in system:
+            content = json.dumps({'sentiment': 'positive', 'score': 0.8, 'reason': 'Research'})
+        elif 'tech news classifier' in system:
+            content = json.dumps({'categories': [{'category': 'research', 'confidence': 0.9}],
+                                  'highlights': ['local_research'], 'event_date': None})
+        else:
+            content = 'Synthetic enriched text'
+        return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content), finish_reason='stop')],
+                               usage=SimpleNamespace(prompt_tokens=100, completion_tokens=50))
+
+    def test_mysql_llm_independent_ledger_does_not_wait_on_business_parent(self):
+        from app.llm.tasks import process_article_llm
+        from app.models.article import Article, ArticleCompany, ArticleCategory
+        from app.models.llm import LLMUsageLog
+        article_id = self.make_llm_article()
+        with patch('app.llm.client.litellm.completion', side_effect=self.llm_reply):
+            process_article_llm.run(article_id)
+            process_article_llm.run(article_id)
+        self.db.session.remove()
+        self.assertTrue(self.db.session.get(Article, article_id).llm_processed)
+        self.assertEqual(ArticleCompany.query.count(), 1)
+        self.assertEqual(ArticleCategory.query.count(), 1)
+        self.assertEqual(LLMUsageLog.query.count(), 12)
+        self.assertTrue(all(log.success and log.article_id == article_id for log in LLMUsageLog.query.all()))
+
+    def test_mysql_llm_apply_failure_keeps_usage_but_rolls_back_business(self):
+        from app.llm.tasks import process_article_llm
+        from app.models.article import Article, ArticleCompany
+        from app.models.company import Company
+        from app.models.llm import LLMUsageLog
+        article_id = self.make_llm_article()
+        with self.db.engine.begin() as conn:
+            conn.execute(text("CREATE TRIGGER m05_fail_category BEFORE INSERT ON article_category FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='synthetic apply failure'"))
+        with patch('app.llm.client.litellm.completion', side_effect=self.llm_reply):
+            with self.assertRaisesRegex(Exception, 'synthetic apply failure'):
+                process_article_llm.run(article_id)
+            self.db.session.remove()
+            self.assertFalse(self.db.session.get(Article, article_id).llm_processed)
+            self.assertEqual(Company.query.count(), 0)
+            self.assertEqual(ArticleCompany.query.count(), 0)
+            self.assertEqual(LLMUsageLog.query.count(), 12)
+            self.db.session.remove()
+            with self.db.engine.begin() as conn:
+                conn.execute(text('DROP TRIGGER m05_fail_category'))
+            process_article_llm.run(article_id)
+        self.db.session.remove()
+        self.assertTrue(self.db.session.get(Article, article_id).llm_processed)
+        self.assertEqual(ArticleCompany.query.count(), 1)
+
+    def test_mysql_duplicate_llm_consumers_apply_once(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        from app.llm.tasks import process_article_llm
+        from app.models.article import ArticleCompany, ArticleCategory
+        from app.models.company import Company
+        article_id = self.make_llm_article()
+        barrier = Barrier(2)
+        def reply(**kwargs):
+            system = kwargs['messages'][0]['content']
+            if 'concise tech industry analyst' in system and 'English' in system:
+                barrier.wait(timeout=10)
+            return self.llm_reply(**kwargs)
+        def process():
+            with self.app.app_context():
+                process_article_llm.run(article_id)
+        with patch('app.llm.client.litellm.completion', side_effect=reply):
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                futures = [pool.submit(process), pool.submit(process)]
+                for future in futures:
+                    future.result(timeout=30)
+        self.db.session.remove()
+        self.assertEqual(Company.query.count(), 1)
+        self.assertEqual(ArticleCompany.query.count(), 1)
+        self.assertEqual(ArticleCategory.query.count(), 1)
 
     def test_existing_varchar_is_not_rewritten(self):
         self.upgrade(PREVIOUS)
