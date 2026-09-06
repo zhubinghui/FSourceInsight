@@ -40,10 +40,10 @@
 - [x] 生产只读盘点、隔离 SQL 验证、针对性 red/green、本地全套回归。
 - [x] 提交/推送 `ea96dde21f0713dc1e658bcb53eddf7cad3d4b88`（保留远端新增README署名后提交）；[CI run 34027261828](https://github.com/zhubinghui/FSourceInsight/actions/runs/34027261828) 常规与MySQL两个job均成功。
 - [x] 备份与回滚镜像已记录；候选镜像再次通过7项MySQL、40模板、匿名权限/CSRF/打包边界检查。
-- [ ] 受控更新应用服务、前向迁移、上线只读冒烟：首次迁移已完成，Web切换5秒恢复，但worker gate误判，应用已自动回滚，待修正gate后再发。
-- [ ] 清理本批临时资源、记录最终 ref/健康结果。
+- [x] 运维修复 `858a14b210c904bd844a61994100c2f4ef1644b1` 推送并部署；[CI run34028232722](https://github.com/zhubinghui/FSourceInsight/actions/runs/34028232722) 成功。保留首次自动回滚记录，第二次发布通过全部门禁。
+- [x] 精确清理本批临时容器/卷/internal网络/测试密码目录；保留备份、回滚镜像和验证日志。
 
-当前验证工作目录 `/home/ubuntu/fsi-m0-verify.EYVS00`；临时资源前缀 `fsi-m0-20260906100910`，与业务资源分开。临时测试密码文件只在服务器受限目录，既不读取值也不进入 Git。
+验证工作目录曾为 `/home/ubuntu/fsi-m0-verify.EYVS00`，临时资源前缀 `fsi-m0-20260906100910`；已核对label后只删除这些本批资源。测试密码目录已清理，值从未进入 Git。
 
 备份目录 `/home/ubuntu/fsourceinsight-backups/m0-20260906100910`，gzip 大小 21,571,984 bytes，权限600，gzip完整性通过，SHA256 `95c75ce75e703715d33765b276ddccfc232f858737ebdbe7dd5d8c7d14f67bee`；未读取备份内容。
 
@@ -53,6 +53,16 @@
 - `docker compose run` 默认interactive读走SSH bash-s剩余stdin：发现缺失完成标记后立即盘点，确认迁移成功、旧Web持续200、后台正常停止；改用服务器文件脚本，不盲目认定成功。
 - 首次激活 10:36:29Z→10:36:34Z Web恢复，worker注册门禁失败，已按旧镜像自动回滚。只读RPC显示worker实际健康，任务名称带 `[rate_limit=10/m]` 后缀，严格比对造成误判。
 - 新 CLI `scripts/check_worker_readiness.py` 用真实返回格式快照先red，修复后3项正/负例全green；在回滚后的实际worker上执行返回 LIVE_WORKERS_READY。门禁保留worker数量和必需任务检查，不是删除验收。
-- 当前本地测试52通过，7项MySQL另在隔离实例验证；重新发布仍需候选复验。首次失败的记录保留。
+- 最终本地测试52通过，7项MySQL在最终候选镜像上再次全通过。生产代码release为858a14b，后续文档提交不改变运行代码；首次失败的记录保留。
+
+## 最终部署结果
+- 2026-09-06 **10:46:03Z→10:46:09Z** 完成第二次Web切换，约6秒；新的worker验收返回 `LIVE_WORKERS_READY`，所有六个服务运行正常。
+- 最终web image：`sha256:892a51169dacb03bc66549ba04546ac057f9ae77e92aa096150898b9a7e40c8f`。
+- 公网 `/`、`/health`、`/auth/login`、www `/health` 全200；匿名有效CSRF的settings POST及manage/admin GET正确302到登录，无账户修改。
+- 生产数据库revision `c821b4f7d901`，只读 model diff=0；物理task_type列原本正确，因此本次仅推进迁移记录，未重写用量表。
+- MySQL/Redis及同机所有其他应用容器ID与发布前一致；没有重启基础服务、改Caddy、手工触发付费LLM/爬取/邮件，正常既有后台服务已恢复。
+- 应用镜像实际检查不含 `/app/.env`、Git或数据库dump；用户需要重新登录一次。管理员真实密码登录/浏览器视觉E2E未代替用户执行。
+- 数据备份、旧应用image tags与rollback.compose.yml保留在上述备份目录；gzip完整性已验，不声称做过生产备份全量恢复演练。
+- 后续仍需M0.5 LLM可靠性、Safe Fetch、schema/Agent等开发，继续TDD。
 
 执行细节见 [受控发布计划](../superpowers/plans/2026-09-06-ovh-m0-validation-deploy.md)。不得重跑旧 OVH 安装/dump 恢复脚本或使用 down -v。

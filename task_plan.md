@@ -14,7 +14,7 @@
 5. [complete] 已复跑保存后的 18 项探针并核对结果一致，文档链接/行号范围/代码块检查通过；确认 Git 基线未变、业务代码无修改。报告明确未验证范围，实施待用户确认范围/发布/内容/浏览器/预算。
 
 ## 实施阶段（用户已授权，不使用子代理）
-6. [in_progress] M0 安全与可靠性：0.1 身份/归属、0.2 XSS、0.3 构建/Compose、0.6 爬虫基础、0.7 邮件模板已通过本地回归。0.4 已新增迁移并离线验证，MySQL 实机阻塞；0.5 LLM 事务/契约/路由待实现。当前正式测试 49 passed，M0 不标为全部完成。
+6. [in_progress] M0 首批安全/爬虫/邮件/生产收口已部署858a14b；52项本地回归+7项MySQL实机+CI通过，c821生产迁移完成。0.5 LLM事务/契约/路由仍待实现，M0不标为全部完成。
 7. [pending] M1 确定性 schema 引擎、Safe Fetch、质量门禁。
 8. [pending] M2 配置版本/审批、认领/可靠交付、调度。
 9. [pending] M3 有界学习、预算账本与候选验证。
@@ -23,8 +23,8 @@
 ## OVH SQL 验证与首批发布（新授权）
 11. [complete] SSH france-vps 成功，远端工作区干净且 bf9cc61；生产MySQL8.0.46已为目标VARCHAR，readonly model diff=0。
 12. [complete] 独立 MySQL8.0.46/合成数据 7项通过，包含空库/旧Enum/已有VARCHAR/JSON和counter/回滚/并发；新增迁移跳过重复ALTER，先red后green。
-13. [in_progress] 核对 diff、提交/推送当前批次；远端备份、保留旧镜像/代码，构建候选后再验证；只更新应用服务和前向迁移，不重建基础服务。
-14. [pending] 发布后健康/权限/端口/任务注册只读冒烟，记录 ref、证据、回滚点；M0.5 及 Agent 仍另行按 TDD 继续。
+13. [complete] 提交ea96dde与运维门禁修复858a14b；备份、旧镜像保留，最终候选7项MySQL复验通过后部署。仅四个应用服务重建，MySQL/Redis/Caddy/其他项目未改。
+14. [complete] 公网health/login/www 200，匿名有效CSRF被拒绝、worker就绪、生产model diff0；临时资源已精确清理，发布和回滚点已记录。M0.5及Agent另行按TDD继续。
 
 ## 已批准的验证接口
 - HTTP：登录、本人偏好/订阅、跨用户访问、文章详情、邮件预览。

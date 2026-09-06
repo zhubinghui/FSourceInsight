@@ -59,4 +59,11 @@
 - 单独的 LLM usage Session 并不足以安全修复：当前 pipeline 在后续付费调用前 flush Article/Company，可能与 usage 的 Article FK 父行锁互相等待。需先收集全部 LLM 结果而不写业务表，再一次应用；MySQL 行锁行为还需实机确认。
 - 本地 Docker CLI 可离线合并 Compose，但 daemon socket 目标不存在，且无 mysqld；迁移只能先提交前向代码和离线 SQL，不能声称 MySQL 上线验收。
 - 账户安全修复统一使旧整数会话重新登录；无密码订阅者保留数据但停用仅邮箱管理入口，后续补邮箱所有权验证/恢复。无匿名注册绕过。
-- 独立日志与 savepoint 不等于 source lease/outbox：业务提交后消息派发失败的缺口仍在，真实多进程竞争尚未测试；M2 继续处理。
+- 独立日志与 savepoint 不等于 source lease/outbox：业务提交后消息派发失败的缺口仍在；M2 继续处理。
+
+## OVH 验证与发布的新证据
+- 用户另行授权OVH SQL验证和部署，TDD写入CLAUDE。通过france-vps登录同一主机；生产MySQL8.0.46、旧revision fd313但物理task_type已VARCHAR；因此新增迁移在线幂等检查，先red后green，避免重写约16万条日志。
+- 隔离同版本MySQL7项实机通过，包括空库/合法旧JSON/计数回填/旧Enum/FK和费用保持/晚期写失败回滚/双会话竞争；最终候选镜像重复通过。生产readonly model diff=0。本地MySQL不可用的旧阻塞已由这批远程验证解除。
+- 发布gate曾因Celery registered字符串附带[rate_limit=10/m]误判；自动回滚后定位，CLI真实协议回归先失败再修复，负例保留。
+- 858a14b最终部署成功，c821已应用；公网/匿名CSRF/worker/容器身份检查通过。52项本地测试+7项MySQL及CI通过，临时资源已清理，备份回滚点保留。
+- M0.5未实现、完整Safe Fetch/schema/Agent仍未开始；部署首批安全修复不代表这些剩余风险消失。

@@ -44,4 +44,13 @@
 - 新增 MySQL unittest：已正确VARCHAR不ALTER先red后green，修改c821迁移在线类型检查；7项真实MySQL迁移/数据保持/回填/事务/并发测试全通过。本地49 passed+7远程专用skipped；CI增加独立MySQL job。
 - 初次类型字符串断言因数据库返回COLLATE信息失败，改断言类型/长度/nullable，model diff 原本通过；不改变迁移语义掩盖差异。
 - 源tar跨系统xattr提示不影响结果，后续使用无扩展元数据归档。
-- 待提交/备份/构建候选再验证/受控部署/最终冒烟，尚未改变生产业务库和运行服务。
+- 随后复核远端有README署名提交9383019，无业务变化；ff-only保留，提交推送ea96dde。CI run34027261828两job通过。
+- 建立服务器备份/回滚目录 /home/ubuntu/fsourceinsight-backups/m0-20260906100910，gzip约21.6MB/mode600/gzip校验通过；旧四应用镜像保留。未读数据内容。
+- 新候选依赖SQLAlchemy2.0.52/Alembic1.19.2，真实image再次跑7项MySQL通过，40模板/匿名权限/打包检查通过。
+- 首次发布docker compose run默认interactive吞SSH脚本剩余stdin；未误报成功，及时核对迁移已完成/旧web健康/后台exit0，改用保存到服务器的脚本文件。
+- 第一次切换Web5秒恢复，但任务注册字符串带rate_limit后缀导致gate误判；保护脚本自动回滚四个旧image。只读RPC确认worker健康。
+- TDD补scripts/check_worker_readiness.py及3项CLI真实格式正/负例，先red后green，线上旧worker复验LIVE_WORKERS_READY；提交858a14b，CI run34028232722两job通过。
+- 最终候选7项MySQL再次通过；2026-09-06 10:46:03Z→10:46:09Z第二次切换成功，web6秒恢复，LIVE_WORKERS_READY。公网首页/health/login/www health均200，匿名有效CSRF设置POST及manage/admin正确302拒绝。
+- 生产revision c821/model diff0，真实镜像无env/Git/dump；MySQL/Redis及所有同机其他应用ID未变。无手工触发真实爬取/付费LLM/邮件，原后台服务正常恢复。
+- label核对后精确删除fsi-m0-20260906100910临时容器/卷/internal网络及EYVS00测试密码目录；日志转存备份目录，旧镜像/数据库备份保留。
+- 最终代码release858a14b（首批功能ea96dde），本地52通过/7远程专用skip，远端最终镜像7项MySQL均实跑通过。后续仅提交/同步发布文档，不重建镜像。M0.5与Agent继续TDD，未宣称全项目改造完成。

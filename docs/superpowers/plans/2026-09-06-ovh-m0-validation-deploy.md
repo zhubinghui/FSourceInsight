@@ -18,11 +18,11 @@
 3. [complete] 发布准备：本地完整回归、检查本批 diff 与敏感文件排除、明确源代码 commit/ref、只提交本批文件并正常推送（不 force）。
    - 备份业务库至服务器受限目录，检查命令退出、gzip 完整性/大小，不查看数据；保存旧 ref/镜像 ID/配置哈希。
    - 不执行通用 scripts/deploy.sh 或 restore_db.sh，不导入仓库旧 dump。
-4. [in_progress] 受控发布：按确认的 Caddy 三层配置构建应用镜像；保留当前 MySQL/Redis/Caddy/ai-router。
+4. [complete] 受控发布：按确认的 Caddy 三层配置构建应用镜像；保留当前 MySQL/Redis/Caddy/ai-router。
    - 先构建，不先停服务。需要短暂停 beat/应用 worker 及数据库 DDL 锁时先说明窗口；长耗时/影响范围不明先询问。
    - 前向迁移 c821b4f7d901；只重建 web/worker/worker_fast/beat，不重启数据库，不修改公开入口。
    - 新凭证会话格式会使已有用户重新登录；无密码用户保留记录但禁止仅凭邮箱管理。
-5. [pending] 冒烟/记录：health、首页/登录/匿名受保护页面、端口、任务注册/进程状态、迁移版本；不触发真实爬取/LLM/邮件。
+5. [complete] 冒烟/记录：health、首页/登录/匿名受保护页面、端口、任务注册/进程状态、迁移版本；不触发真实爬取/LLM/邮件。
    - 失败回到保留的应用镜像/代码，保留 expand-only VARCHAR(50)；禁止缩回旧 Enum、down -v 或删业务数据。
    - 临时资源按本次创建的精确身份清理；不使用 prune 或通配删除。
 
@@ -47,4 +47,8 @@
 - 第一次激活 10:36:29Z→10:36:34Z Web恢复（5秒），但注册任务验收失败；activate.sh 已自动回滚四个旧应用镜像，未downgrade数据库，当前不算发布成功。先核对worker RPC实际返回/服务健康，区分服务异常和校验脚本误判，再补验证重试；不绕过验收门槛。
 - 根因已得到直接RPC证据：registered 返回 `app.llm.tasks.process_article_llm [rate_limit=10/m]`，严格字符串匹配把健康worker判错。已提取只读CLI scripts/check_worker_readiness.py，真实格式快照用例先失败后修正按name匹配；缺task/缺worker负例仍拒绝，3项通过；线上旧worker用新CLI实跑 LIVE_WORKERS_READY。本地全套52 passed/7远程专用skip。
 - 下一次发布先提交该运维修复并构建缓存增量镜像，候选再验收；用文件脚本而非SSH stdin流，调用新的只读gate。保留首次失败记录和旧回滚镜像，不将失败记录改成成功。
-- 已将 TDD 规则写入 CLAUDE.md。后续开发仍按 TDD 和动态爬虫分阶段计划推进。
+- 运维修复858a14b已推送；CI run34028232722成功，最终候选web892a5116…再次通过7项MySQL。activate-v2.sh文件执行：10:46:03Z→10:46:09Z Web恢复（6秒），新gate LIVE_WORKERS_READY，四个应用服务发布成功。
+- 外部HTTPS首页/health/login/www health全200；匿名有效CSRF设置POST、manage/admin均重定向登录。生产revision c821/model diff0，真实镜像不含env/Git/dump；MySQL/Redis/所有同机其他应用容器ID与发布前一致。
+- 最后仅按精确身份清理本次临时MySQL容器/卷/internal网络和测试密码目录，保留备份及旧镜像；随后记录提交与同步文档。若以后回滚到旧整数session格式的镜像，新格式登录cookie可能需要清理；不把自动回滚当作任意会话格式兼容保证。
+- 精确label校验后移除本次测试容器/卷/internal网络和EYVS00目录；测试日志归档到备份目录，未删除任何业务/其他项目资源。最终health200；代码release858a14b，文档提交另同步但不触发镜像重建。
+- 本计划完成：52项本地回归+最终候选7项MySQL+公网与worker/结构验证通过；后续M0.5及Agent继续按TDD开发，不把本次部署视作整个改造完成。
