@@ -38,11 +38,21 @@
 
 ## 发布状态
 - [x] 生产只读盘点、隔离 SQL 验证、针对性 red/green、本地全套回归。
-- [ ] 提交/推送当前首批修复。
-- [ ] 备份与回滚镜像记录；构建候选镜像并再次验证。
-- [ ] 受控更新应用服务、前向迁移、上线只读冒烟。
+- [x] 提交/推送 `ea96dde21f0713dc1e658bcb53eddf7cad3d4b88`（保留远端新增README署名后提交）；[CI run 34027261828](https://github.com/zhubinghui/FSourceInsight/actions/runs/34027261828) 常规与MySQL两个job均成功。
+- [x] 备份与回滚镜像已记录；候选镜像再次通过7项MySQL、40模板、匿名权限/CSRF/打包边界检查。
+- [ ] 受控更新应用服务、前向迁移、上线只读冒烟：首次迁移已完成，Web切换5秒恢复，但worker gate误判，应用已自动回滚，待修正gate后再发。
 - [ ] 清理本批临时资源、记录最终 ref/健康结果。
 
 当前验证工作目录 `/home/ubuntu/fsi-m0-verify.EYVS00`；临时资源前缀 `fsi-m0-20260906100910`，与业务资源分开。临时测试密码文件只在服务器受限目录，既不读取值也不进入 Git。
+
+备份目录 `/home/ubuntu/fsourceinsight-backups/m0-20260906100910`，gzip 大小 21,571,984 bytes，权限600，gzip完整性通过，SHA256 `95c75ce75e703715d33765b276ddccfc232f858737ebdbe7dd5d8c7d14f67bee`；未读取备份内容。
+
+候选镜像 SQLAlchemy2.0.52/Alembic1.19.2 与旧镜像不同，因此额外在真实候选镜像（不挂载替换 app 代码）重新跑7项MySQL全部通过；web image `sha256:d5417017132e9152948ec7c619f64e7a31b36f6d887b929a5db21893d0e6ac6f`。发布前各 worker active/reserved/scheduled 都为0。
+
+### 发布过程中的偏差与TDD修复
+- `docker compose run` 默认interactive读走SSH bash-s剩余stdin：发现缺失完成标记后立即盘点，确认迁移成功、旧Web持续200、后台正常停止；改用服务器文件脚本，不盲目认定成功。
+- 首次激活 10:36:29Z→10:36:34Z Web恢复，worker注册门禁失败，已按旧镜像自动回滚。只读RPC显示worker实际健康，任务名称带 `[rate_limit=10/m]` 后缀，严格比对造成误判。
+- 新 CLI `scripts/check_worker_readiness.py` 用真实返回格式快照先red，修复后3项正/负例全green；在回滚后的实际worker上执行返回 LIVE_WORKERS_READY。门禁保留worker数量和必需任务检查，不是删除验收。
+- 当前本地测试52通过，7项MySQL另在隔离实例验证；重新发布仍需候选复验。首次失败的记录保留。
 
 执行细节见 [受控发布计划](../superpowers/plans/2026-09-06-ovh-m0-validation-deploy.md)。不得重跑旧 OVH 安装/dump 恢复脚本或使用 down -v。

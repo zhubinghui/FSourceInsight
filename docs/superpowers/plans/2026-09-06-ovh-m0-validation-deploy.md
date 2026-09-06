@@ -15,10 +15,10 @@
    - 如资源不足，仅在确认权限边界后创建独立临时数据库和专用用户，绝不 drop/create 业务库。
    - 空库至 head；人造旧数据至 head；保持 usage 旧类型与新任务值；model diff；BaseCrawler 重复/回滚/并发边界。
    - 新发现缺陷先写失败回归，再修改并复跑；测试不得连接真实 HTTP/SMTP/LLM。
-3. [in_progress] 发布准备：本地完整回归、检查本批 diff 与敏感文件排除、明确源代码 commit/ref、只提交本批文件并正常推送（不 force）。
+3. [complete] 发布准备：本地完整回归、检查本批 diff 与敏感文件排除、明确源代码 commit/ref、只提交本批文件并正常推送（不 force）。
    - 备份业务库至服务器受限目录，检查命令退出、gzip 完整性/大小，不查看数据；保存旧 ref/镜像 ID/配置哈希。
    - 不执行通用 scripts/deploy.sh 或 restore_db.sh，不导入仓库旧 dump。
-4. [pending] 受控发布：按确认的 Caddy 三层配置构建应用镜像；保留当前 MySQL/Redis/Caddy/ai-router。
+4. [in_progress] 受控发布：按确认的 Caddy 三层配置构建应用镜像；保留当前 MySQL/Redis/Caddy/ai-router。
    - 先构建，不先停服务。需要短暂停 beat/应用 worker 及数据库 DDL 锁时先说明窗口；长耗时/影响范围不明先询问。
    - 前向迁移 c821b4f7d901；只重建 web/worker/worker_fast/beat，不重启数据库，不修改公开入口。
    - 新凭证会话格式会使已有用户重新登录；无密码用户保留记录但禁止仅凭邮箱管理。
@@ -39,4 +39,12 @@
 - 正式构建完成后，在候选运行镜像上再跑同一组 MySQL 测试/模板和匿名权限检查；依赖无锁定，不能只用旧镜像验证就断定新镜像一致。
 - 提交前远程 ref 核对发现 GitHub master 实际为 93830196d85f932e08ef73d914de760e839c6776，并非本地/生产 bf9cc61。先记录偏差：暂停提交/发布，fetch 后只读检查新增提交及与本批重叠；不 force push、不 reset、不把未经复核的远程改动带到生产。必要时向用户确认集成/发布范围。
 - 已复核远程新增仅 README 署名增加 LiRuxin，不涉及本批代码/迁移且无重叠；以 ff-only 接入保留作者改动，再提交本批（不会重写历史）。测试业务基线仍等价于 bf9cc61。
+- 已提交/推送 ea96dde（父9383019）；GitHub run 34027261828 两个 job 均 success。备份目录 /home/ubuntu/fsourceinsight-backups/m0-20260906100910；数据库 gzip 21,571,984 bytes/mode600，通过 gzip -t；旧 ref/四个应用镜像已保留。
+- 新候选镜像已构建：web d5417017…，新 SQLAlchemy2.0.52/Alembic1.19.2；在真实候选 image 内再次跑7项MySQL全部通过，40模板/匿名CSRF权限/无env-Git-dump镜像内容检查通过。一次空stdin命令未提供证据，随后正确传脚本复验。
+- 发布前 active/reserved/scheduled 各worker均0。已告知数秒Web切换及重新登录；先暂停beat再次确认active为空，再优雅停worker，迁移/只更新四个应用服务。发生错误按备份image overlay恢复，不动MySQL/Redis/Caddy，不强杀繁忙任务。
+- 发布脚本返回0但输出停在worker停止后，缺少迁移/切换结束标记，不能认定成功。疑似 `docker compose run` 默认interactive读取了 SSH bash-s 的剩余stdin；先记录偏差，立刻核对迁移日志/服务状态，再改为服务器上的明确脚本文件或 run --interactive=false，避免继续吞脚本。此刻不能假设已部署或已自动恢复。
+- 实测确认：迁移日志成功推进至 c821；旧web持续健康200，三个后台容器均正常exit0，尚未切镜像。以保存的 activate.sh 文件完成剩余激活（SSH stdin=/dev/null），先验证head与候选image，再执行up/健康/worker就绪；不重复停机或重跑数据库恢复。
+- 第一次激活 10:36:29Z→10:36:34Z Web恢复（5秒），但注册任务验收失败；activate.sh 已自动回滚四个旧应用镜像，未downgrade数据库，当前不算发布成功。先核对worker RPC实际返回/服务健康，区分服务异常和校验脚本误判，再补验证重试；不绕过验收门槛。
+- 根因已得到直接RPC证据：registered 返回 `app.llm.tasks.process_article_llm [rate_limit=10/m]`，严格字符串匹配把健康worker判错。已提取只读CLI scripts/check_worker_readiness.py，真实格式快照用例先失败后修正按name匹配；缺task/缺worker负例仍拒绝，3项通过；线上旧worker用新CLI实跑 LIVE_WORKERS_READY。本地全套52 passed/7远程专用skip。
+- 下一次发布先提交该运维修复并构建缓存增量镜像，候选再验收；用文件脚本而非SSH stdin流，调用新的只读gate。保留首次失败记录和旧回滚镜像，不将失败记录改成成功。
 - 已将 TDD 规则写入 CLAUDE.md。后续开发仍按 TDD 和动态爬虫分阶段计划推进。
