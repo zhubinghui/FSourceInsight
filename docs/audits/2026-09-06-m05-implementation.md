@@ -2,7 +2,7 @@
 
 - 基线：`master@d91863fcc0f0a9cb3e6d0302ed834847c2ee4d5e`。
 - 本地开发轮状态：代码已实现、本地回归通过；当时 MySQL 实机验收待运行。
-- **后续更新：用户确认继续后，隔离MySQL两轮10/10实跑通过，见 [实机验收记录](2026-09-06-m05-mysql-validation.md)。M0.5仍未提交/部署。**
+- **后续更新：隔离MySQL两轮10/10通过，见 [实机验收](2026-09-06-m05-mysql-validation.md)；用户另行授权后，实际候选复验及CI通过，6451b36/d472已部署，见 [发布记录](2026-09-06-m05-release.md)。**
 - 本地开发轮主会话单写者、TDD、未连接OVH；后续隔离验收未读取密钥/备份、未触发真实爬取、付费模型或邮件。
 - 依据：[实施计划 0.5](../superpowers/plans/2026-09-06-dynamic-crawler-agent.md)。首批生产版本仍见 [OVH 发布记录](2026-09-06-ovh-sql-validation.md)。
 
@@ -70,7 +70,7 @@ env -i PATH='/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin' \
 - 本地：**131 passed，10 skipped**。其中 LLM 77 项、新增迁移 2 项，既有回归 52 项。网络/DNS阻断，provider/cache为内存替身，使用独立 SQLite 文件连接而非共享内存。
 - 123 Python AST、40 Jinja 模板编译、shell `bash -n`、flake8 `E9,F63,F7,F82`、`git diff --check` 通过。
 - `tests/integration/test_mysql_m0.py` 现有 **10 项**：原 7 项迁移/爬虫测试适配新 head，旧 schema 用明确旧列 SQL 建数据；新增独立用量/FK、晚期应用失败、重复消费者最终仅应用一次 3 项。
-- **本地开发轮这10项均skipped**；随后已在隔离MySQL8.0.46两轮实跑10/10通过，详见上述后续记录。既有CI MySQL job会运行这些用例，但尚未提交/推送，不能声称新代码CI已通过。
+- **本地开发轮这10项均skipped**；随后已在隔离MySQL8.0.46两轮实跑10/10通过，详见上述后续记录。本地开发轮尚未提交/推送；随后6451b36的CI普通/MySQL job均通过，具体run见发布记录。
 
 ## 剩余风险 / 下一步
 
@@ -78,4 +78,4 @@ env -i PATH='/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin' \
 2. 并发消费者仍可能重复付费；失败/崩溃后用量持久化之前的窗口、未知费用、硬预算、lease/outbox/reconciliation 留给 M2/M3。
 3. 断路器 Redis 异常与半开单探针未修；公司别名全表扫描、不同文章并发创建同 slug 仍可导致整事务重试，而不是本切片的无冲突认领保证。
 4. Safe Fetch/SSRF、官网 URL、正文完整度/质量门禁仍在 M1；“非空正文”不代表已经确认全文。
-5. M0已批准基础切片的代码/验收已补齐；M0.5尚未提交/部署，M1–M4未实现/上线。仍有上述后续可靠性和网络安全工作，不将本批验收视作全项目风险消除。
+5. M0已批准基础切片的代码/验收/发布已补齐；M1–M4未实现/上线。仍有上述后续可靠性和网络安全工作，不将本批验收视作全项目风险消除。

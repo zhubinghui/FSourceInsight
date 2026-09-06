@@ -58,6 +58,16 @@
 - 无敏感信息源快照/日志归档至 /home/ubuntu/fsourceinsight-validation/m05-20260906131354；完整报告 docs/audits/2026-09-06-m05-mysql-validation.md。M0批准基础切片已完成代码与验收，0.5尚未部署，下一阶段M1.1；未来新构建候选仍需复验。
 - 清理后本地全套131 passed/10 skipped（20.59秒），156个源文件哈希与实跑快照逐一相同、下载日志哈希/文档链接围栏/diff check通过；无暂存，HEAD仍d91863f。本轮只有计划/验收文档改动，未改变被验收的业务代码。
 
+## M0.5 提交部署（2026-09-06）
+- 用户要求优先提交部署。新增受控计划m05-deploy；fetch确认无上游变化，服务器d91863f干净，配置4个/指纹e33b89e8…，生产c821无role/priority。
+- 本地131 passed/10远程skip、静态/diff通过；30文件allowlist提交6451b36并推送。CI34036731442两job成功。
+- 备份 /home/ubuntu/fsourceinsight-backups/m05-20260906134051：18,613,221 bytes/mode600/gzip通过，SHA256 b717eaf749f4e1485c496974db34b1608a2bb647b0c589309e3228c09597f7fa。旧四镜像tag/ref/rollback overlay保留，未读数据/恢复备份。
+- 新镜像首轮UID1000读不到root拥有的600源码，exit5/0tests；先记录计划，核对umask077/COPY权限原因后按生产UID0复验，保留cap-drop/只读/网络隔离，测试副本644可读且不覆盖app源码。web/worker各10项MySQL通过15.977/15.880秒；四镜像40模板/匿名CSRF/合成Admin路由/无env-Git-dump均通过。
+- 临时MySQL/卷/internal网络/runner/凭据先精确清理，所有原容器未变。两worker空闲，停beat复查active/reserved/scheduled0，以-t -1 warm-stop正常退出。
+- 文件脚本+显式stdin升级d472，lock_wait_timeout10秒，model diff0/原配置指纹不变。13:53:46Z→13:53:51Z四应用切换成功，Web5秒恢复、LIVE_WORKERS_READY，无应用回滚。
+- 后续公网smoke把/admin直接预期302但实际308补斜线；先记偏差后分别校验308位置及/admin/的302登录拒绝，未改业务权限。首页/health/login/www均200，匿名有效CSRF/settings/manage/Admin均正确拒绝。
+- MySQL/Redis/其他原容器ID/StartedAt/RestartCount不变，Caddy active；没有真实爬取/LLM/邮件手工调用。辅助脚本和日志归档至备份目录，临时文件清理。发布记录 docs/audits/2026-09-06-m05-release.md；随后仅提交/同步文档，不重建镜像。
+
 ## OVH 验证/发布授权后
 - 用户允许登录 OVH 验证 SQL，验证后提交部署；后续明确 TDD，规则已加入 CLAUDE.md。新维护计划 2026-09-06-ovh-m0-validation-deploy.md，不重跑旧安装/dump流程。
 - IP SSH 首次 publickey 拒绝；被动配置发现 france-vps 指向同一服务器和专用身份，按别名成功登录，无私钥/密钥值读取。
