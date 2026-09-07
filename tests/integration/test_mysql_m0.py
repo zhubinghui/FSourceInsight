@@ -161,9 +161,11 @@ class MySQLM0Tests(unittest.TestCase):
         from app.models.article import Article
         with self.synthetic_news_engine() as engine:
             first, second = engine.run(), engine.run()
-        self.db.session.expire_all()
-        article = Article.query.one()
+        # The engine owns its transactions. expire_all() would retain the
+        # fixture's pre-run REPEATABLE READ snapshot and hide committed rows.
+        self.db.session.remove()
         self.assertEqual((first.status, second.status), ('success', 'no_change'))
+        article = Article.query.one()
         self.assertEqual(first.article_ids, (article.id,))
         self.assertEqual((article.content_level, article.source_language), ('metadata_only', 'en'))
         self.assertEqual(article.crawl_provenance['engine'], 'news-engine.v1')
@@ -176,7 +178,8 @@ class MySQLM0Tests(unittest.TestCase):
             with self.db.engine.begin() as conn:
                 conn.execute(text("CREATE TRIGGER reject_crawl_completion BEFORE UPDATE ON crawl_log FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'synthetic final log failure'"))
             result = engine.run()
-        self.db.session.expire_all()
+        # Observe rollback from a new transaction, not a stale empty snapshot.
+        self.db.session.remove()
         self.assertEqual(result.status, 'failed')
         self.assertTrue(result.retryable)
         self.assertEqual(result.article_ids, ())
