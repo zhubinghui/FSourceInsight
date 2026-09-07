@@ -1,6 +1,8 @@
 """Offline test environment; never reads .env or connects to live services."""
 import os
 import socket
+import subprocess
+from pathlib import Path
 
 # Celery's app is created on import. Keep collection and execution on test config.
 os.environ['FLASK_ENV'] = 'testing'
@@ -29,6 +31,18 @@ def no_network(monkeypatch):
     monkeypatch.setattr(socket.socket, 'connect_ex', blocked)
     monkeypatch.setattr(socket, 'getaddrinfo', blocked)
     monkeypatch.setattr(socket, 'create_connection', blocked)
+
+    # Socket patches do not cross exec(). Only the explicit synthetic bootstrap
+    # may launch the new HTTP helper; a forgotten fixture must not reach the web.
+    original_popen = subprocess.Popen
+    bootstrap = Path(__file__).parent / 'support' / 'fetch_network.py'
+    def guarded_popen(command, *args, **kwargs):
+        if isinstance(command, (list, tuple)) and any(
+                Path(str(part)).name == '_fetch_worker.py' for part in command):
+            if not (len(command) == 6 and command[1] == '-I' and Path(command[2]) == bootstrap):
+                raise AssertionError('HTTP helper tests must use the fetch_network fixture')
+        return original_popen(command, *args, **kwargs)
+    monkeypatch.setattr(subprocess, 'Popen', guarded_popen)
 
 
 @pytest.fixture

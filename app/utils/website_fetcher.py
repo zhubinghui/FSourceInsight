@@ -1,8 +1,10 @@
 """Fetch a company website and extract a clean text excerpt for LLM analysis."""
 import logging
 
-import requests
+from urllib.parse import urlsplit
+
 from bs4 import BeautifulSoup
+from app.crawlers.fetcher import FetchError, FetchPolicy, SafeFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -29,15 +31,18 @@ def fetch_website_excerpt(url: str) -> tuple[str | None, str]:
         return None, 'fetch_error'
 
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=TIMEOUT, allow_redirects=True)
-    except requests.RequestException as e:
-        logger.info(f'website fetch failed for {url}: {e}')
+        policy = FetchPolicy(allowed_hosts=(urlsplit(url).hostname,), max_seconds=TIMEOUT)
+        with SafeFetcher(policy) as fetcher:
+            response = fetcher.fetch(url)
+    except ValueError:
         return None, 'fetch_error'
+    except FetchError as exc:
+        logger.info('website fetch failed: %s', exc.code)
+        status = 'http_error' if exc.code in {'forbidden', 'robots_denied', 'http_error',
+                                             'server_error', 'rate_limited'} else 'fetch_error'
+        return None, status
 
-    if not resp.ok:
-        return None, 'http_error'
-
-    soup = BeautifulSoup(resp.text, 'lxml')
+    soup = BeautifulSoup(response.body, 'lxml')
     for tag in soup(['script', 'style', 'noscript', 'nav', 'footer', 'header', 'iframe']):
         tag.decompose()
 

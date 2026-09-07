@@ -1,7 +1,7 @@
 # 动态爬虫 Agent 分阶段实施计划
 
 - 日期：2026-09-06；基线 `bf9cc61b94556e00218af267db82bf42a3b80eef`。
-- 状态：**M0基础切片已验收部署；0.5应用6451b36/迁移d472已上线，本地131项、实际两候选各10项MySQL及CI通过。M1–M4待实施。**
+- 状态：**M0/0.5应用6451b36、迁移d472已部署；整个M1按记录的收紧范围本地完成，459 passed/12 MySQL专用skip，未提交部署。自定义直连源未全迁移，自动schema发布/路由与M2–M4仍待实施。** 新证据见[M1本地交付](../../audits/2026-09-07-m1-local-completion.md)，[后续隔离部署测试计划](2026-09-07-m1-deployment-validation.md)尚未执行，不借旧CI/候选结果证明新代码。
 - 设计依据：[架构草案](../specs/2026-09-06-dynamic-crawler-agent-design.md)、[审查清单](../../audits/2026-09-06-project-audit.md)。
 - 工作方式：用户要求不使用子代理；后续在主会话单写者实施。需要修改范围/验证方式时先更新本计划。
 - 每一小步要求“失败用例→最小实现→回归验证→记录差异”。下面的 commit 标题是建议切片，不代表已创建或授权推送。
@@ -40,7 +40,7 @@
 | 0.6 爬虫基础 | 本地/MySQL通过 | 13 项离线测试；MySQL竞争写入/晚期失败回滚已验证；进程崩溃/消息窗口仍待M2 |
 | 0.7 邮件模板 | 本地通过 | 两类模板/Top Insights/预览/SMTP 失败记录共 2 项；投递幂等/真实退订仍在后续切片 |
 
-首批部署858a14b时本地52项、MySQL7项、CI两个job通过，见 [首批实施记录](../../audits/2026-09-06-m0-implementation.md) 和 [OVH发布记录](../../audits/2026-09-06-ovh-sql-validation.md)。后续0.5本地131项、隔离MySQL两轮10项已通过，见 [M0.5实机验收](../../audits/2026-09-06-m05-mysql-validation.md)；随后已提交部署6451b36/d472，见 [M0.5发布记录](../../audits/2026-09-06-m05-release.md)。M1–M4未开始，Agent未上线。
+首批部署858a14b时本地52项、MySQL7项、CI两个job通过，见 [首批实施记录](../../audits/2026-09-06-m0-implementation.md) 和 [OVH发布记录](../../audits/2026-09-06-ovh-sql-validation.md)。后续0.5本地131项、隔离MySQL两轮10项已通过，见 [M0.5实机验收](../../audits/2026-09-06-m05-mysql-validation.md)；随后已提交部署6451b36/d472，见 [M0.5发布记录](../../audits/2026-09-06-m05-release.md)。随后用户确认新增接口，M1.1已本地实现/验收，见 [M1.1交付](../../audits/2026-09-06-m11-contracts.md)；尚未提交或部署，Agent未实现或上线。
 
 ## M0：先消除高风险缺陷，建立验证环境
 
@@ -95,29 +95,34 @@
 目标：手写一份 recipe 就可可靠运行，Agent 以后只负责生成它。
 
 ### 1.1 `feat(crawl): define extraction and quality contracts`
+- 当前：按 [本地TDD计划](2026-09-06-m11-contracts.md) 完成；用户确认的公共配置/结果接口144项新测试通过，全套275 passed/10 MySQL专用skipped。HTML/RSS/JSON-LD声明式配置校验、输出不变量和明确状态已实现，尚未执行或接入旧爬虫。未提交/部署，生产不变。
 - `contracts.py` / `schema.py`：FetchObservation、NormalizedArticle、QualityReport、CrawlOutcome；错误类型与状态。
 - 支持 content_level、source_language、field provenance、最终 URL、时间来源。
 - schema 格式版本、最大字段/selector 数、操作允许列表；业务安全策略不放进模型可改字段。
 - 验证：schema 正/反例，超长/畸形/扩权字段拒绝。
 
 ### 1.2 `feat(fetch): centralize bounded safe HTTP retrieval`
-- `fetcher.py`：requests Session 连接复用、stream 上限、总时限、公共 URL/跳转/DNS 校验、域名限速、robots 策略。
+- 当前：用户确认接口后依 [M1.2计划](2026-09-06-m12-safe-fetch.md) 完成TDD实现及最终验收：90项Safe Fetch、全套374 passed/10 MySQL专用skip。已接入RSS/HTML基类和官网，非全部来源；接口、上限和未迁移清单见 [交付报告](../../audits/2026-09-06-m12-safe-fetch.md)。未提交部署，保留M1.1工作区。
+- `fetcher.py`+专属HTTP helper：父selector及子POSIX内核alarm控制总deadline，全部DNS地址检查且连接绑定数值IP/原域名TLS；声明式policy固定，robots/跳转/多次fetch共享预算，额外限制HTTP framing和有界gzip解压。实例内限速/冷却不等于跨worker持久化约束。
 - feedparser 只解析已获取 bytes，不再隐式直连；抓取源码和 website_fetcher 渐进接入。
 - 验证：mock DNS/redirect，包括 IPv4/IPv6 私网、DNS rebinding、gzip 膨胀、畸形 content-type、429、分页循环。
 - 浏览器未实现前明确返回 render_unavailable，不能假装降级成功。
 
 ### 1.3 `feat(crawl): execute RSS HTML and JSON-LD recipes`
+- 当前：用户已确认preview/run，按[收尾计划](2026-09-06-m13-m14-engine-quality.md)连续TDD完成，75项引擎/CLI回归通过；整个M1本地全套459/12。手工CLI默认preview、显式单次apply，不发布active配置；明确回放只读。
 - 规范化列表发现→详情补全→质量；rss feed 已有全文可跳详情。
-- 旧爬虫经 Adapter 接入并返回可观察结果；旧 entrypoint 继续可用。
-- URL 去重前置；跳过已知未变详情的同时抽样验证模板健康。
+- 旧Adapter已收紧为转换确切基础RSS/HTML配置，不执行自定义fetch/parser；旧entrypoint继续可用，但不自动接管注册表/Celery或声明所有来源已迁移。
+- URL同轮去重前置、完整RSS可跳详情；持久化未变详情指纹/抽样复核需M2快照版本支持，本轮无证据时不跳验证、不伪称具备缓存。
 - 验证：合成 golden fixtures，RSS/HTML/JSON-LD、多个列表/详情模板、相对 URL、双语、仅标题等。
 
 ### 1.4 `feat(crawl): gate ingestion on extraction quality`
+- 当前：本地完成列表/正文门禁、只提交可信部分、身份兼容/质量升级、事务回滚及LLM/HTTP保护。新增e6迁移已SQLite验收，MySQL新两项只编写未实跑。详见[M1交付](../../audits/2026-09-07-m1-local-completion.md)。
+- 范围落实：为避免门禁信息在RawArticle桥接中丢失、excerpt触发深度分析，将Article可空content_level/source_language/crawl_provenance三列从M2前移M1。历史NULL不回填，新增Alembic/LLM公共回归并保持原有NULL兼容；源文本prompt不再无条件声明French。完整M2版本/审批/快照存储/lease/outbox不前移。
 - `quality.py` 与 source profile；区分 no_change/partial/degraded/blocked。
 - transport 错误不学习；正文噪声、导航、列表误判有解释；只将合格条目提交。
 - 验证：空 feed 合法无更新与坏 selector；全部重复不得误触发修复；短讯与活动有单独 profile。
 
-**M1 完成条件**：无需 LLM 的 fixtures 全通过；同快照/同 schema 输出可复现；没有通过新增配置执行代码的路径。
+**M1 本地完成条件已满足**：无需真实LLM的fixtures通过；相同快照/recipe/profile在预算内可复现；无新增配置执行代码入口。该声明按上述收紧范围，不包含全部旧源迁移、自动发布、持久化版本优化或实机上线验收。用户现已授权直接生产切换，执行[M1受控发布](2026-09-07-m1-release.md)，保留备份/CI/候选/迁移与回滚门禁。
 
 ## M2：版本/幂等/调度与可靠交付
 

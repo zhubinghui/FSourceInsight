@@ -1,10 +1,12 @@
 import hashlib
 from datetime import datetime
+from urllib.parse import urlsplit
 
 import feedparser
 
 from app.models.source import NewsSource
 from .base import BaseCrawler, RawArticle
+from .fetcher import FetchError, FetchPolicy, SafeFetcher
 
 
 class RSSCrawler(BaseCrawler):
@@ -18,24 +20,23 @@ class RSSCrawler(BaseCrawler):
     USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0'
 
     def fetch_articles(self) -> list[RawArticle]:
-        import requests
-
-        # One transport path: feedparser parses bytes and never hides HTTP errors
-        # by fetching the URL again without our timeout/headers.
+        # Only explicitly configured hosts; no implicit www/cross-domain permission.
         self.empty_result_is_valid = False
-        resp = requests.get(
-            self.source.feed_url,
-            headers={'User-Agent': self.USER_AGENT, 'Accept': 'application/rss+xml, application/xml, text/xml'},
-            timeout=30,
-        )
-        resp.raise_for_status()
-        feed = feedparser.parse(resp.content)
+        try:
+            policy = FetchPolicy(allowed_hosts=tuple(urlsplit(url).hostname for url in
+                                 (self.source.url, self.source.feed_url) if url), max_seconds=30)
+        except ValueError:
+            raise FetchError('unsafe_url') from None
+        with SafeFetcher(policy) as fetcher:
+            response = fetcher.fetch(self.source.feed_url)
+        if response.observation.status == 'not_modified':
+            # Legacy has no stored validator/body to establish a valid no-change.
+            raise FetchError('http_error')
+        feed = feedparser.parse(response.body)
         self.empty_result_is_valid = bool(feed.version) and not feed.bozo and not feed.entries
 
         if feed.bozo and not feed.entries:
-            raise RuntimeError(
-                f'Failed to parse feed {self.source.feed_url}: {feed.bozo_exception}'
-            )
+            raise RuntimeError('Failed to parse feed')
 
         articles = []
         for entry in feed.entries:

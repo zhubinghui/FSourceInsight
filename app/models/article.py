@@ -35,6 +35,11 @@ class Article(db.Model):
     published_at = db.Column(db.DateTime)
     crawled_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
+    # NULL denotes untouched legacy data, not verified full text or French.
+    content_level = db.Column(db.String(20))
+    source_language = db.Column(db.String(35))
+    crawl_provenance = db.Column(db.JSON)
+
     # LLM processing state
     llm_processed = db.Column(db.Boolean, nullable=False, default=False)
     llm_processed_at = db.Column(db.DateTime)

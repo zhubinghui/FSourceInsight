@@ -2,11 +2,11 @@ import hashlib
 from datetime import datetime
 from urllib.parse import urljoin, urlsplit
 
-import requests
 from bs4 import BeautifulSoup
 
 from app.models.source import NewsSource
 from .base import BaseCrawler, RawArticle
+from .fetcher import FetchError, FetchPolicy, SafeFetcher
 
 
 class HTMLCrawler(BaseCrawler):
@@ -31,15 +31,21 @@ class HTMLCrawler(BaseCrawler):
 
     def __init__(self, source: NewsSource):
         super().__init__(source)
+        self._page_url = source.url
 
     def fetch_articles(self) -> list[RawArticle]:
-        response = requests.get(
-            self.source.url, headers=self.HEADERS, timeout=self.TIMEOUT
-        )
-        response.raise_for_status()
-        response.encoding = response.apparent_encoding or 'utf-8'
-
-        soup = BeautifulSoup(response.text, 'lxml')
+        self.empty_result_is_valid = False
+        try:
+            policy = FetchPolicy(allowed_hosts=(urlsplit(self.source.url).hostname,), max_seconds=self.TIMEOUT)
+        except ValueError:
+            raise FetchError('unsafe_url') from None
+        with SafeFetcher(policy) as fetcher:
+            response = fetcher.fetch(self.source.url)
+        if response.observation.status == 'not_modified':
+            # Legacy has no stored validator/body to establish a valid no-change.
+            raise FetchError('http_error')
+        self._page_url = response.document_url
+        soup = BeautifulSoup(response.body, 'lxml')
         article_elements = soup.select(self.ARTICLE_LIST_SELECTOR)
 
         articles = []
@@ -116,7 +122,7 @@ class HTMLCrawler(BaseCrawler):
     def _resolve_url(self, href: str) -> str:
         if not href:
             return ''
-        url = urljoin(self.source.url, href)
+        url = urljoin(self._page_url, href)
         parsed = urlsplit(url)
         return url if parsed.scheme in {'http', 'https'} and parsed.hostname else ''
 

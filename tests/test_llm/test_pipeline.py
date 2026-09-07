@@ -22,6 +22,30 @@ def article_reply(call):
     return 'Synthetic enriched text'
 
 
+@pytest.mark.parametrize('level', ['metadata_only', 'excerpt'])
+def test_marked_incomplete_crawl_never_generates_deep_content_even_with_text(db, llm_env, level):
+    llm_env.article.content_level = level
+    db.session.commit()
+    llm_env.provider.reply = article_reply
+    process_article_llm.run(llm_env.article.id)
+    db.session.expire_all()
+    article = db.session.get(Article, llm_env.article.id)
+    assert article.content_en is None and article.insight_en is None
+    assert not any('detailed digest' in c['messages'][0]['content'] or
+                   'concise tech industry analyst' in c['messages'][0]['content'] for c in llm_env.provider.calls)
+
+
+def test_source_text_prompts_do_not_mislabel_english_as_french(db, llm_env):
+    llm_env.article.source_language = 'en'
+    llm_env.article.content_level = 'full'
+    db.session.commit()
+    llm_env.provider.reply = article_reply
+    process_article_llm.run(llm_env.article.id)
+    systems = [c['messages'][0]['content'] for c in llm_env.provider.calls]
+    assert not any('given French text' in s or 'following French tech news article' in s or
+                   'original French article' in s for s in systems)
+
+
 def test_late_llm_failure_keeps_business_unchanged_and_retry_is_idempotent(db, llm_env):
     article_id = llm_env.article.id
     db.session.add(Category(name='Research', slug='research'))
@@ -186,6 +210,39 @@ def test_changed_input_is_not_overwritten_by_old_llm_result(db, llm_env):
     assert article.title_fr == 'New source title' and article.title_zh is None
     assert not article.llm_processed
     assert Company.query.count() == ArticleCompany.query.count() == 0
+
+
+@pytest.mark.parametrize('column,new_value', [('content_level', 'excerpt'), ('source_language', 'en')])
+def test_quality_or_language_changed_during_llm_collection_invalidates_the_result(db, llm_env, column, new_value):
+    from sqlalchemy import text
+    article_id = llm_env.article.id
+    llm_env.article.content_level = 'full'
+    llm_env.article.source_language = 'fr'
+    db.session.commit()
+    llm_env.provider.reply = article_reply
+    def change_marker(call):
+        if len(llm_env.provider.calls) == 1:
+            with db.engine.begin() as conn:
+                conn.execute(text(f'UPDATE article SET {column}=:value WHERE id=:id'), {'value': new_value, 'id': article_id})
+    llm_env.provider.before = change_marker
+    with pytest.raises(Exception, match='Article changed'):
+        process_article_llm.run(article_id)
+    db.session.expire_all()
+    assert llm_env.article.content_en is None and not llm_env.article.llm_processed
+    assert LLMUsageLog.query.count() > 0
+
+
+def test_forced_incomplete_processing_clears_deep_text_even_when_skipping_translation(db, llm_env):
+    from app.llm.pipeline import process_article
+    llm_env.article.content_level = 'excerpt'
+    llm_env.article.content_zh = llm_env.article.content_en = 'Obsolete deep digest'
+    llm_env.article.insight_zh = llm_env.article.insight_en = 'Obsolete deep insight'
+    db.session.commit()
+    llm_env.provider.reply = article_reply
+    process_article(llm_env.article.id, force=True, skip_translate=True)
+    db.session.expire_all()
+    assert llm_env.article.content_en is llm_env.article.content_zh is None
+    assert llm_env.article.insight_en is llm_env.article.insight_zh is None
 
 
 def test_force_reprocess_without_body_clears_stale_digests(db, llm_env):

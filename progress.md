@@ -1,5 +1,18 @@
 # Progress
 
+## M1直接发布新授权（2026-09-07）
+- 用户要求直接切生产并询问剩余任务；已说明M2版本/路由/可靠交付、M3有界学习硬预算、M4浏览器与源迁移、M5可选目录/自动发布。
+- 先新增m1-release计划，取代独立部署测试阶段：允许本轮提交推送/SSH/备份/候选门禁/增量迁移/四应用切换；不省略回滚，不触发额外真实源/LLM/邮件或发布recipe。正进行只读预检。
+
+## M1 整体本地完成（2026-09-07）
+- 用户“同意”确认preview/run；在保留M1.1/M1.2 dirty工作区的前提下连续单写者TDD，未使用子代理、SSH、真实源/LLM/邮件，也未提交推送或部署。
+- M1.3/M1.4落地HTML/RSS/Atom/JSON-LD、共享分页候选预算、独立解析监督、显式回放、受限基础Adapter、手工CLI、质量/身份/原子应用、Article标记与LLM/HTTP闭环。
+- 真实red包含：缺模块/字段/CLI、摘要冒充full、错题/噪声/隐藏/付费正文、重放错绑、200候选跨页绕过、后页空却ready、错误数组超限且业务先提交、完成日志失败未回滚、新旧爬虫再次插入、保留字段证据不实、解析基础设施误归因等；逐项修复见细化计划。
+- 首轮418/10，后445/12、458/12；最后发现开始日志晚于HTTP，外部边界读不到running日志，先red再前置独立日志。最终全套459 passed/12 MySQL专用skip，71.95秒/1919 warnings。新增85=引擎/CLI75+LLM6+迁移1+HTTP3；12skip含新MySQL2项，均未本轮实跑。
+- 147 Python AST、40模板编译、shell语法及flake8指定错误集通过；12份文档链接/围栏、JSON样例validate_recipe及e6的3个MySQL离线ADD COLUMN通过，无Article UPDATE/DROP。临时venv无ruff，已记录工具误选后使用项目既有flake8。fixture/命令小错误与已有防护的直接通过均分开记录，不冒充业务red。
+- 交付 docs/audits/2026-09-07-m1-local-completion.md；样例 docs/examples/news-recipe.json。整个M1仅本地完成，不代表全部来源/Agent上线；15个自定义source与startup_discovery、M2版本/审批/lease/outbox、M3/M4仍后续。
+- HEAD仍master@f3644ca，全部M1未暂存/提交。后续隔离部署测试准备在 docs/superpowers/plans/2026-09-07-m1-deployment-validation.md；本轮未启动，不自动切生产。
+
 ## 本轮
 - 已读取用户流程图和项目级约束，确认初始 Git 基线与目录结构。
 - 已向用户说明先审查与设计、再确认关键决策的执行方式。
@@ -57,6 +70,43 @@
 - 已核对所有原有容器ID/StartedAt/RestartCount逐行相同，health正常；13:18UTC精确清理测试容器/卷/internal网络/凭据，服务器checkout仍干净d91863f。未读取生产env/备份，未付费/爬取/邮件。
 - 无敏感信息源快照/日志归档至 /home/ubuntu/fsourceinsight-validation/m05-20260906131354；完整报告 docs/audits/2026-09-06-m05-mysql-validation.md。M0批准基础切片已完成代码与验收，0.5尚未部署，下一阶段M1.1；未来新构建候选仍需复验。
 - 清理后本地全套131 passed/10 skipped（20.59秒），156个源文件哈希与实跑快照逐一相同、下载日志哈希/文档链接围栏/diff check通过；无暂存，HEAD仍d91863f。本轮只有计划/验收文档改动，未改变被验收的业务代码。
+
+## M1.1 开发准备（2026-09-06）
+- 用户在确认M0.5已上线后要求继续开发。核对本地master@f3644ca且工作区干净，临时Python3.12测试环境仍可用；未访问服务器。
+- 重读CLAUDE/TDD、主计划及完整架构、RawArticle/Article模型和离线fixture。新增细化计划 docs/superpowers/plans/2026-09-06-m11-contracts.md。
+- 本阶段有新的配置输入与标准结果输出接口，按既定TDD纪律先请用户确认；尚未写测试/业务实现，不把静态准备称作M1.1完成。
+- 旧RawArticle没有语言/内容级别/证据，Article TEXT按字节限制；后续不能从旧数据自动推定全文/法语或把未知日期填现在。
+
+## M1.1 TDD实施（2026-09-06）
+- 用户回复“可以”，确认validate_recipe与标准结果两个公共接口；无子代理、无SSH/真实网络/LLM/邮件、未提交推送部署。
+- schema首个模块缺口1失败后最小快照/指纹通过；扩权字段13失败→14通过，严格值25失败→39，CSS10失败→50，JSON/聚合上限7失败→67，RSS/JSON-LD各1失败→69。没有私有helper/mock测试。
+- 标准新闻先类型缺口；不变量22失败→23通过，证据6失败→30，Fetch类型缺口→31，传输反例16失败→47，Outcome类型缺口→48，计数/可变ID/状态21失败→69。
+- 补空详情规则、403误标timeout、success漏记valid三项失败再修；大字典中间JSON内存回归峰值2,997,058 bytes先失败，加入总序列化前累计容量后通过；5000位JSON整数原始ValueError先失败，再转结构化InvalidRecipe。未提高解释器限制。
+- 一次测试edit非唯一oldText被拒，未部分修改；修正唯一上下文重试，不计业务red。
+- 最终两个新接口144 passed；全套275 passed/10 MySQL专用skipped，19.78秒，1532 warnings。126个Python AST和新文件flake8 E9/F/diff检查通过；没有新CI/实机/镜像验收声明。
+- 新增app/crawlers/schema.py、contracts.py和两份test_crawlers测试；接口/限制/状态语义详见docs/audits/2026-09-06-m11-contracts.md。旧爬虫/LLM/模型/迁移/依赖未改。
+- M1.1完成本地交付，尚未接入旧爬虫、未提交部署；M1.2 Safe Fetch接续，完整Agent/硬预算仍未实现。
+
+## M1收尾准备（2026-09-06）
+- 用户要求整个M1完成之后再部署测试；维持单写者/离线TDD，不提交推送、不SSH/真实网络或生产切换。
+- 核对HEAD仍master@f3644ca，M1.1/M1.2所有dirty文件保留，无reset/stash或暂存。重读schema/contracts、BaseCrawler/Article、registry/CLI与设计。
+- 新细化计划 docs/superpowers/plans/2026-09-06-m13-m14-engine-quality.md：剩余M1统一preview/run两个公共验收入口待确认；本次尚无M1.3/M1.4测试或业务修改，不借上轮374/10冒充新结果。
+- 关键前置差异已记录：preview不能伪造CrawlOutcome成功ID；旧run已写库，Adapter应只接fetch；Article缺内容级别/语言，直接桥接会丢语义并让excerpt触发深度分析。若需最小存储标记前移M1，先更新计划再实施，版本/审批/lease/outbox仍属M2。
+
+## M1.2 本地实施（2026-09-06）
+- 用户回复“确认”，按批准的SafeFetcher及RSS/HTML/官网公共接口分片TDD；不使用子代理，没有SSH/真实网络/付费LLM/邮件、提交、推送或部署。
+- 专属HTTP helper由父selector与子POSIX SIGALRM共同限时；逐DNS检查、数值IP绑定、原Host/SNI/证书检查、手动逐跳、禁隐式Response.next读取。冻结policy、共享请求/实体/协议/解压预算、robots及Retry-After/间隔实现。
+- 核心逐步1→26→35→45→52→59→65通过；源入口迁移保留UTC/ID/空RSS/事务语义，真实先复现私网RSS误入库和私网官网ok。Retry-After丢失/无缓存304误no_change三个失败修复。
+- 扩展失败→修复：helper自身DNS截止、耗尽配额再请求、32×4KiB trailer空实体、畸形MIME、robots dot-segment偏差及错误文件放行、旧adapter缺能力、raw socket timeout/peer误分类、policy替换、转义后超长URL、慢DNS使50ms间隔缩为约5ms。最终巨型policy整数2项先OverflowError，再在isfinite前检查范围。
+- 单独记录fixture/工具偏差：1000条trailer先触发已有Python数量防护；改32条大trailer才复现协议字节绕过。3项MIME正例漏body是fixture错误。若edit上下文不唯一/不存在则未部分修改，read后修正。不将这些算业务red。
+- 初次全套372 passed/10 MySQL专用skip，50.56秒/1558 warnings；随后新增两项policy边界。最终复验374 passed/10专用MySQL skip，50.87秒/1558 warnings；M1.2新增99项。135 Python AST、新fetch文件E9/F、旧入口关键静态错误/shell语法、9份修改文档链接围栏与diff均通过。HEAD仍master@f3644ca，无暂存，M1.1/M1.2改动完整保留；本轮本地交付完成。
+- 全局网络fixture补充拒绝真实helper exec，只有合成DNS/socket/TLS bootstrap可运行；16MiB gzip的helper Python分配峰值<2MiB，不冒充总RSS。无真实TLS握手或生产Linux/Celery进程验收。
+- 新交付报告 docs/audits/2026-09-06-m12-safe-fetch.md 列出接口/额度/隐私/依赖和15个仍直连的source模块（及调用者）、startup_discovery；不是全来源完成。M1.3/1.4执行/质量、M2–M4仍待做。
+
+## M1.2 开发准备（2026-09-06）
+- 用户要求继续开发；工作区仍master@f3644ca，全部M1.1代码/测试/文档未提交且保留。没有SSH或真实网站调用。
+- 核对M1.1 FetchObservation/CrawlError、RSS/HTML/website_fetcher及旧测试，新增 docs/superpowers/plans/2026-09-06-m12-safe-fetch.md。新公共SafeFetcher.fetch及渐进接入的验收范围待确认；尚未写M1.2测试/实现。
+- 已明确设计风险：DNS预查不等于实际连接安全，必须绑定地址并保留TLS原域名验证；connect/read timeout不能冒充含DNS/慢响应的总deadline。非法原始URL在新fetch入口结构化拒绝，不放宽M1.1正常观测契约。
 
 ## M0.5 提交部署（2026-09-06）
 - 用户要求优先提交部署。新增受控计划m05-deploy；fetch确认无上游变化，服务器d91863f干净，配置4个/指纹e33b89e8…，生产c821无role/priority。

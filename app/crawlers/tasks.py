@@ -25,6 +25,7 @@ def crawl_source(self, source_id: int):
         logger.info(f'Source {source.name} is inactive, skipping')
         return
 
+    result = None
     try:
         crawler = get_crawler(source)
         result = crawler.run()
@@ -48,7 +49,8 @@ def crawl_source(self, source_id: int):
         }
     except Exception as exc:
         logger.error(f'Crawl task failed for {source.name}: {exc}')
-        raise self.retry(exc=exc)
+        delay = max(self.default_retry_delay, result.retry_after or 0) if result else self.default_retry_delay
+        raise self.retry(exc=exc, countdown=delay)
 
 
 @celery.task(name='app.crawlers.tasks.crawl_all_sources', queue='crawl')

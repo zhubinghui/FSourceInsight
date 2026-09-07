@@ -4,7 +4,7 @@
 - 用户要求：全量检查当前项目、提出具体优化点，并依照给定流程图设计动态 Agent 爬虫改造。
 - 基线：master，bf9cc61b94556e00218af267db82bf42a3b80eef；初始工作区干净。
 - 审查与方案已完成。用户已同意 5 项默认建议并授权开始实施：V1 仅新闻、schema 人工批准、元数据可保存但仅标题不生成深度洞察、隔离公开页面渲染、3 轮/US$0.20 每次/US$1 每日且受总预算约束。
-- 最新授权：用户明确要求先提交部署已验收的M0.5，按 docs/superpowers/plans/2026-09-06-m05-deploy.md 执行。核对/CI/备份/实际候选隔离复验后仅迁移扩展列和切换四个应用服务。仍不读取/输出.env密钥或备份内容、不触发额外真实爬取/付费LLM/邮件，不干扰同机ai-router。
+- 最新授权：用户明确要求直接切换生产。整个M1已本地完成459/12，现按 docs/superpowers/plans/2026-09-07-m1-release.md 提交/备份/候选门禁/增量迁移并受控切换四应用；不再单列部署测试阶段。单写者，不触发额外真实爬取/付费LLM/邮件，不自动发布recipe；M2–M5随后。
 
 ## 阶段
 1. [complete] 核对项目结构、现有行为和用户流程图。
@@ -15,7 +15,7 @@
 
 ## 实施阶段（用户已授权，不使用子代理）
 6. [complete] M0当前已批准基础切片代码/验收/发布完成。M0.5代码6451b36、迁移d472已部署；本地131项、两候选各10项MySQL、CI两job和公网/worker门禁通过。后续硬预算/消息可靠性/网络安全等不在此完成声明内。
-7. [pending] M1 确定性 schema 引擎、Safe Fetch、质量门禁。
+7. [complete] M1本地：契约、Safe Fetch、HTML/RSS/JSON-LD执行/回放、基础Adapter、手工CLI、质量及入库/下游保护。459 passed/12 MySQL专用skip；未提交部署，旧自定义出口未全迁移、自动schema路由仍属M2。
 8. [pending] M2 配置版本/审批、认领/可靠交付、调度。
 9. [pending] M3 有界学习、预算账本与候选验证。
 10. [pending] M4 浏览器隔离及小范围上线前验证（上线/真实访问另行授权）。
@@ -31,13 +31,20 @@
 - [complete] 本地77项LLM+2项迁移+52项既有回归通过；123 AST/40模板/shell/静态错误检查通过。详见 docs/audits/2026-09-06-m05-implementation.md。
 - [complete] 按 docs/superpowers/plans/2026-09-06-m05-mysql-validation.md 完成OVH独立MySQL8.0.46两轮10/10实跑；未提交/部署或迁移生产库，线上容器身份/启动时间/重启数未变。临时资源/凭据已清理，见 docs/audits/2026-09-06-m05-mysql-validation.md。
 - [complete] M0.5提交6451b36/CI34036731442通过，备份m05-20260906134051，候选web/worker各10项MySQL通过；生产d472/配置指纹不变，13:53:46Z→13:53:51Z应用切换成功。仅四个应用更新，其他容器未变，临时资源已清理。详见 docs/audits/2026-09-06-m05-release.md。
-- [pending] 下一阶段M1.1；并发硬预算、lease/outbox、Redis断路器异常和Safe Fetch仍未修。
+- [complete] M1.1配置校验/标准结果契约按TDD完成，见 docs/audits/2026-09-06-m11-contracts.md；未接入旧爬虫、未提交部署。
+- [complete] M1.2本地实现/验收/文档完成：90项Safe Fetch、官网与旧入口兼容回归，全套374 passed/10专用MySQL skip，见 docs/audits/2026-09-06-m12-safe-fetch.md；未提交部署。并发硬预算、lease/outbox、Redis断路器异常等仍未修。
+
+- [complete] M1.3/M1.4本地交付：75项引擎/CLI、LLM6、迁移1、HTTP3新增回归；总459/12，147 AST/40模板/指定静态检查通过。最小三标记迁移e6从M2前移；历史NULL不回填，M1 run不发布配置、不派repair。
+- [in_progress] M1用户授权直接发布：备份、CI/MySQL及候选基本验收并入发布门禁。独立真实网络/长期prefork压力测试暂缓，不冒充已验证；详见m1-release计划。
 
 ## 已批准的验证接口
 - HTTP：登录、本人偏好/订阅、跨用户访问、文章详情、邮件预览。
 - 爬虫：BaseCrawler.run / RSS、HTML fetch_articles 的规范化输出、持久化结果和任务重试。
 - LLM：公共任务方法 / process_article_llm，验证输出契约、可重试数据和用量事务。
 - 运维：Compose 合并配置、Docker 复制范围、Alembic 迁移至 head。
+- M1.1（已确认）：validate_recipe配置校验与标准结果数据契约；只通过公开构造/输出验证，不测试私有helper。
+- M1.2（新确认）：SafeFetcher(policy).fetch(url)及渐进接入的RSS/HTML/官网入口；只替换外部DNS/socket/TLS/进程/时间边界，真实执行自己的安全实现。
+- M1.3/1.4（已确认并实现）：CrawlEngine.preview只读抽取/回放与质量结果；CrawlEngine.run经同一门禁应用并返回CrawlOutcome。内部extractor/quality/identity不单独mock或增加验收接口。
 - 采用用户已批准计划中的这些接口做测试，不为内部实现细节建立新验收接口。
 
 ## 关键设计约束

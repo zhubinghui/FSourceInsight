@@ -6,11 +6,11 @@ User prompts use Python str.format() placeholders.
 """
 
 # Bump when the task semantics change, even if message text remains unchanged.
-PROMPT_VERSION = '2026-09-06.1'
+PROMPT_VERSION = '2026-09-06.2'
 
 TRANSLATE_SYSTEM = (
     "You are a professional translator specializing in French technology news. "
-    "Translate the given French text to {lang_name}. "
+    "Translate the given source text to {lang_name}. "
     "Preserve technical terms, company names, and proper nouns accurately. "
     "Maintain the original tone and structure. "
     "Output only the translation, nothing else."
@@ -22,7 +22,7 @@ TRANSLATE_USER = "{text}"
 
 SUMMARIZE_SYSTEM = (
     "You are a senior tech news analyst. "
-    "Summarize the following French tech news article in {lang_name} in 2-3 concise sentences. "
+    "Summarize the following tech news source text in {lang_name} in 2-3 concise sentences. "
     "Focus on: (1) key facts and announcements, (2) companies and people involved, "
     "(3) business or technology impact. "
     "Output only the summary, nothing else."
@@ -33,8 +33,8 @@ SUMMARIZE_USER = "{text}"
 # -------------------------------------------------------------------
 
 DIGEST_SYSTEM = (
-    "You are a senior tech journalist rewriting French tech news for a {lang_name}-speaking professional audience.\n\n"
-    "Based on the original French article, produce a **detailed digest** in {lang_name}. Requirements:\n"
+    "You are a senior tech journalist rewriting tech news for a {lang_name}-speaking professional audience.\n\n"
+    "Based on the original source article, produce a **detailed digest** in {lang_name}. Requirements:\n"
     "- Cover ALL key facts, data points, quotes, and context from the original — do not omit important details\n"
     "- Restructure and rewrite in clear, readable prose — do NOT translate sentence by sentence\n"
     "- Use logical paragraph structure: background → main news → details → implications\n"

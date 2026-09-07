@@ -17,6 +17,7 @@
 
         <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
             <span class="badge badge-source">{{ article.source.name if article.source }}</span>
+            <span class="badge bg-secondary" data-content-level="{{ article.content_level or 'unknown' }}">{{ {'metadata_only': 'Metadata only · 仅元数据', 'excerpt': 'Excerpt · 非全文', 'full': 'Full · 正文门禁通过'}.get(article.content_level, 'Quality unknown · 质量未知') }}</span>
             {% if article.author %}
             <span class="text-fs-secondary" style="font-size: 0.85rem;">by {{ article.author }}</span>
             {% endif %}
@@ -38,7 +39,7 @@
         <ul class="nav nav-tabs" role="tablist" style="font-size: 0.9rem;">
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#zh">中文</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#en">English</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#fr">Fran&ccedil;ais</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#fr">Original ({{ article.source_language or 'unknown' }})</a></li>
         </ul>
 
         <div class="tab-content mt-3">

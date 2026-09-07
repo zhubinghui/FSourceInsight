@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.extensions import db
 from app.models.article import Article
 from app.models.source import NewsSource, CrawlLog
+from .fetcher import FetchError
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class CrawlResult:
     errors: list = field(default_factory=list)
     status: str = 'running'
     retryable: bool = False
+    retry_after: int | None = None
 
 
 class BaseCrawler(ABC):
@@ -147,6 +149,9 @@ class BaseCrawler(ABC):
             result.status = 'failed'
             result.errors.append(str(exc))
             result.retryable = isinstance(exc, (requests.Timeout, requests.ConnectionError, OperationalError))
+            if isinstance(exc, FetchError):
+                result.retryable = exc.retryable
+                result.retry_after = exc.retry_after
             if isinstance(exc, requests.HTTPError) and exc.response is not None:
                 result.retryable = exc.response.status_code in {408, 429} or exc.response.status_code >= 500
             self.logger.error('Crawl failed for %s: %s', source_name, exc)

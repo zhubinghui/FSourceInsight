@@ -17,7 +17,7 @@ def test_routing_migration_keeps_existing_selection_and_usage(monkeypatch, tmp_p
             conn.execute(text('INSERT INTO llm_usage_log VALUES (1, 42, 0.25)'))
         runner = app.test_cli_runner()
         assert runner.invoke(args=['db', 'stamp', 'c821b4f7d901']).exit_code == 0
-        result = runner.invoke(args=['db', 'upgrade'])
+        result = runner.invoke(args=['db', 'upgrade', 'd472ac9e6102'])
         assert result.exit_code == 0, result.output
         with db.engine.connect() as conn:
             row = conn.execute(text('SELECT model,tasks,role,priority FROM llm_config WHERE id=42')).one()

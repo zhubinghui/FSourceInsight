@@ -3,6 +3,7 @@
 Run with unittest, not against the deployment database. The runner network must
 be private, with its disposable server aliased as m0-mysql and no public ports.
 """
+from contextlib import contextmanager
 import os
 import socket
 import unittest
@@ -15,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'd472ac9e6102'
+HEAD = 'e6a91f4c820d'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -95,10 +96,8 @@ class MySQLM0Tests(unittest.TestCase):
         source = NewsSource(name='Synthetic', slug='synthetic', url='https://test.invalid', category='national')
         self.db.session.add(source)
         self.db.session.flush()
-        article = Article(source_id=source.id, external_id='legacy', url='https://test.invalid/a', title_fr='Legacy article')
-        self.db.session.add(article)
-        self.db.session.flush()
-        config_id, article_id = 42, article.id
+        self.db.session.execute(text("INSERT INTO article (id,source_id,external_id,url,title_fr,llm_processed,crawled_at,created_at,updated_at) VALUES (52,:source_id,'legacy','https://test.invalid/a','Legacy article',0,NOW(),NOW(),NOW())"), {'source_id': source.id})
+        config_id, article_id = 42, 52
         self.db.session.add(LLMUsageLog(config_id=config_id, article_id=article_id, task_type='translate', cost_usd='0.025'))
         self.db.session.commit()
         self.upgrade()
@@ -108,11 +107,81 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertEqual(LLMUsageLog.query.count(), 4)
         self.assertEqual(LLMUsageLog.query.filter_by(task_type='translate').one().article_id, article_id)
         self.assertEqual(str(LLMUsageLog.query.filter_by(task_type='translate').one().cost_usd), '0.025000')
-        self.assertEqual(Article.query.one().title_fr, 'Legacy article')
+        article = Article.query.one()
+        self.assertEqual(article.title_fr, 'Legacy article')
+        self.assertEqual((article.content_level, article.source_language, article.crawl_provenance), (None, None, None))
         from app.models.llm import LLMConfig
         config = self.db.session.get(LLMConfig, 42)
         self.assertEqual((config.model, config.tasks, config.role, config.priority),
                          ('owner-choice', ['translate'], 'primary', 100))
+
+    @contextmanager
+    def synthetic_news_engine(self):
+        """External DNS/socket/TLS fixtures, actual parser/engine and disposable MySQL."""
+        import json
+        from pathlib import Path
+        import subprocess
+        import sys
+        from tempfile import TemporaryDirectory
+        from app.crawlers.engine import CrawlEngine
+        from app.crawlers.fetcher import FetchPolicy
+        from app.models.source import NewsSource
+        self.upgrade()
+        source = NewsSource(name='Synthetic engine', slug='engine-mysql', url='https://news.test.invalid/news', category='regional')
+        self.db.session.add(source)
+        self.db.session.commit()
+        doc = {'format_version': 1, 'output_contract': 'article.v1', 'target_kind': 'news',
+               'source_id': source.id, 'locale': 'en', 'transport': 'http', 'identity_policy': 'legacy-compatible-url-v1',
+               'list_pages': [{'url': source.url, 'item_selector': 'article', 'fields': {
+                   'title': {'selector': 'a', 'read': 'text'}, 'url': {'selector': 'a', 'read': 'attr', 'attr': 'href'}}}]}
+        original, processes = subprocess.Popen, []
+        bootstrap = Path(__file__).resolve().parents[1] / 'support' / 'fetch_network.py'
+        with TemporaryDirectory(prefix='fsi-m1-mysql-network-') as directory:
+            scenario, trace = Path(directory) / 'scenario.json', Path(directory) / 'trace.jsonl'
+            scenario.write_text(json.dumps({'routes': {source.url: {'body': '<article><a href="/research">Research</a></article>'}}}))
+            def spawn(command, **kwargs):
+                if Path(command[-1]).name == '_fetch_worker.py':
+                    command = [sys.executable, '-I', str(bootstrap), command[-1], str(scenario), str(trace)]
+                elif Path(command[-1]).name != '_parse_worker.py':
+                    raise AssertionError('Unexpected process in engine fixture')
+                process = original(command, **kwargs)
+                processes.append(process)
+                return process
+            try:
+                with patch('subprocess.Popen', spawn):
+                    yield CrawlEngine(source.id, recipe=doc, fetch_policy=FetchPolicy(allowed_hosts=('news.test.invalid',), min_interval=0))
+            finally:
+                for process in processes:
+                    if process.poll() is None:
+                        process.kill()
+                        process.wait(timeout=2)
+                        self.fail('Engine leaked a helper process')
+
+    def test_mysql_news_engine_round_trips_quality_json_and_deduplicates(self):
+        from app.models.article import Article
+        with self.synthetic_news_engine() as engine:
+            first, second = engine.run(), engine.run()
+        self.db.session.expire_all()
+        article = Article.query.one()
+        self.assertEqual((first.status, second.status), ('success', 'no_change'))
+        self.assertEqual(first.article_ids, (article.id,))
+        self.assertEqual((article.content_level, article.source_language), ('metadata_only', 'en'))
+        self.assertEqual(article.crawl_provenance['engine'], 'news-engine.v1')
+        self.assertEqual(article.crawl_provenance['quality_profile']['min_content_chars'], 200)
+
+    def test_mysql_news_engine_final_log_failure_rolls_back_article_and_source(self):
+        from app.models.article import Article
+        from app.models.source import NewsSource
+        with self.synthetic_news_engine() as engine:
+            with self.db.engine.begin() as conn:
+                conn.execute(text("CREATE TRIGGER reject_crawl_completion BEFORE UPDATE ON crawl_log FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'synthetic final log failure'"))
+            result = engine.run()
+        self.db.session.expire_all()
+        self.assertEqual(result.status, 'failed')
+        self.assertTrue(result.retryable)
+        self.assertEqual(result.article_ids, ())
+        self.assertEqual(Article.query.count(), 0)
+        self.assertIsNone(NewsSource.query.one().last_crawled_at)
 
     def test_legacy_company_json_and_counter_backfill(self):
         self.upgrade('0dae407b3532')

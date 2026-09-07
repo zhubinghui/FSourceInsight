@@ -24,10 +24,12 @@ def process_article(article_id, *, force=False, skip_translate=False):
         if not article or (article.llm_processed and not force):
             return False
         title, content, version = article.title_fr, article.content_fr, article.updated_at
+        level, language = article.content_level, article.source_language
     client = LLMClient()
-    has_content = bool((strip_html(content or '') or '').strip())
-    text = content if has_content else title
-    values = {}
+    has_text = bool((strip_html(content or '') or '').strip())
+    has_content = has_text and level in {None, 'full'}
+    text = content if has_text and level != 'metadata_only' else title
+    values = {} if has_content else {'content_zh': None, 'content_en': None}
     if not skip_translate:
         for lang in ('zh', 'en'):
             values[f'title_{lang}'] = client.translate(title, lang, article_id)
@@ -60,7 +62,8 @@ def process_article(article_id, *, force=False, skip_translate=False):
         article = session.query(Article).filter_by(id=article_id).with_for_update().one_or_none()
         if not article or (article.llm_processed and not force):
             return False
-        if (article.title_fr, article.content_fr, article.updated_at) != (title, content, version):
+        if (article.title_fr, article.content_fr, article.updated_at, article.content_level, article.source_language) != (
+                title, content, version, level, language):
             raise RuntimeError('Article changed during LLM processing; retry with fresh input')
         if force:
             session.query(ArticleCompany).filter_by(article_id=article_id, extracted_by='llm').delete()

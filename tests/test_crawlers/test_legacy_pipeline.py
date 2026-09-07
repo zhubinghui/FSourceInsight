@@ -91,10 +91,10 @@ def http_response(body, url, status=200):
     return response
 
 
-def test_html_run_resolves_links_and_persists_utc(db, source, monkeypatch):
+def test_html_run_resolves_links_and_persists_utc(db, source, fetch_network):
     html = '''<article><h2><a href="/news/one">Research</a></h2>
     <time datetime="2026-07-01T12:00:00+02:00"></time><div class="content">Article content</div></article>'''
-    monkeypatch.setattr(requests, 'get', lambda *a, **kw: http_response(html, source.url))
+    fetch_network.configure(routes={source.url: {'body': html}})
     result = HTMLCrawler(source).run()
     assert not result.errors
     row = Article.query.one()
@@ -102,50 +102,46 @@ def test_html_run_resolves_links_and_persists_utc(db, source, monkeypatch):
     assert row.published_at == datetime(2026, 7, 1, 10)
 
 
-def test_valid_empty_rss_is_not_a_failure(db, source, monkeypatch):
+def test_valid_empty_rss_is_not_a_failure(db, source, fetch_network):
     rss = '<rss version="2.0"><channel><title>Empty feed</title><link>https://test.invalid</link><description>Quiet source</description></channel></rss>'
-    monkeypatch.setattr(requests, 'get', lambda *a, **kw: http_response(rss, source.feed_url))
+    fetch_network.configure(routes={source.feed_url: {'body': rss, 'headers': {'Content-Type': 'application/rss+xml'}}})
     result = RSSCrawler(source).run()
     assert result.articles_new == 0 and not result.errors
     assert CrawlLog.query.one().status == 'success'
 
 
 @pytest.mark.parametrize('status', [429, 503])
-def test_transient_http_failure_requests_celery_retry(db, source, monkeypatch, status):
+def test_transient_http_failure_requests_celery_retry(db, source, fetch_network, status):
     from celery.exceptions import Retry
     from app.crawlers.tasks import crawl_source
 
-    calls = []
-    def fetch(*args, **kwargs):
-        calls.append(args[0])
-        return http_response('unavailable', source.feed_url, status)
-    monkeypatch.setattr(requests, 'get', fetch)
+    fetch_network.configure(routes={source.feed_url: {'status': status}})
     crawl_source.push_request(is_eager=True, called_directly=False, retries=0)
     try:
         with pytest.raises(Retry):
             crawl_source.run(source.id)
     finally:
         crawl_source.pop_request()
-    assert calls == [source.feed_url]
+    assert [e['url'] for e in fetch_network.events() if e['kind'] == 'http'] == ['https://test.invalid/robots.txt', source.feed_url]
     assert CrawlLog.query.one().status == 'failed'
 
 
-def test_forbidden_source_is_reported_without_learning_or_retry(db, source, monkeypatch):
+def test_forbidden_source_is_reported_without_learning_or_retry(db, source, fetch_network):
     from app.crawlers.tasks import crawl_source
-    monkeypatch.setattr(requests, 'get', lambda *a, **kw: http_response('forbidden', source.feed_url, 403))
+    fetch_network.configure(routes={source.feed_url: {'status': 403}})
     result = crawl_source.run(source.id)
-    assert result['errors'] and result['new'] == 0
+    assert result['errors'] == ['forbidden'] and result['new'] == 0
     assert result['status'] == 'failed' and not result['retryable']
 
 
-def test_rss_dates_are_utc_independent_of_worker_dst(db, source, monkeypatch):
+def test_rss_dates_are_utc_independent_of_worker_dst(db, source, monkeypatch, fetch_network):
     import time
     rss = '<rss version="2.0"><channel><title>News</title><item><title>Research</title><link>https://test.invalid/news</link><pubDate>Wed, 01 Jul 2026 12:00:00 +0200</pubDate></item></channel></rss>'
     try:
         with monkeypatch.context() as patch:
             patch.setenv('TZ', 'Europe/Paris')
             time.tzset()
-            patch.setattr(requests, 'get', lambda *a, **kw: http_response(rss, source.feed_url))
+            fetch_network.configure(routes={source.feed_url: {'body': rss, 'headers': {'Content-Type': 'application/rss+xml'}}})
             assert not RSSCrawler(source).run().errors
     finally:
         time.tzset()
@@ -156,4 +152,50 @@ def test_rss_dates_are_utc_independent_of_worker_dst(db, source, monkeypatch):
 def test_invalid_required_fields_never_enter_articles(db, source, title, url):
     result = FixtureCrawler(source, [RawArticle(title, url, 'bad')]).run()
     assert result.errors
+    assert Article.query.count() == 0
+
+
+def test_rss_run_never_ingests_from_a_private_feed(db, source, monkeypatch, fetch_network):
+    source.feed_url = 'http://169.254.169.254/latest?token=synthetic-secret'
+    db.session.commit()
+    rss = '<rss version="2.0"><channel><title>Feed</title><item><title>Secret</title><link>https://test.invalid/secret</link></item></channel></rss>'
+    # Old external boundary remains instrumented so this is a real unsafe-ingestion red,
+    # not merely the global network guard rejecting an unmocked old HTTP client.
+    monkeypatch.setattr(requests, 'get', lambda *a, **kw: http_response(rss, source.feed_url))
+    result = RSSCrawler(source).run()
+    assert result.articles_new == 0 and result.errors == ['unsafe_url']
+    assert Article.query.count() == 0
+    assert not [e for e in fetch_network.events() if e['kind'] == 'connect']
+
+
+def test_html_uses_final_document_url_for_relative_links(db, source, fetch_network):
+    fetch_network.configure(routes={
+        source.url: {'status': 302, 'headers': {'Location': '/updates/'}},
+        'https://test.invalid/updates/': {'body': '<article><h2><a href="one">Research</a></h2></article>'},
+    })
+    result = HTMLCrawler(source).run()
+    assert not result.errors
+    assert Article.query.one().url == 'https://test.invalid/updates/one'
+
+
+def test_celery_retry_preserves_server_retry_after(db, source, fetch_network):
+    from celery.exceptions import Retry
+    from app.crawlers.tasks import crawl_source
+
+    fetch_network.configure(routes={source.feed_url: {'status': 429, 'headers': {'Retry-After': '3600'}}})
+    crawl_source.push_request(is_eager=True, called_directly=False, retries=0)
+    try:
+        with pytest.raises(Retry) as retry:
+            crawl_source.run(source.id)
+    finally:
+        crawl_source.pop_request()
+    assert retry.value.when == 3600
+
+
+@pytest.mark.parametrize('crawler_type', [RSSCrawler, HTMLCrawler])
+def test_legacy_crawler_does_not_claim_no_change_without_a_cached_validator(db, source, fetch_network, crawler_type):
+    url = source.feed_url if crawler_type is RSSCrawler else source.url
+    fetch_network.configure(routes={url: {'status': 304}})
+    result = crawler_type(source).run()
+    assert result.status == 'failed' and result.errors
     assert Article.query.count() == 0

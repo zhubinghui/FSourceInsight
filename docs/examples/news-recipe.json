@@ -1,0 +1,32 @@
+{
+  "format_version": 1,
+  "output_contract": "article.v1",
+  "target_kind": "news",
+  "source_id": 1,
+  "locale": "unknown",
+  "transport": "http",
+  "extractor": "html",
+  "identity_policy": "legacy-compatible-url-v1",
+  "list_pages": [
+    {
+      "url": "https://news.test.invalid/news",
+      "item_selector": "article",
+      "fields": {
+        "title": {"selector": "h2 a", "read": "text"},
+        "url": {"selector": "h2 a", "read": "attr", "attr": "href"}
+      },
+      "pagination": {"kind": "next_link", "selector": "a.next", "max_pages": 2}
+    }
+  ],
+  "detail_templates": [
+    {
+      "match": {"host": "news.test.invalid", "path_prefix": "/news/"},
+      "fields": {
+        "title": {"selector": "h1", "read": "text"},
+        "content": {"selector": ".article-body", "read": "paragraphs"},
+        "published_at": {"selector": "time", "read": "attr", "attr": "datetime"}
+      },
+      "remove_selectors": [".related", ".advertisement"]
+    }
+  ]
+}

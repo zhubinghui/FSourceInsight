@@ -165,6 +165,8 @@ def _serialize_article(article: Article, full: bool = False) -> dict:
         'image_url': article.image_url,
         'published_at': article.published_at.isoformat() if article.published_at else None,
         'llm_processed': article.llm_processed,
+        'content_level': article.content_level or 'unknown',
+        'source_language': article.source_language or 'unknown',
     }
     if full:
         data.update({

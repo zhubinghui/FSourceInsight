@@ -1,5 +1,16 @@
 # Findings
 
+## M1.3/M1.4完成后的发现（2026-09-07）
+- 新旧路径互操作是身份验收的一部分：RSS省略ID映射不能丢掉GUID，URL规范化不能改legacy hash；否则后续旧Crawler.run真实再次入库。已通过公共双入口反例修复。
+- Outcome必须在业务提交前构造验证，完成日志也须同事务；否则180个错误超数组契约或最终日志失败时，调用看似失败而Article已提交。开始日志则在HTTP前独立提交，避免统计漏掉采集耗时。
+- `full`不能由字数或JSON-LD字段名自报；summary/description、重复/错题正文、链接密集区域、显式隐藏/付费标记均需区分。启发式门禁仍不证明事实、完整性、实际语言或全部访问限制。
+- 仅存入原有content_fr会丢级别并触发深度分析，因此将三个可空Article标记提前到M1。历史NULL未知、不回填；标记excerpt/metadata禁止digest/insight，HTTP显式显示unknown/原文语言。
+- 保留旧GUID/author/date时，不得把新快照中不同值的provenance说成旧值证据；相关字段降为legacy/unknown。M1仅升级较低级别，不更新同等级版本或清洗历史重复。
+- 重型parser需自己的父/子期限、候选上限要跨页共享，耗尽后不请求下页，空的后页不能被前页成功掩盖。开始/加载依赖失败为parser_unavailable，不算selector坏，不回退无限期解析。
+- 页面SHA256不足以区分相同内容的不同URL基址；locator加入文档URL哈希与列表/页/局部item位置。运行provenance还需引擎版本/profile，不能只有recipe指纹。
+- 明确回放只读；0600原始快照由操作员显式保存，文件可能敏感。run的hash引用不是持久化快照库；新CLI不发布active配置，旧注册表/Celery尚未自动路由新引擎。
+- 本轮459/12；12为待实机MySQL用例，不是通过。原M0.5实机/发布证据仍有效于旧版本，不延伸为M1上线证明。详细边界见 docs/audits/2026-09-07-m1-local-completion.md。
+
 ## 用户架构图转录
 - 起点：读取源。
 - 左路：尝试基本爬虫框架，RSS → HTML → 渲染。
@@ -67,6 +78,35 @@
 - 发布gate曾因Celery registered字符串附带[rate_limit=10/m]误判；自动回滚后定位，CLI真实协议回归先失败再修复，负例保留。
 - 858a14b最终部署成功，c821已应用；公网/匿名CSRF/worker/容器身份检查通过。52项本地测试+7项MySQL及CI通过，临时资源已清理，备份回滚点保留。
 - 首批发布时M0.5未实现、Safe Fetch/schema/Agent未开始；后续本地M0.5状态见下，不代表已部署。
+
+## M1.3/M1.4前置发现
+- BaseCrawler.run调用save后才返回；在旧run外包装QualityReport不能成为入库前门禁。新Adapter需只消费fetch阶段并保留未知证据，不自动把legacy内容当full。
+- Article没有content_level/source_language，新引擎若直接丢弃这些字段会使后续LLM仍把excerpt当正文。M1应用路径必须保留语义或保守阻断；若需提前最小扩展列，先记录M1/M2边界调整。
+- CrawlOutcome.success要求真实article_ids、valid计数完整对账；只读preview应有独立结果，不能伪造ID/成功入库。相同快照回放也不能隐式联网补页。
+- M1.2的网络deadline不等于DOM/CSS/JSON解析时限；解析资源保护需独立验收。完整M1后才启动部署测试，本轮只细化计划/待确认统一应用接口。
+
+## M1.2 实现后的证据与边界
+- Safe Fetch已接入RSS/HTML基类及官网，但15个source模块仍含直接requests/cloudscraper（包括其继承/调用者）及startup_discovery未迁移；不能据基类完成声明所有来源受保护。见 docs/audits/2026-09-06-m12-safe-fetch.md。
+- DNS检查必须与数值连接绑定；robots路径必须等于真实HTTP客户端最终规范化路径，dot-segment可让预查/public路径最终请求/private。两类均经公共fetch/真实HTTP代码+外部合成网络回归。
+- requests关闭自动跳转仍会为Response.next读正文；urllib3 socket timeout不涵盖DNS/慢响应总时限。专属HTTP helper关闭next预读，并以父selector+子内核alarm控制生命周期，不借业务worker信号中断，不是浏览器/文件系统沙箱。
+- 实体字节限制不能约束chunk framing/trailer：32条4KiB trailer可在空body下突破期待上限；新增响应协议读限额。Python3.12.14已有trailer行数限制，最初1000行失败不是无上限证据。
+- 慢DNS会吃掉从解析开始算的访问间隔，实际HTTP间隔从50ms缩到约5ms；从响应头完成后保守计时修复。Retry-After须传到Celery，否则3600被默默降回60。
+- 缺缓存依据的304不证明legacy无变化；robots304/错误JSON也不能当空允许规则。Source scope只用明确配置，不自动给www/跨主机重定向授权。
+- 观测URL不带query；准确document_url仅供内部解析、repr隐藏，不允许整体asdict写日志/模型。正文和内部URL不承诺秘密清洗；SHA256也不代表快照已持久化。
+- 父socket网络阻断不跨exec，测试现在默认拒绝真实helper启动，显式fixture才可装配子DNS/socket/TLS边界。全程无真实网络；90项Safe Fetch、官网及旧入口回归通过；最终全套374 passed/10专用MySQL skip，无新CI/实机或部署证据。
+
+## M1.2 准备与约束（历史准备状态）
+- 通用RSS/HTML仍使用requests.get，官网入口允许自动跳转；M1.1只做静态契约，没有保护这些出口。部分子类也有独立直连，渐进接入不能声称全部已迁移。
+- 当前爬虫测试替换的是外部requests.get；换出口后仍应在外部网络边界提供合成数据，不能改为mock自己的SafeFetcher绕过SSRF实现。
+- FetchObservation拒绝非法URL；新fetch入口应通过结构化失败表示非法输入，不能伪造合法URL或削弱正常结果不变量。
+- DNS预查/逐块时钟检查不足以证明连接绑定或硬deadline，TLS原域名校验、同步阻塞和解压上限须在实现时直接验证。
+
+## M1.1 本地契约证据
+- 新schema入口仅校验/快照声明式配置，不执行抓取或批准发布。JSON须拒绝重复key/NaN/扩权字段，并在序列化前计总容量；单字段都短仍可拼出大中间JSON，公共接口内存回归先复现再修复。
+- CSS属性og:title中的冒号不是伪类，允许属性数据但禁止外层伪类/任意表达式；RSS摘要映射不授予full内容级别，JSON-LD仅固定类型/路径。
+- HTTP403不能标成timeout重试，无证据零条不能等于no_change；success/partial不能丢掉valid条目的去向。这里是数据自洽检查，不替代网络/内容质量门禁。
+- 新NormalizedArticle正文按MySQL TEXT的UTF-8字节数限制；未知时间/语言保留unknown，无时区时间拒绝而不猜测。字段证据引用仍需执行器验证，legacy允许明确未知，不伪造快照。
+- 两接口144新测试通过，全套275 passed/10专用MySQL skip。M1.1未接入旧爬虫、未提交部署；生产仍M0.5，Safe Fetch/实际引擎/质量/Agent继续后续阶段。
 
 ## M0.5 后续本地证据
 - 独立账本的首个green并未解决管线写锁：晚期LLM回归真实报SQLite database is locked，进一步改为独立只读快照/收集/原子应用后通过。12步逐一中断、最终SQL失败、历史关系重试与CLI force保护已有结果均有回归。
