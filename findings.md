@@ -1,5 +1,10 @@
 # Findings
 
+## M1发布实机补充（2026-09-07）
+- MySQL公共run返回success但fixture查询NoResultFound，已在CI与真正候选复现。边界probe显示新事务1行/旧调用者0行；expire_all不能清REPEATABLE READ快照。修复测试观察事务而非业务引擎，并同步修回滚负例避免旧空快照掩盖泄漏；新CI及两候选12项通过。
+- 全套离线通过不能替代MySQL真实隔离语义；候选单独helper通过也不等于prefork。此次追加基础billiard→parser与本站SafeFetcher TLS smoke通过，仍不声称完整broker/长期压力/真实新闻覆盖验收。
+- M1应用1052edf/schema e6已生产切换，model diff0/4模型配置未变/历史三标记NULL；既有基础爬虫SafeFetch生效，新引擎日常schema路由仍M2。实际发布证据见 docs/audits/2026-09-07-m1-release.md。
+
 ## M1.3/M1.4完成后的发现（2026-09-07）
 - 新旧路径互操作是身份验收的一部分：RSS省略ID映射不能丢掉GUID，URL规范化不能改legacy hash；否则后续旧Crawler.run真实再次入库。已通过公共双入口反例修复。
 - Outcome必须在业务提交前构造验证，完成日志也须同事务；否则180个错误超数组契约或最终日志失败时，调用看似失败而Article已提交。开始日志则在HTTP前独立提交，避免统计漏掉采集耗时。
