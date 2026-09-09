@@ -8,7 +8,7 @@
 - 当前用户在架构导览后要求“继续”，推进M2本地。用户已选择后台HTTP作为M2主要验收入口，从真实页面操作逐切片TDD，不增加测试专用API；不继承上次提交/SSH/部署授权，不额外真实爬取/付费LLM/邮件，不使用子代理。
 
 ## 当前追加授权：主干合入
-- [in_progress] 用户要求将当前全部成果提交并合入master；范围是M2-A/B1/B2a及配套文档，不包含未来功能或生产部署。详见 docs/superpowers/plans/2026-09-08-m2-mainline-integration.md。fetch确认主干无分叉，复验后正常提交/推送并检查CI。
+- [complete] 当前M2-A/B1/B2a及配套文档已以90c94b6提交/推送至master；CI34356717036两job成功，离线574/14、独立MySQL14/14。详见 docs/superpowers/plans/2026-09-08-m2-mainline-integration.md。没有部署或把未来功能标为完成。
 
 ## 阶段
 1. [complete] 核对项目结构、现有行为和用户流程图。
@@ -20,7 +20,7 @@
 ## 实施阶段（用户已授权，不使用子代理）
 6. [complete] M0当前已批准基础切片代码/验收/发布完成。M0.5代码6451b36、迁移d472已部署；本地131项、两候选各10项MySQL、CI两job和公网/worker门禁通过。后续硬预算/消息可靠性/网络安全等不在此完成声明内。
 7. [complete] M1已部署：契约、Safe Fetch、HTML/RSS/JSON-LD执行/回放、基础Adapter、手工CLI、质量及入库/下游保护。离线459通过、CI及两真正候选各12项MySQL通过；旧自定义出口未全迁移、自动schema路由仍属M2。
-8. [in_progress] M2-A候选保存、B1后台预览、B2a私有证据/回放本地完成。B2a新增49 HTTP，全套574 passed/14 MySQL专用skip，147.67秒；158 AST/43模板/指定flake8通过，无新DDL/head仍b6。报告 docs/audits/2026-09-08-m2b2a-private-evidence.md。下一步B2b持久policy/独立验证/人工审批/CAS；路由/可靠运行仍未完成，未提交部署。
+8. [in_progress] M2-A候选保存、B1后台预览、B2a私有证据/回放本地完成。B2a新增49 HTTP，全套574 passed/14 MySQL专用skip，147.67秒；158 AST/43模板/指定flake8通过，无新DDL/head仍b6。报告 docs/audits/2026-09-08-m2b2a-private-evidence.md。90c94b6已合入master，本提交CI MySQL14/14也已实跑通过。下一步B2b持久policy/独立验证/人工审批/CAS；路由/可靠运行仍未完成，未部署。
 9. [pending] M3 有界学习、预算账本与候选验证。
 10. [pending] M4 浏览器隔离及小范围上线前验证（上线/真实访问另行授权）。
 

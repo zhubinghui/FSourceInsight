@@ -1,5 +1,7 @@
 # 当前M2成果提交并合入主干
 
+执行结果（2026-09-09 UTC）：代码提交`90c94b6f441ae39e22d15ad1f34f320b3469f224`已正常推送至master。当前成果已合入，完整M2仍在开发，生产未部署；本文档文件名沿用M2阶段日期。
+
 ## 授权与范围
 
 用户要求“目前所有部分都提交并合入主干”。允许提交/推送当前已完成的M2-A、B1、B2a代码、测试、迁移与全部配套架构/计划/审计文档；不扩展为生产部署、SSH、真实新闻爬取、付费模型或邮件授权。
@@ -17,9 +19,9 @@ M2b持久policy/独立验证/审批/CAS、可靠运行/调度及M3/M4仍未完�
 ## 操作顺序
 
 1. [complete] 完整本地回归、AST/模板/静态检查；核对明确文件allowlist、暂存diff与敏感文件边界。
-2. [in_progress] 提交当前成果到master，正常push origin master；若远端并发变化先记录，再保留双方历史处理，不强推。
-3. [pending] 核对远端ref、该提交的CI；失败时先记录，按真实失败处理，不降低测试或宣称CI通过。
-4. [pending] 补充合入结果文档并提交，最终确认工作区clean、master与origin/master一致。生产不动。
+2. [complete] 提交当前34文件到master，正常push origin master；无分叉、无强推。
+3. [complete] 远端ref为90c94b6，本地与origin/master领先/落后0，首次提交后工作区clean；该提交的两项CI通过。
+4. 本记录及当前状态说明作为独立文档收尾提交；其最终SHA/clean状态在推送后由Git只读核对，不在自身内容中回写自引用SHA。没有生产动作。
 
 ## 验证记录
 
@@ -27,3 +29,6 @@ M2b持久policy/独立验证/审批/CAS、可靠运行/调度及M3/M4仍未完�
 - 158 AST、43模板、指定flake8、Alembic单head b6、96个本地文档链接/围栏通过。
 - 明确allowlist共34文件，与全部tracked dirty/untracked文件精确相等；仅.py/.md/.html普通文件。无env/raw快照/备份/私钥文件；常见凭据标记检查无命中（不是完整秘密审计保证）。空的未跟踪目录不纳入Git，不删除。
 - 主会话复核关键模型/迁移接入、Admin权限与generation、预览/回放/私有证据范围；没有接入自动路由、发布或生产配置。
+- [CI 34356717036](https://github.com/zhubinghui/FSourceInsight/actions/runs/34356717036)，head确为90c94b6，两job结论success：离线574 passed/14专用skip/3453 warnings，195.67秒；独立MySQL **14/14**，18.443秒（含新候选、preview引用JSON/回放/过期与扩展迁移）。13:27:05Z全CI完成。
+- CI日志本地`/tmp/fsi-m2-mainline-ci.log`。这是真正本提交的CI MySQL成功，不再只有本地skip；仍不代表生产候选镜像、共享卷多worker、broker/lease、压力或恢复验收。
+- 生产仍M1应用1052edf/schema e6。本轮没有迁移生产、新建生产证据目录、真实来源、模型费用或邮件。

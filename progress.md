@@ -1,6 +1,12 @@
 # Progress
 
-## 当前M2成果合入主干（2026-09-08，进行中）
+## 当前M2成果合入主干（2026-09-09，完成）
+- 34文件明确allowlist提交90c94b6f441ae39e22d15ad1f34f320b3469f224并正常推送master；远端SHA一致、首次提交后工作区clean，无强推/merge冲突。
+- 本轮复验574 passed/14 MySQL专用skip，162.03秒；158 AST/43模板/指定flake8/96文档链接与围栏、暂存diff及常见凭据标记检查通过。
+- 本提交CI34356717036两job成功：离线574/14/195.67秒；真正独立MySQL14/14/18.443秒，含候选与preview/evidence回放。13:27:05Z全部完成。不能扩展为部署候选/压力/完整可靠运行验收。
+- 合入结果及当前状态文档另行收尾提交；生产不动，B2b审批/CAS与后续M2/M3/M4仍未完成。
+
+### 本轮授权与开始记录
 - 用户已授权把当前所有成果提交并合入主干；不包含部署。新增 docs/superpowers/plans/2026-09-08-m2-mainline-integration.md。
 - master@4477cfd；fetch后与origin/master一致，暂存区空，保留全部M2-A/B1/B2a与文档。按明确allowlist提交，CI仅离线/一次性MySQL，没有部署步骤；不使用子代理、不SSH/真实源/付费/邮件。
 

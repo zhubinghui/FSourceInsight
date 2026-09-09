@@ -2,7 +2,7 @@
 
 基于本地 `4477cfd` 静态核对；M1发布应用为 `1052edf`，生产schema为 `e6a91f4c820d`。本文不改业务代码、不启动采集。[发布证据](../audits/2026-09-07-m1-release.md)与[后续计划](../superpowers/plans/2026-09-06-dynamic-crawler-agent.md)另见链接。
 
-后续记录：2026-09-08已本地实现[M2-A候选保存](../audits/2026-09-08-m2a-candidate-http.md)与[B1后台受控预览](../audits/2026-09-08-m2b1-admin-preview.md)，随后[B2a私有证据/回放](../audits/2026-09-08-m2b2a-private-evidence.md)也本地完成；均未部署，持久policy/独立验证/审批/active路由仍未完成。下文仍是4477cfd时点的架构快照，不把后续实现倒写为M1已有能力。
+后续记录：2026-09-08已本地实现[M2-A候选保存](../audits/2026-09-08-m2a-candidate-http.md)与[B1后台受控预览](../audits/2026-09-08-m2b1-admin-preview.md)，随后[B2a私有证据/回放](../audits/2026-09-08-m2b2a-private-evidence.md)也本地完成；均未部署，持久policy/独立验证/审批/active路由仍未完成。上述A/B1/B2a已于2026-09-09随90c94b6合入master，CI离线574/14、MySQL14/14成功；[合入记录](../superpowers/plans/2026-09-08-m2-mainline-integration.md)。下文仍是4477cfd时点的架构快照，不把后续实现倒写为M1已有能力。
 
 ## 1. 先分清“现在有什么”
 
