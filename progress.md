@@ -1,5 +1,53 @@
 # Progress
 
+## 当前M2成果合入主干（2026-09-08，进行中）
+- 用户已授权把当前所有成果提交并合入主干；不包含部署。新增 docs/superpowers/plans/2026-09-08-m2-mainline-integration.md。
+- master@4477cfd；fetch后与origin/master一致，暂存区空，保留全部M2-A/B1/B2a与文档。按明确allowlist提交，CI仅离线/一次性MySQL，没有部署步骤；不使用子代理、不SSH/真实源/付费/邮件。
+
+## M2-B2a 本地完成（2026-09-08）
+- 显式保留私有快照/只读回放/过期清理完成，默认不保留；0700目录/0600随机文件、6文档/2MiB body/3MiB bundle/32文件/64MiB总额/24h有效性、非阻塞flock，失败固定码。JSON引用含独立capture_id绑定，不能把同候选的不同捕获互换；整体hash不取代单页/URL/权限验证。
+- 真实red包括缺保存/回放/清理控件、满额仍保存、不安全文件仍available、引用串换/路径穿越、空证据、损坏结构/checksum不充分、symlink loop；修复后通过。源码/期限变化与partial缺页回放不联网，fsync/SQL失败孤儿可清理，权限/CSRF保持。
+- 新增49 HTTP；全套574 passed/14 MySQL专用skip/3453 warnings，147.67秒；158 AST/43模板/指定flake8/diff通过。无新DDL/head仍b6；原MySQL HTTP扩展引用/回放但14项未本轮实跑。
+- 报告 docs/audits/2026-09-08-m2b2a-private-evidence.md。不存DB原文、不写Article/派LLM/发布；B2b持久policy、独立验证、审批/CAS仍后续。无提交/SSH/真实源/费用/邮件/部署，也未改Compose或创建生产目录。
+
+### 本切片开始记录
+- 用户继续；先读计划/代码并记录 docs/superpowers/plans/2026-09-08-m2b2-evidence.md。先实现显式保存私有证据/回放/生命周期，再B2b持久policy与人工审批/CAS；不提前声称完整B2。
+- 保留4477cfd上的所有dirty；不提交/SSH/外网/付费/邮件，不使用子代理。真实HTTP seam不重复要求批准。CLI单文件快照没有后台所需的全局容量/TTL，不能直接当完整证据库。
+
+## M2-B1：后台预览本地完成（2026-09-08）
+- 新增真实HTTP预览/报告：独立主机许可、news/bulletin标准、实际M1引擎、限5样本/1000字符/64KiB JSON、每候选20报告，无原始HTML/Article/LLM/审批。新增b6表，旧候选/来源数据不迁移回填。
+- 真正red：缺表单、伪造控制数据、旧输入仍执行、source ABA、中途/事后变化仍ready、报告未裁剪、私有执行异常外泄、迁移无表；修复后通过。源码输入变化走Admin路径递增generation，抓取前释放session，结束复查/保存/修剪同事务。
+- 36 HTTP+2迁移新增离线通过；全套最终525 passed/14 MySQL专用skip/2715 warnings，107.31秒（首轮107.88秒）。新增MySQL HTTP预览用例待实跑，不能借M1结果背书。
+- 156 AST/43模板、指定flake8/diff/单head通过。测试fixture旧ORM因正确释放session而detached，改真实登录HTTP；fixture import触发F811改模块注册，未关检查/未改产品行为。
+- 报告 docs/audits/2026-09-08-m2b1-admin-preview.md。未提交/推送/SSH/真实来源/付费/邮件/部署；B2原始证据/完整policy/审批及C/D可靠运行仍后续。
+
+### 本切片开始记录
+- 用户“好，继续”确认已说明的后台预览流程；先记录 docs/superpowers/plans/2026-09-08-m2b1-admin-preview.md，再按同一HTTP验收面TDD。
+- B1把管理员明确的本次host/质量选择固化到有限报告，暂不先做全局policy发布API；最多5条样本/64KiB报告、20份每版本，不存原始HTML，不准据此直接批准。B2完整证据/发布与C/D仍后续。
+- 继续保留未提交M2-A和文档，零真实来源/模型/SSH/部署，复用跨exec合成HTTP fixture，主会话单写者。
+
+## M2-A：后台HTTP候选保存（本地完成，2026-09-08）
+- 后续真实red覆盖服务端元数据/重复表单值被忽略、缺私有响应头、SQL trigger失败泄露异常参数、commit后ORM读取造成误报失败；均最小修复后通过。SQL异常固定503/日志码并rollback；返回ID在commit前取出。
+- 26项HTTP+2项迁移，全套487 passed/13 MySQL专用skip/2214 warnings，143.57秒。新MySQL HTTP/UTF8用例仅追加未运行；HEAD更新a731，历史M1质量迁移用例固定e6。
+- SQLite迁移用例误读CLI SystemExit文本，记录后改看output；非业务red。152 AST/42模板、指定flake8、diff检查和单head通过。
+- 报告 docs/audits/2026-09-08-m2a-candidate-http.md。仅候选保存/列表/详情，无policy编辑/预览/审批/active路由/lease/outbox；保留全部未提交文档与代码，无部署/SSH/外网/付费/邮件。
+
+### 本切片早期过程
+- 用户选择后台HTTP为主要验收入口。不是新建测试API；以真实来源管理和候选页操作观察，迁移保留既有运维验收。
+- 首条保存/独立请求重读测试真实404 red；新增嵌套Admin blueprint、最小profile/version模型、候选列表/详情后green。第二条来源列表缺入口链接red，加入Crawl config链接后green。
+- 匿名/普通用户的GET/POST和缺CSRF负例直接通过既有父Admin/CSRF保护，不冒称新red。当前5项通过；无Article、无外部网络/模型或任务派发。迁移及输入/事务等负例仍在进行，未提交部署。
+
+## M2本地准备（2026-09-07）
+- 用户要求继续，核对HEAD4477cfd及已有架构导览文档改动，全部保留；仍单写者，不使用子代理。
+- 新增 docs/superpowers/plans/2026-09-07-m2-versioned-runtime.md 和领域术语CONTEXT.md；主计划记录2.1+2.4最小HTTP入口先组成纵向切片，不提前部署缺少lease/outbox/调度的中间状态。
+- 发现source.updated_at混合配置与运行更新、ABA发布风险、历史M1简化迁移fixture将不适配M2 head，已在行动前记录处理方式。
+- 当前只完成准备。M2新增Admin HTTP/Celery验收面待一次确认；未写测试/业务代码，未跑pytest/迁移/采集/SSH，没有提交或部署。
+
+## 动态爬虫架构与代码导览（2026-09-07）
+- 用户要求把架构与代码逻辑结合展示。静态核对4477cfd：旧自动链与M1手工入口并存，JSON-LD为详情读取方式，两个helper按需启动，只有新引擎具备全套门禁/解析监督；当前无Agent/active版本/lease/outbox/browser实现。
+- 输出 docs/architecture/2026-09-07-dynamic-crawler-code-map.md，含当前/目标图、入口/模块映射、preview/run事务、状态/字段证据、LLM质量保护及阅读顺序；47个链接/行号锚点和围栏复核通过。
+- 本轮仅文档与规划记录，无业务修改、测试重跑、子代理、网络采集、SSH、提交或部署。
+
 ## M1生产发布完成（2026-09-07）
 - 应用1052edf/schema e6已上线；本地459/12，修正fixture后CI34091467749两job成功，最终真正web/worker各12/12（20.674/20.175s）。四镜像40模板/CSRF/Admin/HTTP/回放/billiard smoke、本站SafeFetcher真实TLS成功。
 - 06:47:58Z→06:48:03Z切换，仅四应用变化，无源码挂载；公网、有效CSRF匿名拒绝、unknown标记、model diff0、配置指纹不变及LIVE_WORKERS_READY通过。HTTP探针误POST manage得405已按实际GET纠正，无业务改动。

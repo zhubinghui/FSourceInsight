@@ -126,6 +126,8 @@
 
 ## M2：版本/幂等/调度与可靠交付
 
+用户已选择真实后台HTTP作为主要验收入口。[本地实施细化](2026-09-07-m2-versioned-runtime.md)中的A候选保存切片完成：26项HTTP+2项迁移、全套487通过/13 MySQL专用skip；[报告](../../audits/2026-09-08-m2a-candidate-http.md)。随后[B1后台预览](../../audits/2026-09-08-m2b1-admin-preview.md)也本地完成，当时525通过/14 MySQL专用skip；其后[B2a私有证据/回放](../../audits/2026-09-08-m2b2a-private-evidence.md)也完成，最新574/14，原文默认不保存、显式受限保留24h，仍没有持久policy/独立验证/审批/激活；2.1/2.4其余部分和2.2/2.3仍未完成，未提交部署。
+
 ### 2.1 `feat(crawl): persist versioned schemas and run evidence`
 - 新增 schema/profile 表，扩展 CrawlLog；先 nullable 扩展，再回填，再约束，不丢旧日志。
 - 一个源默认一个 profile，允许后续按类型/语言增多个；active/previous 指针与不可变候选。

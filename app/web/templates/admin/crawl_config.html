@@ -1,0 +1,34 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Crawl configuration{% endblock %}
+{% block content %}
+<h2>Crawl configuration — {{ source.name }}</h2>
+<p><a href="{{ url_for('admin.sources') }}">Back to sources</a></p>
+<div class="alert alert-info">
+    <strong>No active recipe.</strong> Legacy crawling remains unchanged.
+    Candidates can be previewed with explicit permission. Approval is not available yet.
+    Saving a candidate does not fetch pages, write articles or dispatch LLM tasks.
+</div>
+<form method="post" action="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="recipe" class="form-label">Recipe JSON for source {{ source.id }}</label>
+    <textarea class="form-control font-monospace" id="recipe" name="recipe" rows="14" required></textarea>
+    <button type="submit" class="btn btn-primary my-3">Save candidate</button>
+</form>
+<h3>Private evidence maintenance</h3>
+<p>Global store: at most 32 bundles / 64 MiB, 3 MiB per bundle. Evidence expires after 24 hours.
+    Expired files are deleted on the next retained preview or explicit cleanup, not automatically on expiry.
+    This also removes expired orphan files, but never unexpired evidence for any source.</p>
+<form method="post" data-cleanup action="{{ url_for('admin.crawl_config.cleanup_evidence', source_id=source.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-secondary mb-3">Clean expired evidence (all sources)</button>
+</form>
+<h3>Recent candidates</h3>
+<ul>
+{% for version in versions %}
+    <li><a href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=version.id) }}">Version {{ version.id }}</a>
+        — {{ version.status }} — {{ version.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</li>
+{% else %}
+    <li>No candidates yet.</li>
+{% endfor %}
+</ul>
+{% endblock %}

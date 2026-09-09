@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'e6a91f4c820d'
+HEAD = 'b6c2a4d9e710'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -84,6 +84,51 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertNotIsInstance(column['type'], Enum)
         self.assertEqual(column['type'].length, 50)
         self.assertFalse(column['nullable'])
+
+    def test_admin_http_candidate_roundtrips_without_activating_or_ingesting(self):
+        import json
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models.user import User
+        from app.models.source import NewsSource
+
+        self.upgrade()
+        user = User(email='admin@test.invalid', is_admin=True,
+                    password_hash=generate_password_hash('test-password'))
+        source = NewsSource(name='Synthetic', slug='candidate', url='https://news.test.invalid/', category='national')
+        self.db.session.add_all([user, source])
+        self.db.session.flush()
+        source_id = source.id
+        self.db.session.commit()
+        self.db.session.remove()
+        client = self.app.test_client()
+
+        def http(method, url, **kwargs):
+            # Fresh request/ORM observation context, including Flask-Login's g.
+            with self.app.app_context():
+                return getattr(client, method)(url, **kwargs)
+
+        token = BeautifulSoup(http('get', '/auth/login').text, 'html.parser').select_one('input[name=csrf_token]')['value']
+        self.assertEqual(http('post', '/auth/login', data={
+            'email': 'admin@test.invalid', 'password': 'test-password', 'csrf_token': token,
+        }).status_code, 302)
+        recipe = {
+            'format_version': 1, 'output_contract': 'article.v1', 'target_kind': 'news',
+            'source_id': source_id, 'locale': 'en', 'transport': 'http', 'extractor': 'rss',
+            'identity_policy': 'legacy-compatible-url-v1',
+            'feed': {'url': 'https://news.test.invalid/feed?label=énergie-实验室-🚀',
+                     'fields': {'title': 'title', 'url': 'link'}},
+        }
+        path = f'/admin/sources/{source_id}/crawl-config'
+        with patch('celery.app.base.Celery.send_task', side_effect=AssertionError('No dispatch')):
+            with patch('litellm.completion', side_effect=AssertionError('No model call')):
+                saved = http('post', path, data={'recipe': json.dumps(recipe), 'csrf_token': token})
+        self.assertEqual(saved.status_code, 302)
+        page = BeautifulSoup(http('get', saved.location).text, 'html.parser')
+        self.assertEqual(json.loads(page.select_one('pre[data-recipe]').get_text()), recipe)
+        self.assertEqual(page.select_one('[data-version-status]').get_text(strip=True), 'Candidate')
+        self.assertIn('No active recipe', http('get', path).text)
+        self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
 
     def test_old_enum_usage_and_foreign_keys_survive_upgrade(self):
         from app.models.llm import LLMUsageLog
@@ -156,6 +201,55 @@ class MySQLM0Tests(unittest.TestCase):
                         process.kill()
                         process.wait(timeout=2)
                         self.fail('Engine leaked a helper process')
+
+    def test_admin_http_preview_persists_report_and_source_change_stales_it(self):
+        import json
+        from tempfile import TemporaryDirectory
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models.user import User
+
+        with self.synthetic_news_engine() as fixture, TemporaryDirectory(prefix='fsi-evidence-') as directory, patch.dict(self.app.config):
+            self.app.config['CRAWL_EVIDENCE_DIR'] = directory
+            self.db.session.add(User(email='preview-admin@test.invalid', is_admin=True,
+                                     password_hash=generate_password_hash('test-password')))
+            self.db.session.commit()
+            self.db.session.remove()
+            client = self.app.test_client()
+
+            def http(method, url, **kwargs):
+                with self.app.app_context():
+                    return getattr(client, method)(url, **kwargs)
+
+            token = BeautifulSoup(http('get', '/auth/login').text, 'html.parser').select_one('input[name=csrf_token]')['value']
+            self.assertEqual(http('post', '/auth/login', data={
+                'email': 'preview-admin@test.invalid', 'password': 'test-password', 'csrf_token': token,
+            }).status_code, 302)
+            saved = http('post', f'/admin/sources/{fixture.source_id}/crawl-config', data={
+                'recipe': json.dumps(fixture.recipe.to_dict()), 'csrf_token': token,
+            })
+            self.assertEqual(saved.status_code, 302)
+            form = BeautifulSoup(http('get', saved.location).text, 'html.parser').select_one('form[data-preview]')
+            data = {field['name']: field.get('value', '') for field in form.select('input[name]')
+                    if not field.has_attr('disabled') and (field.get('type') != 'checkbox' or field.has_attr('checked'))}
+            data.update(allowed_hosts='news.test.invalid', quality_kind='news', retain_evidence='1')
+            with patch('celery.app.base.Celery.send_task', side_effect=AssertionError('No dispatch')):
+                with patch('litellm.completion', side_effect=AssertionError('No model')):
+                    result = http('post', form['action'], data=data)
+            self.assertEqual(result.status_code, 302)
+            report = BeautifulSoup(http('get', result.location).text, 'html.parser')
+            self.assertEqual(report.select_one('[data-preview-status]').get_text(strip=True), 'ready')
+            self.assertEqual(report.select_one('[data-field="title"]').get_text(strip=True), 'Research')
+            self.assertEqual(report.select_one('[data-evidence-status]').get_text(strip=True), 'available')
+            replay_form = report.select_one('form[data-replay]')
+            replayed = http('post', replay_form['action'], data={'csrf_token': token})
+            self.assertEqual(replayed.status_code, 200)
+            self.assertIn('Offline snapshot replay', replayed.text)
+            self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
+            self.assertEqual(http('post', f'/admin/sources/{fixture.source_id}/toggle', data={'csrf_token': token}).status_code, 302)
+            stale = BeautifulSoup(http('get', result.location).text, 'html.parser')
+            self.assertEqual(stale.select_one('[data-preview-status]').get_text(strip=True), 'stale')
+            self.assertEqual(http('post', form['action'], data=data).status_code, 409)
 
     def test_mysql_news_engine_round_trips_quality_json_and_deduplicates(self):
         from app.models.article import Article

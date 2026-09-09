@@ -9,13 +9,18 @@ from slugify import slugify
 
 from app.extensions import db
 from app.models.source import NewsSource, CrawlLog
+from app.models.crawl_schema import CrawlSourceProfile
+from app.crawlers._preview import source_fingerprint
 from app.models.article import Article, ArticleCompany
 from app.models.company import Company
 from app.models.llm import LLMConfig, LLMUsageLog
 from app.models.startup_source import StartupSource
 from app.models.sector_group import SectorGroup
 
+from .crawl_config import crawl_config_bp
+
 admin_bp = Blueprint('admin', __name__)
+admin_bp.register_blueprint(crawl_config_bp)
 
 
 @admin_bp.before_request
@@ -101,6 +106,8 @@ def source_edit(source_id):
 def source_toggle(source_id):
     source = NewsSource.query.get_or_404(source_id)
     source.is_active = not source.is_active
+    db.session.execute(db.update(CrawlSourceProfile).where(CrawlSourceProfile.source_id == source_id)
+                       .values(generation=CrawlSourceProfile.generation + 1))
     db.session.commit()
     status = 'activated' if source.is_active else 'deactivated'
     flash(f'{source.name} {status}.', 'success')
@@ -118,6 +125,7 @@ def source_crawl_now(source_id):
 
 
 def _save_source_from_form(source: NewsSource) -> NewsSource:
+    before = source_fingerprint(source) if source.id is not None else None
     source.name = request.form.get('name', '').strip()
     source.slug = slugify(source.name) if not request.form.get('slug') else request.form.get('slug').strip()
     source.url = request.form.get('url', '').strip()
@@ -127,6 +135,9 @@ def _save_source_from_form(source: NewsSource) -> NewsSource:
     source.category = request.form.get('category', 'national')
     source.crawl_frequency_minutes = int(request.form.get('crawl_frequency_minutes', 60))
     source.is_active = request.form.get('is_active') == 'on'
+    if before is not None and before != source_fingerprint(source):
+        db.session.execute(db.update(CrawlSourceProfile).where(CrawlSourceProfile.source_id == source.id)
+                           .values(generation=CrawlSourceProfile.generation + 1))
     return source
 
 

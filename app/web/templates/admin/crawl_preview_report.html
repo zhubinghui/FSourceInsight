@@ -1,0 +1,54 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Crawl preview {{ preview.id }}{% endblock %}
+{% block content %}
+{% set data = replay_data if replay_data is not none else preview.report %}
+<h2>{{ source.name }} — Preview {{ preview.id }}</h2>
+{% if replay_data is not none %}<h3>Offline snapshot replay</h3><p>Re-extracted now; not a new saved report or approval.</p>{% endif %}
+<p><a href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=version_id) }}">Back to candidate</a></p>
+<p>Status: <strong data-preview-status>{{ 'stale' if stale else (data.result_status if replay_data is not none else preview.status) }}</strong></p>
+{% if stale %}<div class="alert alert-danger">Configuration changed since this preview. Reload the candidate and run a new preview.</div>{% endif %}
+<p>Recorded engine result: {{ preview.report.result_status }}</p>
+<p>Raw evidence: <strong data-evidence-status>{{ evidence_status }}</strong></p>
+{% if evidence_status == 'not_retained' %}
+<div class="alert alert-warning">No raw snapshots retained. This report contains limited samples and hash references only;
+    it cannot be replayed or used directly for approval. No articles or LLM tasks were created.</div>
+{% else %}
+<div class="alert alert-warning">Private raw evidence expires after 24 hours. Missing, expired or damaged evidence cannot be replayed.
+    Evidence and replay are not approval. No articles or LLM tasks were created.</div>
+{% endif %}
+{% if evidence_status == 'available' and not stale %}
+<form method="post" data-replay action="{{ url_for('admin.crawl_config.replay', source_id=source.id, version_id=version_id, report_id=preview.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-secondary mb-3">Replay without network or ingestion</button>
+</form>
+{% endif %}
+<dl class="row">
+{% for key in ['discovered', 'extracted', 'valid', 'rejected', 'duplicate'] %}
+    <dt class="col-sm-3">{{ key }}</dt><dd class="col-sm-9" data-count="{{ key }}">{{ data.quality[key] }}</dd>
+{% endfor %}
+</dl>
+<p>Content levels (unique extracted items): {% for level, count in data.content_levels.items() %}{{ level }}: {{ count }} {% endfor %}</p>
+<p class="small">Duplicate counts are within this preview only. Existing database articles are not checked.</p>
+<p>Engine: <code>{{ preview.engine_version }}</code> — Recipe: <code>{{ preview.recipe_hash }}</code></p>
+<p>Generation {{ preview.generation }} — Administrator #{{ preview.created_by_id }} — {{ preview.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+<p>Allowed hosts: {% for host in preview.report.fetch_policy.allowed_hosts %}<code>{{ host }}</code> {% endfor %}</p>
+<p>Quality: {{ preview.report.quality_profile.min_content_chars }} characters / {{ preview.report.quality_profile.min_paragraphs }} paragraphs.</p>
+<h3>Errors</h3>
+<ul>{% for error in data.errors %}<li data-error>{{ error.stage }}: {{ error.code }}</li>{% else %}<li>No reported errors.</li>{% endfor %}</ul>
+<h3>Samples (at most 5)</h3>
+{% for sample in data.samples %}
+<section class="border rounded p-3 mb-3" data-sample>
+    <h4 data-field="title">{{ sample.title }}</h4>
+    <p><a data-original href="{{ sample.url }}" target="_blank" rel="noopener noreferrer">Original article</a></p>
+    <p><span data-field="content_level">{{ sample.content_level }}</span> —
+       <span data-field="source_language">{{ sample.source_language }}</span> —
+       <span data-field="published_at">{{ sample.published_at or 'unknown' }}</span></p>
+    <pre data-field="content" style="white-space: pre-wrap">{{ sample.content_excerpt or 'No adopted body text.' }}</pre>
+    {% if sample.excerpt_truncated %}<p class="small">Display excerpt truncated to 1000 characters; level describes the extracted item, not this excerpt.</p>{% endif %}
+    <details><summary>Field provenance (hash references; see raw evidence availability above)</summary>
+    <ul>{% for field in sample.provenance %}<li>{{ field.field }} / {{ field.method }} / <code>{{ field.snapshot_id }}</code> / <code>{{ field.locator }}</code></li>{% endfor %}</ul>
+    </details>
+</section>
+{% else %}<p>No usable article samples.</p>{% endfor %}
+{% if data.samples_truncated %}<p>Only the first 5 article samples are displayed in this report. Retained raw evidence, if available, may contain more.</p>{% endif %}
+{% endblock %}

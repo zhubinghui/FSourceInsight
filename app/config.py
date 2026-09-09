@@ -30,6 +30,9 @@ class Config:
         os.environ.get('DEFAULT_CRAWL_FREQUENCY_MINUTES', 60)
     )
 
+    # Opt-in dedicated private evidence directory, provisioned outside the checkout.
+    CRAWL_EVIDENCE_DIR = os.environ.get('CRAWL_EVIDENCE_DIR')
+
     # LLM cost budget (USD per day, 0 = unlimited)
     LLM_DAILY_BUDGET_USD = float(os.environ.get('LLM_DAILY_BUDGET_USD', '5.0'))
 

@@ -14,7 +14,8 @@ def test_article_quality_migration_preserves_unknown_legacy_data(monkeypatch, tm
             conn.execute(text("INSERT INTO article VALUES (42, 'legacy-guid', 'Original title', 'Original body')"))
         runner = app.test_cli_runner()
         assert runner.invoke(args=['db', 'stamp', 'd472ac9e6102']).exit_code == 0
-        result = runner.invoke(args=['db', 'upgrade'])
+        # This fixture represents only the M1 article expansion, not later tables.
+        result = runner.invoke(args=['db', 'upgrade', 'e6a91f4c820d'])
         assert result.exit_code == 0, result.output
         with db.engine.connect() as conn:
             row = conn.execute(text('SELECT external_id,content_fr,content_level,source_language,crawl_provenance FROM article')).one()

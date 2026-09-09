@@ -36,6 +36,7 @@
             <td>{{ source.last_crawled_at.strftime('%m-%d %H:%M') if source.last_crawled_at else 'Never' }}</td>
             <td>
                 <a href="{{ url_for('admin.source_edit', source_id=source.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}" class="btn btn-sm btn-outline-secondary">Crawl config</a>
                 <form method="post" action="{{ url_for('admin.source_crawl_now', source_id=source.id) }}" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-outline-warning" title="Crawl now">

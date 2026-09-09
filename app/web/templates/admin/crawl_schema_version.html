@@ -1,0 +1,36 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Crawl recipe version {{ candidate.id }}{% endblock %}
+{% block content %}
+<h2>{{ source.name }} — Version {{ candidate.id }}</h2>
+<p><a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">Back to crawl configuration</a></p>
+<p>Status: <strong data-version-status>{{ candidate.status|capitalize }}</strong></p>
+<p>Recipe fingerprint: <code>{{ candidate.recipe_hash }}</code></p>
+<p>Base generation: {{ candidate.base_generation }}. Created by administrator #{{ candidate.created_by_id }}
+    at {{ candidate.created_at.strftime('%Y-%m-%d %H:%M UTC') }}.</p>
+<div class="alert alert-warning">Not approved and not used by scheduled crawling. A preview does not publish this candidate.</div>
+<h3>Read-only preview</h3>
+<form method="post" data-preview action="{{ url_for('admin.crawl_config.preview', source_id=source.id, version_id=candidate.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="expected_generation" value="{{ generation }}">
+    <input type="hidden" name="expected_source" value="{{ source_hash }}">
+    <label for="allowed_hosts" class="form-label">Hosts I authorize for this preview (one exact host per line)</label>
+    <textarea id="allowed_hosts" name="allowed_hosts" class="form-control" rows="3" required></textarea>
+    <label for="quality_kind" class="form-label mt-2">Quality standard</label>
+    <select id="quality_kind" name="quality_kind" class="form-select">
+        <option value="news">News (200 characters / 2 paragraphs)</option>
+        <option value="bulletin">Bulletin (80 characters / 1 paragraph)</option>
+    </select>
+    <p class="small mt-2">M1 engine budget: 20 seconds / 6 HTTP requests (including robots and redirects),
+        excluding database and rendering overhead. No article writes, LLM tasks or automatic approval.
+        This permit applies only to this preview; it does not publish a source policy.</p>
+    <label class="form-check mb-3"><input type="checkbox" name="retain_evidence" value="1" class="form-check-input">
+        Retain private raw evidence for 24 hours (requires configured private storage; no approval)</label>
+    <button type="submit" class="btn btn-primary mb-3" {% if not source.is_active %}disabled{% endif %}>Preview without ingesting</button>
+    {% if not source.is_active %}<p>Enable the source before previewing.</p>{% endif %}
+</form>
+<h3>Recent previews</h3>
+<ul>{% for report in reports %}
+    <li><a href="{{ url_for('admin.crawl_config.preview_report', source_id=source.id, version_id=candidate.id, report_id=report.id) }}">Preview {{ report.id }}</a> — recorded: {{ report.status }} (open to check current inputs)</li>
+{% else %}<li>No previews yet.</li>{% endfor %}</ul>
+<pre data-recipe class="border rounded p-3" style="white-space: pre-wrap">{{ recipe_text }}</pre>
+{% endblock %}

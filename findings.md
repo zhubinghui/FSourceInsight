@@ -1,5 +1,39 @@
 # Findings
 
+## M2-B2a 私有证据发现（2026-09-08）
+- 相同candidate/source/policy的两次capture仍需独立身份：仅绑定配置会允许替换reference。加入服务端capture_id，文件/DB分别对应；hash只是内部一致性，不认证网页或防DB+文件特权者一起伪造。
+- 文件整体digest正确不代表单页hash/URL/JSON结构正确。读取须重验单页与许可/数量/字节，拒绝重复key/未知字段；路径必须服务端随机且受限，不打开引用中的../。
+- 数据库与文件系统不能假装同事务。文件/fsync/SQL失败可能留有界孤儿，按mtime过期清理；DB commit不确定时不立即删文件。过期不等于即时物理删除，需显式清理或下一次保存触发。
+- 0700专用目录/0600普通单链接文件/非阻塞flock是本地POSIX保证，不是OS沙箱、分布式存储或全局运行lease。symlink loop在Path.resolve可能变为带路径RuntimeError，先lstat拒绝。
+- 原M1 CLI单文件快照没有后台全局容量/TTL，保持其行为，新增内部有限存储。49新HTTP、全套574/14，158 AST/43模板通过；真实共享卷/MySQL/压力/恢复仍后续。
+
+## M2-B1 后台预览发现（2026-09-08）
+- 后台真实preview必须独立于recipe接受管理员许可；B1每次permit只固化到该报告，不冒称持久source policy已发布。report ready不改变candidate状态，有限hash/样本没有原始回放证据，审批仍不可用。
+- 预览前关闭Session，避免持有事务抓网页；完成短事务复查source/generation、写报告与裁剪。同一source输入ABA须独立generation，不能用updated_at（正常爬取也会改）。Admin配置路径已接，直接SQL改回仍不是本轮保证。
+- 报告保留必须真正删除超过上限的行，而不只是页面limit20；旧报告URL应404。GET还需比较当前配置，不能只显示完成时的ready。
+- 20秒预算只覆盖M1引擎阶段，不涵盖DB锁等待/模板；每版本20份/64KiB JSON不等于全局并发/物理磁盘硬上限。SQL/意外执行异常要固定消息，避免sample/页面混入日志。
+- 最终525/14，36 HTTP+2迁移为本轮新增；14项MySQL待环境实跑。156 AST/43模板通过；fixture detached/F811分别是测试观察/静态问题，未降产品安全保证。
+
+## M2-A HTTP本地验收发现（2026-09-08）
+- 用户选择真实后台HTTP；嵌套在现有admin blueprint的页面继承权限/CSRF。测试用独立Flask上下文重读，避免外层pytest app context复用ORM事务造成假持久化。
+- SQLAlchemy错误文本可能带完整recipe参数；DB失败采用固定码日志/503与rollback。commit后的candidate.id读取会触发expired ORM刷新，读连接失败可把已成功保存误报503；真实边界red后改commit前flush/取ID。
+- A目前只存档案归属/generation与候选版本，未加入active/previous/policy等未来状态；页面明示未验证/未批准，旧抓取完全不读取这些表。不可变保证限现有业务HTTP不可覆盖，不声称防DB管理员直接改写。
+- 26 HTTP+2迁移本地通过，全套487/13；13个MySQL含新HTTP UTF8用例未在本轮环境执行。新迁移只建两表与约束，不改旧数据；完整MySQL并发/发布仍后续。
+
+## M2准备核对（4477cfd，尚未实现）
+- NewsSource.updated_at具有onupdate，普通last_crawled_at变化也会更新；不能拿它直接当候选配置版本。独立配置指纹/generation排除运行统计，CAS还要防A→B→A的ABA。
+- M1专用质量迁移测试用简化article表升head，M2依赖source/log后须固定该历史用例到e6，并另建完整前序升级用例；MySQL专用HEAD也需随新migration更新，不能把fixture不足当业务red。
+- Admin/Celery现有入口已核对，M2新增候选/审批/证据及可靠派发/调度是新验收面，严格TDD要求先一次确认。先完成计划，不写未经确认边界的测试。
+- 细化计划 docs/superpowers/plans/2026-09-07-m2-versioned-runtime.md；CONTEXT.md统一采集档案、质量标准、候选与active等术语，不宣称相关能力已实现。
+
+## 当前架构导览核对（4477cfd）
+- 生产调度仍是Celery旧crawl_source→registry→BaseCrawler；新CrawlEngine经手工recipe CLI/Python调用。不能把SafeFetcher的渐进接入画成新引擎已接管所有源。
+- Beat实际每600秒检查频率，并有Redis默认6小时自门禁；daily-crawl固定Paris 01:00后再核对DB小时，不是已有统一next_due调度。新CrawlLog仍是旧三值状态表，丰富Outcome并未完整持久化。
+- 原设计中的Schema Registry/Agent/审批/lease/outbox/browser是目标，不是当前存在的文件或运行链；导览将标明实际Implementation与后续Seam。
+- root extractor仅html/rss；JSON-LD是详情字段read=jsonld，不是第三个顶层extractor。preview的质量分类允许可信metadata部分保留；run每次独立建日志，无可靠逻辑run复用。最终CrawlLog只存running/success/failed及简化计数/错误码，完整质量/快照仍非M2持久化证据库。
+- LLM门禁限于文章digest/insight；metadata/excerpt仍可能走标题翻译、summary/NER/情感/分类，任务包装还有既有公司分析刷新。CLI不主动派LLM不等于生产中的文章永不被后台选中。
+- SafeFetch实例复用HTTP子进程，parser每文档独立子进程；只有新引擎走完整解析监督，旧RSS/HTML仍在worker内feedparser/BeautifulSoup。函数名下的_fetch_worker.Engine是HTTP实现，不是CrawlEngine。
+
 ## M1发布实机补充（2026-09-07）
 - MySQL公共run返回success但fixture查询NoResultFound，已在CI与真正候选复现。边界probe显示新事务1行/旧调用者0行；expire_all不能清REPEATABLE READ快照。修复测试观察事务而非业务引擎，并同步修回滚负例避免旧空快照掩盖泄漏；新CI及两候选12项通过。
 - 全套离线通过不能替代MySQL真实隔离语义；候选单独helper通过也不等于prefork。此次追加基础billiard→parser与本站SafeFetcher TLS smoke通过，仍不声称完整broker/长期压力/真实新闻覆盖验收。
