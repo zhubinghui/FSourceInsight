@@ -1,8 +1,11 @@
 # Progress
 
-## M2当前成果生产发布（2026-09-09，开始）
+## M2当前成果生产发布（2026-09-09，完成）
 - 用户新授权部署，先记录 docs/superpowers/plans/2026-09-09-m2-partial-release.md；只部署A/B1/B2a，取代旧“完整M2后上线”安排，不把审批/路由/可靠调度标成已实现。
-- ae1fb87起点clean；现有Compose无证据卷，先TDD可选仅web持久挂载，再固定候选/CI/备份/隔离验证。只切四应用，不动MySQL/Redis/Caddy/其他项目，无额外真实源/模型/邮件。
+- ae1fb87起点clean；TDD增加可选仅web持久卷，新ref22c098c、本地576/14/154.31秒、CI34367023823两job通过。真正web/worker各14 MySQL/26.715与26.538秒，四镜像43模板及基础prefork通过；Docker卷真实HTTP捕获/跨容器flock忙503/重建后离线回放200、不入库不批准。
+- 备份m2-20260909145831：18,992,013 bytes/mode600/gzip与SHA256通过；旧四镜像保留。排空worker，e6→b6扩展迁移/model diff0/旧计数与4模型配置不变，15:25:00Z→15:25:06Z切换健康，无回滚触发。
+- 公网/有效CSRF匿名拒绝/本站SafeFetch真实TLS/worker/image/私有卷门禁通过；仅四应用改变，MySQL/Redis/Caddy及其他项目未变，测试资源/凭据已精确清理。无额外新闻/付费模型/邮件。beat245/256MiB余量较小、无OOM/重启，长期容量/压力仍未验证。
+- 详见 docs/audits/2026-09-09-m2-partial-release.md；以下保留之前各阶段原始记录。
 
 ## 当前M2成果合入主干（2026-09-09，完成）
 - 34文件明确allowlist提交90c94b6f441ae39e22d15ad1f34f320b3469f224并正常推送master；远端SHA一致、首次提交后工作区clean，无强推/merge冲突。
