@@ -1,0 +1,16 @@
+# OPTIONAL production layer, AFTER prod and (when used) caddy.
+# Provision this dedicated external volume first: app UID owns the root, mode 0700.
+# Never serve it, mount it into parsers/browsers outside the web process, or store
+# unrelated files here. Default previews still require an explicit retention checkbox.
+# Expired files are removed on the next retained preview or admin cleanup, not by cron.
+services:
+  web:
+    environment:
+      CRAWL_EVIDENCE_DIR: /var/lib/fsource-evidence
+    volumes: !override
+      - crawl_evidence_data:/var/lib/fsource-evidence
+
+volumes:
+  crawl_evidence_data:
+    external: true
+    name: fsourceinsight_crawl_evidence_data

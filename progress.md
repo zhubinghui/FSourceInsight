@@ -1,5 +1,9 @@
 # Progress
 
+## M2当前成果生产发布（2026-09-09，开始）
+- 用户新授权部署，先记录 docs/superpowers/plans/2026-09-09-m2-partial-release.md；只部署A/B1/B2a，取代旧“完整M2后上线”安排，不把审批/路由/可靠调度标成已实现。
+- ae1fb87起点clean；现有Compose无证据卷，先TDD可选仅web持久挂载，再固定候选/CI/备份/隔离验证。只切四应用，不动MySQL/Redis/Caddy/其他项目，无额外真实源/模型/邮件。
+
 ## 当前M2成果合入主干（2026-09-09，完成）
 - 34文件明确allowlist提交90c94b6f441ae39e22d15ad1f34f320b3469f224并正常推送master；远端SHA一致、首次提交后工作区clean，无强推/merge冲突。
 - 本轮复验574 passed/14 MySQL专用skip，162.03秒；158 AST/43模板/指定flake8/96文档链接与围栏、暂存diff及常见凭据标记检查通过。
