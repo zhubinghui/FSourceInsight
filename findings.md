@@ -1,5 +1,11 @@
 # Findings
 
+## M2-B2b.1发布新证据（2026-09-10）
+- 应用14dc6f1/c9已上线；CI34443459274成功，真正web/worker镜像部署前后四轮各15 MySQL通过，原“15项尚未实跑”只属开发阶段历史。生产policy表空，不自动批准规则。
+- fast的restart0掩盖了MEMCG子进程OOM；内核与memory.events确认1次kill。fast1GiB/beat384MiB容量缓解已生效，新cgroup短时事件0，仍不能证明夜间采集峰值、增长根因或长期稳定。
+- 本次回滚保护明确：先停web再锁定读取policy记录，存在或不确定时不恢复旧22 web，避免静默B1绕过；保留新列/卷，不downgrade。不曾触发此恢复分支，不能称演练成功。
+- 部署后MySQL在独立服务/库跑，只有测试代码挂载，运行image与线上逐项一致；并不接生产URL。临时资源已精确清理，备份/原证据卷保留。详见 docs/audits/2026-09-10-m2-policy-release.md。
+
 ## M2-B2b.1 策略设计发现（2026-09-09）
 - 只按policy最大ID取当前决定不够fail-closed：若最新revoke行丢失会重新拿旧grant。采用profile当前policy_generation标记与最新不可变版本的generation交叉核验；缺行、标记NULL或回退都不是“未配置”，不回落B1或旧grant，历史详情也不能误标effective。
 - source_generation与总generation分开：源采集输入/启停变化才推进前者，策略和未来规则批准推进后者。计数从profile存在时开始，不追溯以前历史，不承诺任意直接SQL改回检测。

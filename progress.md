@@ -1,6 +1,11 @@
 # Progress
 
-## M2-B2b.1发布与远程MySQL（2026-09-10，进行中）
+## M2-B2b.1发布与远程MySQL（2026-09-10，完成）
+- 27文件正常提交/推送14dc6f1，CI34443459274两jobsuccess。备份mp-20260910060307（19,044,026 bytes/600/gzip与SHA256），旧镜像/ref保留；四候选web/worker各15/15，29.948/30.100秒，45模板/基础prefork与实际跨容器策略/证据/回放/撤权门禁通过。
+- 06:15:19Z→06:15:25Z四应用切换、b6→c9/model diff0/旧计数与M2 hash/4模型配置不变，policy0；不自动授予许可或接管日常链。公网/匿名policy+revoke/本站TLS、worker/镜像/私有卷检查通过。
+- **部署后**实际已部署web/worker镜像再各15/15（29.793/28.861秒），独立MySQL无生产凭据；随后临时容器/网络/三卷/生成凭据清理，helper归档600并移除执行入口，MP_FINALIZED。仅四应用改变，其他项目/MySQL/Redis/Caddy与原卷不变。
+- fast实际1GiB/beat384MiB，06:20Z新四应用OOM false/restart0、fast cgroup事件0，短期健康不代表长期容量修复。报告 docs/audits/2026-09-10-m2-policy-release.md。收尾文档另提交/CI，服务器只同步checkout不重建14dc6f1镜像。
+- 工具偏差：合成smoke脚本误设600导致cap-drop root读取失败，只改这两个无敏感脚本644；SFTP不展开远端花括号，改明确文件参数。均先记计划，不削弱业务/权限断言。以下保留开始记录。
 - 用户新授权提交/部署/部署后远程MySQL；计划 docs/superpowers/plans/2026-09-10-m2-policy-release.md。生产e98 checkout/22应用/b6，旧三张M2表0、原始证据卷空/0700，模型4项指纹不变。
 - 预检发现fast昨晚MEMCG杀过1个子进程，父进程仍活/restart0；内核及memory.events确认，不能借旧健康记录掩盖。按新计划fast上限1GiB、beat384MiB，既有Compose seam先观察尺寸格式fixture错误，再容量契约red→green；这是缓解非根因/压力验收。
 - 修改后本地639 passed/15 MySQL专用skip/4367 warnings，182.25秒。只读预检不停止生产，待提交/准确CI及新候选远程15项后切换；部署后再跑独立MySQL，不触碰生产fixture。

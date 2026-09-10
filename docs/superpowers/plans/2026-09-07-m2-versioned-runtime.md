@@ -2,7 +2,7 @@
 
 ## 状态、授权与基线
 
-- 后续本地B2b.1已完成：[策略/撤权报告](../../audits/2026-09-09-m2b2b-policy.md)。真实HTTP持久策略、preview/replay撤权、历史diff/CAS与source ABA，60新HTTP/2迁移，全套638/15、head c9；未提交部署，新MySQL15项未实跑。独立留出验证/规则审批与C–E仍后续。
+- 后续B2b.1已完成并按新授权[发布14dc6f1/c9](../../audits/2026-09-10-m2-policy-release.md)：真实HTTP持久策略、preview/replay撤权、历史diff/CAS与source ABA。开发60新HTTP/2迁移，本轮含容量契约全套639/15；CI成功，真正web/worker部署前后四轮各15 MySQL通过。独立留出验证/规则审批与C–E剩余验收仍后续。
 
 - 最新发布：用户另行要求部署，A/B1/B2a已于2026-09-09上线22c098c/b6；本地576、CI34367023823及真正web/worker各14 MySQL通过，私有Docker卷捕获/锁/重建回放通过。见[发布报告](../../audits/2026-09-09-m2-partial-release.md)。B2b–E仍未完成；以下“本地/生产不动”保留为此前各阶段的授权及历史证据。
 
