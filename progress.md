@@ -1,5 +1,19 @@
 # Progress
 
+## M2-B2b.1发布与远程MySQL（2026-09-10，进行中）
+- 用户新授权提交/部署/部署后远程MySQL；计划 docs/superpowers/plans/2026-09-10-m2-policy-release.md。生产e98 checkout/22应用/b6，旧三张M2表0、原始证据卷空/0700，模型4项指纹不变。
+- 预检发现fast昨晚MEMCG杀过1个子进程，父进程仍活/restart0；内核及memory.events确认，不能借旧健康记录掩盖。按新计划fast上限1GiB、beat384MiB，既有Compose seam先观察尺寸格式fixture错误，再容量契约red→green；这是缓解非根因/压力验收。
+- 修改后本地639 passed/15 MySQL专用skip/4367 warnings，182.25秒。只读预检不停止生产，待提交/准确CI及新候选远程15项后切换；部署后再跑独立MySQL，不触碰生产fixture。
+
+## M2-B2b.1 本地完成（2026-09-09）
+- 持久策略/质量、不可变grant/revoke、当前决定标记与最新历史交叉核验、source_generation/总generation、实际preview/旧回放撤权、历史diff完成；旧日常registry/CLI不受本切片控制，不声称规则批准。
+- 实际red还覆盖当前撤权记录/标记缺失或回退、报告引用损坏/系统限额变化仍ready、历史误标effective、停用源grant、IDNA规范化膨胀及8KiB界限；逐条最小修复。权限/CSRF/SQL失败/写边界竞争/回放中变化等已有实现直接通过，不冒称red。
+- 60项新HTTP+2迁移，全套638 passed/15 MySQL专用skip/4367 warnings，178.84秒，日志/tmp/fsi-m2b2b-policy-tests-final.log。166 AST/45模板/指定flake8/单head c9通过；静态脚本CliRunner.stdout观察错误改ScriptDirectory后通过，非业务失败。
+- 迁移c9只扩展profile两列及policy表，旧数据/JSON保留、无权限回填、拒破坏降级。MySQL新增真实HTTP用例并HEAD=c9，本轮15项未实跑，本地socket仍不存在/无mysqld，不SSH或借旧CI证据。
+- 未提交/推送/部署、无真实新闻/模型/邮件，生产仍最后验证22c098c/b6。报告 docs/audits/2026-09-09-m2b2b-policy.md；后续B2b.2独立验证/审批及可靠run/调度未实现。
+- 用户发布后继续，从clean e98af16起步，先写 docs/superpowers/plans/2026-09-09-m2b2b-policy.md，沿用真实Admin HTTP/运维seam，不重复审批内部helper。
+- 本切片是持久策略/质量、实际preview受控、撤权/源变化阻断回放、不可变历史；独立留出验证/人工发布仍后续。不提交/SSH/部署或真实来源/模型/邮件，单写者不用子代理。
+
 ## M2当前成果生产发布（2026-09-09，完成）
 - 用户新授权部署，先记录 docs/superpowers/plans/2026-09-09-m2-partial-release.md；只部署A/B1/B2a，取代旧“完整M2后上线”安排，不把审批/路由/可靠调度标成已实现。
 - ae1fb87起点clean；TDD增加可选仅web持久卷，新ref22c098c、本地576/14/154.31秒、CI34367023823两job通过。真正web/worker各14 MySQL/26.715与26.538秒，四镜像43模板及基础prefork通过；Docker卷真实HTTP捕获/跨容器flock忙503/重建后离线回放200、不入库不批准。

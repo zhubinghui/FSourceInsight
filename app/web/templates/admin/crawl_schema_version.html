@@ -13,6 +13,12 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="expected_generation" value="{{ generation }}">
     <input type="hidden" name="expected_source" value="{{ source_hash }}">
+    {% if policy_configured %}
+    <input type="hidden" name="expected_policy" value="{{ policy_record.id if policy_record else '' }}">
+    <p>Saved source policy {% if policy_record %}<a href="{{ url_for('admin.crawl_config.policy.version', source_id=source.id, policy_id=policy_record.id) }}">#{{ policy_record.id }}</a>{% endif %}
+        — <strong data-policy-state>{{ policy_state }}</strong>. Hosts and quality cannot be overridden here.
+        <a href="{{ url_for('admin.crawl_config.policy.index', source_id=source.id) }}">Review policy</a></p>
+    {% else %}
     <label for="allowed_hosts" class="form-label">Hosts I authorize for this preview (one exact host per line)</label>
     <textarea id="allowed_hosts" name="allowed_hosts" class="form-control" rows="3" required></textarea>
     <label for="quality_kind" class="form-label mt-2">Quality standard</label>
@@ -20,12 +26,14 @@
         <option value="news">News (200 characters / 2 paragraphs)</option>
         <option value="bulletin">Bulletin (80 characters / 1 paragraph)</option>
     </select>
+    {% endif %}
     <p class="small mt-2">M1 engine budget: 20 seconds / 6 HTTP requests (including robots and redirects),
         excluding database and rendering overhead. No article writes, LLM tasks or automatic approval.
-        This permit applies only to this preview; it does not publish a source policy.</p>
+        {% if not policy_configured %}This permit applies only to this preview; it does not publish a source policy.
+        {% else %}This preview uses the saved source policy; it does not approve this recipe.{% endif %}</p>
     <label class="form-check mb-3"><input type="checkbox" name="retain_evidence" value="1" class="form-check-input">
         Retain private raw evidence for 24 hours (requires configured private storage; no approval)</label>
-    <button type="submit" class="btn btn-primary mb-3" {% if not source.is_active %}disabled{% endif %}>Preview without ingesting</button>
+    <button type="submit" class="btn btn-primary mb-3" {% if not source.is_active or (policy_configured and policy_state != 'effective') %}disabled{% endif %}>Preview without ingesting</button>
     {% if not source.is_active %}<p>Enable the source before previewing.</p>{% endif %}
 </form>
 <h3>Recent previews</h3>

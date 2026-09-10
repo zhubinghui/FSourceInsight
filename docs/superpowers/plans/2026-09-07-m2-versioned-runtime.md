@@ -2,6 +2,8 @@
 
 ## 状态、授权与基线
 
+- 后续本地B2b.1已完成：[策略/撤权报告](../../audits/2026-09-09-m2b2b-policy.md)。真实HTTP持久策略、preview/replay撤权、历史diff/CAS与source ABA，60新HTTP/2迁移，全套638/15、head c9；未提交部署，新MySQL15项未实跑。独立留出验证/规则审批与C–E仍后续。
+
 - 最新发布：用户另行要求部署，A/B1/B2a已于2026-09-09上线22c098c/b6；本地576、CI34367023823及真正web/worker各14 MySQL通过，私有Docker卷捕获/锁/重建回放通过。见[发布报告](../../audits/2026-09-09-m2-partial-release.md)。B2b–E仍未完成；以下“本地/生产不动”保留为此前各阶段的授权及历史证据。
 
 - 后续合入：2026-09-09已按新授权将A/B1/B2a提交为90c94b6并推送master；本提交CI离线574/14、独立MySQL14/14成功。见[合入记录](2026-09-08-m2-mainline-integration.md)。生产不动；下文保留各切片开发时的基线与本地验证范围。
@@ -54,7 +56,8 @@ M2不是直接把`get_crawler()`替换为`CrawlEngine()`；没有档案的旧来
 
 [B1受控预览](2026-09-08-m2b1-admin-preview.md)已本地完成：每次由管理员独立授权host/质量标准，保存有限报告，不保存原始HTML、不标validated、不提供审批；36 HTTP+2迁移，全套525/14，[证据](../../audits/2026-09-08-m2b1-admin-preview.md)。随后[B2a私有证据/回放](2026-09-08-m2b2-evidence.md)也本地完成，49个新HTTP用例，全套574/14；原文默认不保存、显式启用受限目录/额度/24h期限。持久policy/独立验证/发布仍B2b，不能把捕获/回放ready冒充可审批。
 
-- [ ] 管理员单独编辑受限source policy/质量标准并版本化；不是接受候选携带的权限。加入active/previous/base版本与相关CAS约束。
+- [complete] B2b.1管理员单独编辑受限source policy/质量标准并版本化，grant/revoke/当前标记完整性、策略CAS/source ABA与预览回放受控完成；不是候选携带权限。
+- [ ] B2b.2加入规则active/previous/base版本、独立验证/审批与相关发布CAS约束。
 - [complete] 真正调用M1 preview，外部HTTP使用合成bootstrap；不mock引擎/抽取/门禁。
 - [ ] 记录不可变验证证据：输入版本、policy/profile/engine、质量、错误、有限字段样本与快照引用。报告不能由提交者自报“通过”。
 - [complete] B2a私有快照限目录/大小/数量/总容量/24h期限及显式清理，失败/丢失拒绝回放，不伪造可审批；DB仅存引用。原文不进页面/日志；实际共享卷/压力及部署验证仍E。

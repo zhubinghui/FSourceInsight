@@ -107,7 +107,8 @@ def source_toggle(source_id):
     source = NewsSource.query.get_or_404(source_id)
     source.is_active = not source.is_active
     db.session.execute(db.update(CrawlSourceProfile).where(CrawlSourceProfile.source_id == source_id)
-                       .values(generation=CrawlSourceProfile.generation + 1))
+                       .values(generation=CrawlSourceProfile.generation + 1,
+                               source_generation=CrawlSourceProfile.source_generation + 1))
     db.session.commit()
     status = 'activated' if source.is_active else 'deactivated'
     flash(f'{source.name} {status}.', 'success')
@@ -137,7 +138,8 @@ def _save_source_from_form(source: NewsSource) -> NewsSource:
     source.is_active = request.form.get('is_active') == 'on'
     if before is not None and before != source_fingerprint(source):
         db.session.execute(db.update(CrawlSourceProfile).where(CrawlSourceProfile.source_id == source.id)
-                           .values(generation=CrawlSourceProfile.generation + 1))
+                           .values(generation=CrawlSourceProfile.generation + 1,
+                                   source_generation=CrawlSourceProfile.source_generation + 1))
     return source
 
 

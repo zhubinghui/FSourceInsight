@@ -7,15 +7,17 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.crawlers import _evidence
+from app.crawlers import _evidence, _source_policy
 from app.crawlers.schema import validate_recipe
 from app.crawlers.engine import CrawlEngine
 from app.crawlers._preview import preview_policy, report_data, source_fingerprint
 from app.extensions import db
 from app.models.crawl_schema import CrawlSchemaVersion, CrawlSourceProfile, CrawlPreviewReport
 from app.models.source import NewsSource
+from .crawl_policy import crawl_policy_bp
 
 crawl_config_bp = Blueprint('crawl_config', __name__, url_prefix='/sources/<int:source_id>/crawl-config')
+crawl_config_bp.register_blueprint(crawl_policy_bp)
 
 
 @crawl_config_bp.errorhandler(SQLAlchemyError)
@@ -87,16 +89,22 @@ def version(source_id, version_id):
                  .filter(CrawlSourceProfile.source_id == source_id, CrawlSchemaVersion.id == version_id)
                  .first_or_404())
     profile = db.session.get(CrawlSourceProfile, candidate.profile_id)
+    policy_record = _source_policy.latest(profile)
+    policy_state = _source_policy.state(policy_record, source, profile)
     reports = (CrawlPreviewReport.query.filter_by(version_id=candidate.id)
                .order_by(CrawlPreviewReport.id.desc()).limit(20).all())
     return render_template('admin/crawl_schema_version.html', source=source, candidate=candidate,
                            generation=profile.generation, source_hash=source_fingerprint(source), reports=reports,
-                           recipe_text=json.dumps(candidate.recipe, ensure_ascii=False, indent=2))
+                           recipe_text=json.dumps(candidate.recipe, ensure_ascii=False, indent=2),
+                           policy_record=policy_record, policy_state=policy_state,
+                           policy_configured=profile.policy_generation is not None or policy_record is not None)
 
 
 @crawl_config_bp.route('/versions/<int:version_id>/preview', methods=['POST'])
 def preview(source_id, version_id):
-    if (set(request.form) - {'retain_evidence'} != {'csrf_token', 'expected_generation', 'expected_source', 'allowed_hosts', 'quality_kind'}
+    base_fields = {'csrf_token', 'expected_generation', 'expected_source'}
+    if (not base_fields <= set(request.form)
+            or set(request.form) - base_fields - {'retain_evidence', 'allowed_hosts', 'quality_kind', 'expected_policy'}
             or any(len(values) != 1 for _, values in request.form.lists()) or request.files
             or request.form.get('retain_evidence') not in {None, '1'}):
         abort(400, description='Invalid preview form')
@@ -112,30 +120,47 @@ def preview(source_id, version_id):
                  .filter(CrawlSourceProfile.source_id == source_id, CrawlSchemaVersion.id == version_id)
                  .first_or_404())
     profile = CrawlSourceProfile.query.filter_by(id=candidate.profile_id).populate_existing().with_for_update().one()
+    generation, source_hash, actor_id = profile.generation, source_fingerprint(source), current_user.id
+    if (not source.is_active or request.form.get('expected_generation') != str(generation)
+            or request.form.get('expected_source') != source_hash):
+        abort(409, description='Source configuration changed; reload before previewing')
+    policy_record = _source_policy.latest(profile)
+    permission = None
+    if profile.policy_generation is not None or policy_record is not None:
+        if (_source_policy.state(policy_record, source, profile) != 'effective'
+                or request.form.get('expected_policy') != str(policy_record.id)):
+            abort(409, description='Source policy unavailable or changed; review policy before previewing')
+        if set(request.form) - {'retain_evidence'} != base_fields | {'expected_policy'}:
+            abort(400, description='Invalid preview form')
+        policy, quality = _source_policy.inputs(policy_record)
+        permission = {'id': policy_record.id, 'hash': policy_record.document_hash}
+    else:
+        if set(request.form) - {'retain_evidence'} != base_fields | {'allowed_hosts', 'quality_kind'}:
+            abort(400, description='Invalid preview form')
+        try:
+            policy, quality = preview_policy(request.form['allowed_hosts'], request.form['quality_kind'])
+        except ValueError:
+            abort(400, description='Invalid preview input')
     try:
-        policy, quality = preview_policy(request.form.get('allowed_hosts', ''), request.form.get('quality_kind', ''))
         recipe = validate_recipe(candidate.recipe)
         if recipe.fingerprint != candidate.recipe_hash:
             raise ValueError('Changed candidate')
     except ValueError:
         abort(400, description='Invalid preview input')
-    generation, source_hash, actor_id = profile.generation, source_fingerprint(source), current_user.id
-    if (not source.is_active or request.form.get('expected_generation') != str(generation)
-            or request.form.get('expected_source') != source_hash):
-        abort(409, description='Source configuration changed; reload before previewing')
     # Copy only immutable inputs, then release the request's database transaction.
     db.session.remove()
     try:
         result = CrawlEngine(source_id, recipe=recipe, fetch_policy=policy, profile=quality).preview()
         payload = report_data(result, policy, quality)
+        payload['source_policy'] = permission
         if retain:
             payload['capture_id'] = uuid.uuid4().hex
             inputs = _evidence.binding(source_id, version_id, generation, source_hash,
                                        recipe.fingerprint, CrawlEngine.VERSION, policy, quality, payload['capture_id'])
             payload['evidence'] = _evidence.save(current_app.config.get('CRAWL_EVIDENCE_DIR'), result.snapshots, inputs)
             payload['raw_snapshots_retained'] = True
-            if len(json.dumps(payload, ensure_ascii=False, allow_nan=False).encode()) > 65536:
-                raise ValueError('Preview report too large')
+        if len(json.dumps(payload, ensure_ascii=False, allow_nan=False).encode()) > 65536:
+            raise ValueError('Preview report too large')
     except Exception:
         # Unexpected process/parser/report failures may contain private page text.
         current_app.logger.warning('crawl_preview_execution_error')
@@ -189,6 +214,8 @@ def replay(source_id, version_id, report_id):
     if (not source.is_active or report.status == 'stale' or report.generation != profile.generation
             or report.source_fingerprint != source_fingerprint(source) or report.engine_version != CrawlEngine.VERSION):
         abort(409, description='Source configuration changed; create a new preview')
+    if not _source_policy.matches_report(_source_policy.latest(profile), source, profile, report.report):
+        abort(409, description='Source policy unavailable or changed; create a new preview')
     try:
         inputs, recipe, policy, quality = _stored_inputs(source_id, candidate, report)
         reference = dict(report.report.get('evidence') or {})
@@ -215,7 +242,8 @@ def preview_report(source_id, version_id, report_id, replay_data=None):
     profile = db.session.get(CrawlSourceProfile, candidate.profile_id)
     stale = (report.status == 'stale' or not source.is_active or report.generation != profile.generation
              or report.source_fingerprint != source_fingerprint(source)
-             or report.recipe_hash != candidate.recipe_hash or report.engine_version != CrawlEngine.VERSION)
+             or report.recipe_hash != candidate.recipe_hash or report.engine_version != CrawlEngine.VERSION
+             or not _source_policy.matches_report(_source_policy.latest(profile), source, profile, report.report))
     try:
         inputs, _, _, _ = _stored_inputs(source_id, candidate, report)
         evidence_status = _evidence.inspect(current_app.config.get('CRAWL_EVIDENCE_DIR'), report.report.get('evidence'), inputs)
@@ -224,4 +252,5 @@ def preview_report(source_id, version_id, report_id, replay_data=None):
     if replay_data is not None and (stale or evidence_status != 'available'):
         abort(409, description='Inputs or evidence changed during replay')
     return render_template('admin/crawl_preview_report.html', source=source, preview=report,
-                           version_id=version_id, stale=stale, evidence_status=evidence_status, replay_data=replay_data)
+                           version_id=version_id, stale=stale, evidence_status=evidence_status, replay_data=replay_data,
+                           policy_reference_id=_source_policy.reference_id(report.report.get('source_policy')))

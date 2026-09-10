@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'b6c2a4d9e710'
+HEAD = 'c9e41a7b620f'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -250,6 +250,66 @@ class MySQLM0Tests(unittest.TestCase):
             stale = BeautifulSoup(http('get', result.location).text, 'html.parser')
             self.assertEqual(stale.select_one('[data-preview-status]').get_text(strip=True), 'stale')
             self.assertEqual(http('post', form['action'], data=data).status_code, 409)
+
+    def test_admin_http_policy_roundtrip_preview_revoke_and_stale_form(self):
+        import json
+        from tempfile import TemporaryDirectory
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models.user import User
+
+        with self.synthetic_news_engine() as fixture, TemporaryDirectory(prefix='fsi-policy-') as directory, patch.dict(self.app.config):
+            self.app.config['CRAWL_EVIDENCE_DIR'] = directory
+            self.db.session.add(User(email='policy-admin@test.invalid', is_admin=True,
+                                     password_hash=generate_password_hash('test-password')))
+            self.db.session.commit()
+            self.db.session.remove()
+            client = self.app.test_client()
+
+            def http(method, url, **kwargs):
+                with self.app.app_context():
+                    return getattr(client, method)(url, **kwargs)
+
+            def form_at(url, selector):
+                response = http('get', url)
+                self.assertEqual(response.status_code, 200)
+                form = BeautifulSoup(response.text, 'html.parser').select_one(selector)
+                self.assertIsNotNone(form)
+                return form['action'], {field['name']: field.get('value', '') for field in form.select('input[name]')
+                                        if not field.has_attr('disabled') and field.get('type') != 'checkbox'}
+
+            token = BeautifulSoup(http('get', '/auth/login').text, 'html.parser').select_one('input[name=csrf_token]')['value']
+            self.assertEqual(http('post', '/auth/login', data={
+                'email': 'policy-admin@test.invalid', 'password': 'test-password', 'csrf_token': token,
+            }).status_code, 302)
+            root = f'/admin/sources/{fixture.source_id}/crawl-config'
+            action, data = form_at(root + '/policies', 'form[data-policy-save]')
+            data.update(allowed_hosts='news.test.invalid\nbücher.test.invalid', quality_kind='bulletin')
+            with patch('celery.app.base.Celery.send_task', side_effect=AssertionError('No dispatch')), patch('litellm.completion', side_effect=AssertionError('No model')):
+                saved = http('post', action, data=data)
+                self.assertEqual(saved.status_code, 302)
+                document = json.loads(BeautifulSoup(http('get', saved.location).text, 'html.parser').select_one('[data-policy-document]').get_text())
+                self.assertEqual(document['fetch_policy']['allowed_hosts'], ['news.test.invalid', 'xn--bcher-kva.test.invalid'])
+                self.assertEqual(document['quality_profile']['min_content_chars'], 80)
+                self.assertEqual(http('post', action, data=data).status_code, 409)
+                candidate = http('post', root, data={'csrf_token': token, 'recipe': json.dumps(fixture.recipe.to_dict())})
+                self.assertEqual(candidate.status_code, 302)
+                preview_action, preview_data = form_at(candidate.location, 'form[data-preview]')
+                preview_data['retain_evidence'] = '1'
+                preview = http('post', preview_action, data=preview_data)
+                self.assertEqual(preview.status_code, 302)
+                page = BeautifulSoup(http('get', preview.location).text, 'html.parser')
+                self.assertEqual(page.select_one('[data-preview-status]').get_text(strip=True), 'ready')
+                self.assertEqual(page.select_one('[data-evidence-status]').get_text(strip=True), 'available')
+                self.assertEqual(page.select_one('a[data-policy-reference]')['href'], saved.location)
+                self.assertEqual(http('post', preview.location + '/replay', data={'csrf_token': token}).status_code, 200)
+                revoke_action, revoke_data = form_at(root + '/policies', 'form[data-policy-revoke]')
+                self.assertEqual(http('post', revoke_action, data=revoke_data).status_code, 302)
+                self.assertEqual(http('post', preview.location + '/replay', data={'csrf_token': token}).status_code, 409)
+                status = BeautifulSoup(http('get', root + '/policies').text, 'html.parser').select_one('[data-policy-state]').get_text(strip=True)
+                self.assertEqual(status, 'revoked')
+                self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
+                self.assertIn('No active recipe', http('get', root).text)
 
     def test_mysql_news_engine_round_trips_quality_json_and_deduplicates(self):
         from app.models.article import Article

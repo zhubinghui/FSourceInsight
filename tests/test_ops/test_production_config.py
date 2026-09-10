@@ -74,6 +74,23 @@ def test_opt_in_evidence_is_private_persistent_and_web_only(caddy):
         assert not services['web'].get('ports')
 
 
+def test_production_worker_capacity_has_bounded_headroom_after_observed_oom():
+    docker = shutil.which('docker')
+    if not docker:
+        pytest.skip('Docker Compose CLI required for offline merge validation')
+    command = [docker, 'compose', '--env-file', '/dev/null', '-f', 'docker-compose.yml',
+               '-f', 'docker-compose.prod.yml', '-f', 'docker-compose.caddy.yml',
+               '-f', 'docker-compose.evidence.yml', 'config', '--no-env-resolution', '--no-interpolate', '--format', 'json']
+    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=30,
+                            env={'PATH': os.environ['PATH'], 'HOME': os.environ['HOME']})
+    assert result.returncode == 0, result.stderr
+    services = json.loads(result.stdout)['services']
+    # Capacity mitigation based on production MEMCG evidence, not a load test.
+    limits = {name: services[name]['deploy']['resources']['limits']['memory']
+              for name in ['web', 'worker', 'worker_fast', 'beat', 'mysql']}
+    assert limits == {'web': '512M', 'worker': '1G', 'worker_fast': '1G', 'beat': '384M', 'mysql': '1G'}
+
+
 def test_docker_build_context_is_explicit_allowlist():
     rules = [line.strip() for line in (ROOT / '.dockerignore').read_text().splitlines()
              if line.strip() and not line.startswith('#')]

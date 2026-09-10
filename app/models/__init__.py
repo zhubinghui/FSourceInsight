@@ -5,7 +5,7 @@ from .company import Company
 from .user import User, KeywordSubscription
 from .llm import LLMConfig, LLMUsageLog
 from .email_log import EmailLog
-from .crawl_schema import CrawlSourceProfile, CrawlSchemaVersion, CrawlPreviewReport
+from .crawl_schema import CrawlSourceProfile, CrawlSchemaVersion, CrawlPreviewReport, CrawlPolicyVersion
 
 __all__ = [
     'NewsSource', 'CrawlLog',
@@ -15,5 +15,5 @@ __all__ = [
     'User', 'KeywordSubscription',
     'LLMConfig', 'LLMUsageLog',
     'EmailLog',
-    'CrawlSourceProfile', 'CrawlSchemaVersion', 'CrawlPreviewReport',
+    'CrawlSourceProfile', 'CrawlSchemaVersion', 'CrawlPreviewReport', 'CrawlPolicyVersion',
 ]

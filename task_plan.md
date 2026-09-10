@@ -7,7 +7,15 @@
 - 已完成的M1发布授权：用户要求直接生产，已按 docs/superpowers/plans/2026-09-07-m1-release.md 完成提交/备份/CI与候选门禁/增量迁移/四应用切换，当时生产应用1052edf/schema e6；该历史发布不再有待执行阶段。
 - 随后用户在架构导览后要求“继续”，推进M2本地。用户已选择后台HTTP作为M2主要验收入口，从真实页面操作逐切片TDD，不增加测试专用API；不继承上次提交/SSH/部署授权，不额外真实爬取/付费LLM/邮件，不使用子代理。
 
-## 当前追加授权：生产发布（已完成）
+## 当前追加：M2-B2b.1提交与部署
+- [in_progress] 用户新授权提交/部署及部署后远程MySQL验收，见 docs/superpowers/plans/2026-09-10-m2-policy-release.md。切换前也先跑独立候选15项门禁，部署后再次实跑；不针对生产库执行测试、不额外真实新闻/模型/邮件。
+
+## 当前追加：M2-B2b本地继续
+- [complete] 用户发布后继续，从clean e98af16完成B2b.1本地：持久策略/质量版本→真实preview约束→撤权/来源ABA使旧回放失效→历史/diff。新增60 HTTP/2迁移，全套638/15、166 AST/45模板/指定flake8及单head c9通过，见 docs/audits/2026-09-09-m2b2b-policy.md。
+- [pending] B2b.2独立留出验证、长期验证/审批审计、规则diff与人工批准/拒绝/回滚/CAS；新MySQL15项尚未实跑，本地socket/mysqld不可用。不借历史CI/生产结果证明本轮。
+- 沿用真实Admin HTTP逐条TDD；不继承上次SSH/提交/部署授权，无真实新闻/模型/邮件/子代理。独立留出验证和人工发布另一个切片，不把policy保存称作审批完成。
+
+## 最近生产发布（已完成）
 - [complete] 用户另行要求“部署一下生产”，按 docs/superpowers/plans/2026-09-09-m2-partial-release.md 完成A/B1/B2a上线：应用22c098c/schema b6，15:25:00Z→15:25:06Z切换；本地576/14、CI两job及真正web/worker各14 MySQL通过，私有Docker卷跨容器捕获/锁/回放通过。
 - [complete] 专用仅web证据卷0700，仍默认不留原文；备份/回滚镜像保留，临时资源精确清理，MySQL/Redis/Caddy/其他项目未变。报告 docs/audits/2026-09-09-m2-partial-release.md。beat约245/256MiB余量小已记录，无OOM/重启；不代表压力/完整恢复验收。
 - [pending] B2b持久policy/独立验证/人工审批/CAS、可靠run/outbox、统一调度及M3/M4仍后续，旧日常链未切换。
@@ -25,7 +33,7 @@
 ## 实施阶段（用户已授权，不使用子代理）
 6. [complete] M0当前已批准基础切片代码/验收/发布完成。M0.5代码6451b36、迁移d472已部署；本地131项、两候选各10项MySQL、CI两job和公网/worker门禁通过。后续硬预算/消息可靠性/网络安全等不在此完成声明内。
 7. [complete] M1已部署：契约、Safe Fetch、HTML/RSS/JSON-LD执行/回放、基础Adapter、手工CLI、质量及入库/下游保护。离线459通过、CI及两真正候选各12项MySQL通过；旧自定义出口未全迁移、自动schema路由仍属M2。
-8. [in_progress] M2-A候选保存、B1后台预览、B2a私有证据/回放本地完成。B2a新增49 HTTP，全套574 passed/14 MySQL专用skip，147.67秒；158 AST/43模板/指定flake8通过，无新DDL/head仍b6。报告 docs/audits/2026-09-08-m2b2a-private-evidence.md。90c94b6已合入master，本提交CI MySQL14/14也已实跑通过。下一步B2b持久policy/独立验证/人工审批/CAS；路由/可靠运行仍未完成，未部署。
+8. [in_progress] M2-A候选保存、B1后台预览、B2a私有证据/回放本地完成。B2a新增49 HTTP，全套574 passed/14 MySQL专用skip，147.67秒；158 AST/43模板/指定flake8通过，无新DDL/head仍b6。报告 docs/audits/2026-09-08-m2b2a-private-evidence.md。90c94b6已合入master，本提交CI MySQL14/14也已实跑通过。A/B1/B2a随后已按独立授权发布22c098c/b6（见顶部记录）。B2b.1持久policy闭环现本地完成（60 HTTP/2迁移、全套638/15，未部署）；独立验证/人工审批/CAS、路由/可靠运行仍未完成。
 9. [pending] M3 有界学习、预算账本与候选验证。
 10. [pending] M4 浏览器隔离及小范围上线前验证（上线/真实访问另行授权）。
 

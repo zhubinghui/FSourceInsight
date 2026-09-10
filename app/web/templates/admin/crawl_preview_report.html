@@ -31,6 +31,10 @@
 <p class="small">Duplicate counts are within this preview only. Existing database articles are not checked.</p>
 <p>Engine: <code>{{ preview.engine_version }}</code> — Recipe: <code>{{ preview.recipe_hash }}</code></p>
 <p>Generation {{ preview.generation }} — Administrator #{{ preview.created_by_id }} — {{ preview.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+{% if policy_reference_id %}
+<p>Source policy: <a data-policy-reference href="{{ url_for('admin.crawl_config.policy.version', source_id=source.id, policy_id=policy_reference_id) }}">#{{ policy_reference_id }}</a></p>
+{% elif preview.report.source_policy %}<p>Unavailable source policy reference.</p>
+{% else %}<p>Single-use preview permission; no saved source policy was used.</p>{% endif %}
 <p>Allowed hosts: {% for host in preview.report.fetch_policy.allowed_hosts %}<code>{{ host }}</code> {% endfor %}</p>
 <p>Quality: {{ preview.report.quality_profile.min_content_chars }} characters / {{ preview.report.quality_profile.min_paragraphs }} paragraphs.</p>
 <h3>Errors</h3>

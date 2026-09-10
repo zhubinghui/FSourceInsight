@@ -1,5 +1,12 @@
 # Findings
 
+## M2-B2b.1 策略设计发现（2026-09-09）
+- 只按policy最大ID取当前决定不够fail-closed：若最新revoke行丢失会重新拿旧grant。采用profile当前policy_generation标记与最新不可变版本的generation交叉核验；缺行、标记NULL或回退都不是“未配置”，不回落B1或旧grant，历史详情也不能误标effective。
+- source_generation与总generation分开：源采集输入/启停变化才推进前者，策略和未来规则批准推进后者。计数从profile存在时开始，不追溯以前历史，不承诺任意直接SQL改回检测。
+- 当前持续策略只控制新Admin preview/replay；旧日常registry与手工CLI不在本切片范围，不能向管理员宣称是全站停源开关。
+- IDNA前的字符长度不代表规范化后的长度/JSON字节数；保存前须保证规范主机能被重读校验、policy≤8KiB。不能晚于CAS才抛原始ValueError。
+- 本地最终638/15、166 AST/45模板通过；15 MySQL尚未本轮实跑。旧应用22不理解持续策略/source_generation，回滚保留数据不等于保留新授权控制；未来发布/恢复需重新审阅策略并限制旧版期间后台采集变更。
+
 ## M2当前成果生产发布实证（2026-09-09，后续新授权）
 - 当前生产已更新22c098c/b6；此前“生产仍M1”的各阶段记录属于当时证据。完整报告 docs/audits/2026-09-09-m2-partial-release.md。
 - 真正web/worker候选各14 MySQL通过；实际Docker卷跨容器捕获/flock/重建回放通过。外部私有卷只给web，且需显式叠evidence Compose层，默认仍不留原文；未来部署遗漏该层会使保留/回放不可用而非自动删卷。

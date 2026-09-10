@@ -42,7 +42,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          # 512M caused a confirmed prefork child MEMCG kill; bounded mitigation.
+          memory: 1G
 
   beat:
     volumes: !override []
@@ -52,7 +53,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          # Observed idle usage ~245MiB; leave headroom, not a capacity guarantee.
+          memory: 384M
 
   nginx:
     volumes:

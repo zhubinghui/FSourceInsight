@@ -1,0 +1,36 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Source policy{% endblock %}
+{% block content %}
+<h2>{{ source.name }} — Source policy</h2>
+<p><a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">Back to crawl configuration</a></p>
+<p>Current policy: <strong data-policy-state>{{ policy_state }}</strong></p>
+<div class="alert alert-info">This controls admin previews and replay, not legacy scheduled crawlers or the manual CLI.
+    Saving a policy does not approve a recipe, fetch pages, write articles or dispatch LLM tasks.</div>
+<form method="post" data-policy-save action="{{ url_for('admin.crawl_config.policy.index', source_id=source.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="expected_generation" value="{{ generation }}">
+    <input type="hidden" name="expected_source" value="{{ source_hash }}">
+    <label for="allowed_hosts" class="form-label">Authorized hosts (one exact host per line)</label>
+    <textarea id="allowed_hosts" name="allowed_hosts" class="form-control" rows="3" required></textarea>
+    <label for="quality_kind" class="form-label">Quality standard</label>
+    <select id="quality_kind" name="quality_kind" class="form-select">
+        <option value="news">News (200 characters / 2 paragraphs)</option>
+        <option value="bulletin">Bulletin (80 characters / 1 paragraph)</option>
+    </select>
+    <button class="btn btn-primary my-3" {% if not source.is_active %}disabled{% endif %}>Save new policy version</button>
+    {% if not source.is_active %}<p>Enable the source before granting a new policy. Revocation remains available.</p>{% endif %}
+</form>
+<form method="post" data-policy-revoke action="{{ url_for('admin.crawl_config.policy.revoke', source_id=source.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="expected_generation" value="{{ generation }}">
+    <input type="hidden" name="expected_source" value="{{ source_hash }}">
+    <p>Revocation blocks admin preview and replay, including single-use permissions. It does not stop legacy scheduled crawlers.
+        History is retained; only a new explicit grant can authorize these previews again.</p>
+    <button class="btn btn-danger mb-3">Revoke preview permission</button>
+</form>
+<h3>Recent policy history</h3>
+<ul>{% for policy in history %}
+    <li><a href="{{ url_for('admin.crawl_config.policy.version', source_id=source.id, policy_id=policy.id) }}">Policy {{ policy.id }}</a>
+        — {{ policy.document.action }} — {{ policy.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</li>
+{% else %}<li>No policy configured. Previews require explicit single-use permission.</li>{% endfor %}</ul>
+{% endblock %}
