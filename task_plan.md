@@ -7,6 +7,12 @@
 - 已完成的M1发布授权：用户要求直接生产，已按 docs/superpowers/plans/2026-09-07-m1-release.md 完成提交/备份/CI与候选门禁/增量迁移/四应用切换，当时生产应用1052edf/schema e6；该历史发布不再有待执行阶段。
 - 随后用户在架构导览后要求“继续”，推进M2本地。用户已选择后台HTTP作为M2主要验收入口，从真实页面操作逐切片TDD，不增加测试专用API；不继承上次提交/SSH/部署授权，不额外真实爬取/付费LLM/邮件，不使用子代理。
 
+## 当前追加：Worker并发与任务后回收发布
+- [in_progress] 用户明确继续实现，并保留合入/部署授权。按 docs/superpowers/plans/2026-09-10-worker-recycling-release.md：仅生产LLM并发2，两worker任务后回收，真实Compose/隔离broker与现有Admin任务验收；不改另外两个项目或触发生产付费/新闻任务。
+
+## 当前追加：服务器整体容量评估
+- [complete] 只读整机容量核算完成，报告 docs/audits/2026-09-10-server-capacity.md：4vCPU/7.57GiB RAM/无swap、当前可用3.78GiB，1056个已有sar样本最低3.38GiB。现负载可承受fast1GiB/beat384MiB，不必立即升级；其他项目无硬限、LLM834MiB、维护叠峰为风险。无生产修改/重启/安装/提交，优化建议未实施。
+
 ## 当前追加：M2-B2b.1提交与部署
 - [complete] 用户新授权已完成：应用14dc6f1/schema c9，06:15:19Z→06:15:25Z切换；本地639/15、CI34443459274两job、真正web/worker切换前后四轮各15 MySQL通过。详见 docs/audits/2026-09-10-m2-policy-release.md。仅四应用更新，保留私有卷，测试资源/凭据清理完毕；无额外真实新闻/模型/邮件。
 - 预检确认旧fast发生MEMCG子进程OOM（父进程存活/restart0），已TDD修改上限fast1GiB/beat384MiB；这是容量缓解，根因/长期峰值仍需另验收。收尾仅文档提交/准确CI与checkout同步，不重建运行镜像。

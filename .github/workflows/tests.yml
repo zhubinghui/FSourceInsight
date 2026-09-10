@@ -19,8 +19,17 @@ jobs:
       # No daemon, project .env, deployment, SMTP or paid model calls.
       - run: docker compose version
       - run: python -m pytest tests/ -q
+      - name: Export only worker commands from the real production Compose merge
+        run: |
+          docker compose --env-file /dev/null -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.caddy.yml -f docker-compose.evidence.yml config --no-env-resolution --no-interpolate --format json | python -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({n:d["services"][n]["command"] for n in ("worker","worker_fast")}))' > worker-commands.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: worker-commands
+          path: worker-commands.json
+          retention-days: 1
 
   mysql-integration:
+    needs: test
     runs-on: ubuntu-latest
     container: python:3.12
     env:
@@ -28,6 +37,8 @@ jobs:
       FSI_MYSQL_TEST_URL: mysql+pymysql://root:ci-only-not-production@m0-mysql:3306/fsource_m0_validation
       FSI_DESTRUCTIVE_TESTS: '1'
       PYTHONDONTWRITEBYTECODE: '1'
+      CELERY_BROKER_URL: redis://worker-redis:6379/1
+      REDIS_URL: redis://worker-redis:6379/0
     services:
       m0-mysql:
         image: mysql:8.0
@@ -38,7 +49,19 @@ jobs:
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
           --health-interval=5s --health-timeout=5s --health-retries=30
+      worker-redis:
+        image: redis:7-alpine
+        options: >-
+          --memory=64m --memory-swap=64m
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=20
     steps:
       - uses: actions/checkout@v4
       - run: pip install -r requirements/base.txt
       - run: python -m unittest discover -s tests/integration -v
+      - uses: actions/download-artifact@v4
+        with:
+          name: worker-commands
+      - name: Real Admin, Redis and prefork task-completion recycling
+        timeout-minutes: 10
+        run: python tests/integration/check_worker_lifecycle.py --commands worker-commands.json

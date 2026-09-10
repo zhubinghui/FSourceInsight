@@ -111,6 +111,8 @@ M2-B2b.1 (**deployed at `14dc6f1` / `c9e41a7b620f`**): `/admin/sources/<id>/craw
 
 `celery_app.py` — three queues (crawl, llm, email) with explicit task routing. Task modules must be in the `include` list or they won't be discovered by workers. Beat schedule: crawl check every 600s (the task additionally has a default six-hour Redis gate), daily crawl at 01:00 Paris with a DB-hour check, digest at 07:00 Paris, health check every 6h. Unified next-due scheduling remains M2.
 
+Production worker capacity is set in `docker-compose.prod.yml`: LLM concurrency 2 (development remains 4), fast concurrency 2; both prefork pools recycle after 50 completed attempts or a task-completion RSS high-water mark above 393216KiB. This is not an in-task memory limit or OOM recovery. See [worker capacity operations](docs/ops/worker-capacity.md) for isolated broker validation and configuration-only rollback.
+
 ### Key Design Decisions
 
 - **LLM config in DB, not code** — switch providers/models from Admin UI without deploys

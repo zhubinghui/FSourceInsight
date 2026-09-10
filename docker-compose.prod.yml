@@ -19,6 +19,11 @@ services:
           memory: 512M
 
   worker:
+    # Recycle only AFTER a task finishes: RSS KiB or completed task count.
+    # Not an in-task memory ceiling, acknowledgement policy, or OOM recovery.
+    command: >-
+      celery -A celery_app worker -l info -Q llm -c 2 -n llm@%h
+      --pool=prefork --max-tasks-per-child=50 --max-memory-per-child=393216
     build:
       context: .
       dockerfile: docker/Dockerfile.worker
@@ -32,6 +37,9 @@ services:
           memory: 1G
 
   worker_fast:
+    command: >-
+      celery -A celery_app worker -l info -Q crawl,email -c 2 -n fast@%h
+      --pool=prefork --max-tasks-per-child=50 --max-memory-per-child=393216
     build:
       context: .
       dockerfile: docker/Dockerfile.worker

@@ -1,8 +1,10 @@
 """Offline deployment contract checks; no Docker daemon or .env resolution."""
+import argparse
 import json
 from pathlib import Path
 import os
 import shutil
+import shlex
 import subprocess
 
 import pytest
@@ -89,6 +91,35 @@ def test_production_worker_capacity_has_bounded_headroom_after_observed_oom():
     limits = {name: services[name]['deploy']['resources']['limits']['memory']
               for name in ['web', 'worker', 'worker_fast', 'beat', 'mysql']}
     assert limits == {'web': '512M', 'worker': '1G', 'worker_fast': '1G', 'beat': '384M', 'mysql': '1G'}
+
+
+@pytest.mark.parametrize('overlays', [[], ['prod'], ['prod', 'caddy'], ['prod', 'caddy', 'evidence']])
+def test_llm_production_concurrency_is_two_without_changing_development(overlays):
+    docker = shutil.which('docker')
+    if not docker:
+        pytest.skip('Docker Compose CLI required for offline merge validation')
+    command = [docker, 'compose', '--env-file', '/dev/null', '-f', 'docker-compose.yml']
+    for name in overlays:
+        command += ['-f', f'docker-compose.{name}.yml']
+    command += ['config', '--no-env-resolution', '--no-interpolate', '--format', 'json']
+    result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, timeout=30,
+                            env={'PATH': os.environ['PATH'], 'HOME': os.environ['HOME']})
+    assert result.returncode == 0, result.stderr
+    services = json.loads(result.stdout)['services']
+    for service, expected in [('worker', '2' if overlays else '4'), ('worker_fast', '2')]:
+        args = services[service]['command']
+        if isinstance(args, str):
+            args = shlex.split(args)
+        assert args[args.index('-c') + 1] == expected
+        assert args[args.index('-Q') + 1] == ('llm' if service == 'worker' else 'crawl,email')
+        parser = argparse.ArgumentParser(add_help=False)
+        parser.add_argument('--pool')
+        parser.add_argument('--max-tasks-per-child', type=int)
+        parser.add_argument('--max-memory-per-child', type=int)
+        options, _ = parser.parse_known_args(args)
+        assert vars(options) == ({'pool': 'prefork', 'max_tasks_per_child': 50, 'max_memory_per_child': 393216}
+                                 if overlays else {'pool': None, 'max_tasks_per_child': None, 'max_memory_per_child': None})
+        assert not {'--time-limit', '--soft-time-limit', '--purge', '--discard'}.intersection(args)
 
 
 def test_docker_build_context_is_explicit_allowlist():

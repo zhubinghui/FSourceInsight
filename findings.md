@@ -1,5 +1,14 @@
 # Findings
 
+## 当前服务器容量复核（2026-09-10 09:10Z，完成）
+- 已读取已有1056个sar样本（七完整日+当日），最低MemAvailable3462MiB/3.38GiB、无<2GiB采样，最高区间CPU忙12.97%。当前负载能承受上限提升，暂不需要为此升级。历史约10分钟分辨率，不证明秒级高峰。
+- FSI五个受限服务合计3968MiB，不含无限额Redis；按当前工作集差额全部用满仍约2461MiB可用。再叠1.25GiB维护测试及其他站工作集翻倍只剩约430MiB，不能无条件并行。报告 docs/audits/2026-09-10-server-capacity.md。
+- 内核7日读取18条MEMCG事件，8条直接对应已知旧fast；昨晚OOM前8秒sar仍3806MiB可用，支持容器限额过紧。其他项目没有硬限、LLM834/1024MiB更值得预算/回收评估。本轮没有改变生产。
+- 只读实测4 vCPU/7.57GiB RAM/无swap/根盘剩21GiB；60秒CPU平均忙2.84%、IO等待0.01%，内存/IO PSI avg为0，MemAvailable约3.78GiB。
+- 当前FSI工作集约2.51GiB，另两个项目约0.73GiB；7个其他项目容器均无内存硬上限，FSI Redis同样无cgroup硬限，全部容器无CPU quota。不能只把FSI上限加起来就宣布整机有峰值保证。
+- 新FSI运行约3小时：web377MiB/512、LLM834/1024、fast437/1024、beat245/384；MySQL当前工作集665MiB，生命周期memory.peak到1GiB且max事件318但无OOM（时间未知，不等于现在故障）。PSS证实不能简单叠加Celery RSS；LLM RSS合计1413MiB、PSS832MiB。
+- 发现服务器已有sar历史，无需安装监控；接下来核历史MemAvailable/CPU/队列采样，避免仅凭空闲一分钟推断夜间容量。7日内内核有多次MEMCG事件，归属与整机压力另核实，不盲归全部到当前容器。
+
 ## M2-B2b.1发布新证据（2026-09-10）
 - 应用14dc6f1/c9已上线；CI34443459274成功，真正web/worker镜像部署前后四轮各15 MySQL通过，原“15项尚未实跑”只属开发阶段历史。生产policy表空，不自动批准规则。
 - fast的restart0掩盖了MEMCG子进程OOM；内核与memory.events确认1次kill。fast1GiB/beat384MiB容量缓解已生效，新cgroup短时事件0，仍不能证明夜间采集峰值、增长根因或长期稳定。

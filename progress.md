@@ -1,5 +1,19 @@
 # Progress
 
+## Worker并发/回收实施与发布（2026-09-10，进行中）
+- 用户明确继续实现并授权合入/部署。生产overlay LLM4→2、fast2，两个prefork池50次完成尝试/393216KiB高水位任务后回收；dev不变，不修改业务代码、确认/重试或其他项目。
+- Compose并发3个生产组合真实red→green，随后回收参数缺失red→green；原dev直接通过。10项运维通过，全套643/15专用skip、184.44秒，静态检查通过。
+- 新Linux internal MySQL/Redis环境wr-20260910132339：实际worker image完整broker/prefork通过，实际fast image补49不提前回收后完整复跑通过。真实Admin/Redis100任务回收、fresh pool持有RSS450420/450720KiB且任务内不杀、完成后PID消失/父进程存活/后续任务成功，Article0，不新增测试任务/API、不调模型。
+- 本轮实际web/worker独立MySQL候选各15通过（30.023/29.817秒）。CI已加入真实Compose commands artifact→隔离broker生命周期门禁。
+- 采用配置发布：运行源码、依赖、Dockerfiles自14dc6f1无差异，复用固定image并记录配置ref，不无意义重建；生产尚未暂停/改配。下一步准确commit/CI、备份、只换两worker并恢复原beat、部署后复验与清理。
+
+## 服务器整体容量评估（2026-09-10，完成）
+- 用户质询当前VPS是否承受提高限额；从clean de80b81起，仅SSH stdin只读/proc/cgroup/现有sar，无配置/部署/安装/付费采集。报告 docs/audits/2026-09-10-server-capacity.md。
+- 4vCPU/7.57GiB/无swap/21GiB磁盘剩余；60秒三快照可用约3.78GiB，CPU忙2.84%、memory/io PSI为0。FSI工作集2.51GiB、其他两站0.73GiB；LLM834MiB/1GiB，fast437/1GiB，beat245/384MiB。
+- 已有sar七完整日+当日1056样本最低可用3.38GiB，最高区间CPU忙12.97%；18个可读OOM均MEMCG，8个直接对应已知旧fast，昨晚OOM前8秒仍有3.72GiB可用。不是秒级/未来峰值保证。
+- 现上限可保留、暂不需升级；FSI五个受限服务满额仍约2.40GiB余量（其他现状假设），并行维护+其他站增长则可跌到不足0.5GiB。其余站/Redis无内存硬限、全部容器无CPU quota；优先评估LLM并发/子进程回收及整机资源预算，未擅自实施。
+- 收尾task_plan一次edit因标点不匹配被拒，无部分修改；重读后精确替换，非采样/业务失败。只新增本地容量文档与进度，未提交。
+
 ## M2-B2b.1发布与远程MySQL（2026-09-10，完成）
 - 27文件正常提交/推送14dc6f1，CI34443459274两jobsuccess。备份mp-20260910060307（19,044,026 bytes/600/gzip与SHA256），旧镜像/ref保留；四候选web/worker各15/15，29.948/30.100秒，45模板/基础prefork与实际跨容器策略/证据/回放/撤权门禁通过。
 - 06:15:19Z→06:15:25Z四应用切换、b6→c9/model diff0/旧计数与M2 hash/4模型配置不变，policy0；不自动授予许可或接管日常链。公网/匿名policy+revoke/本站TLS、worker/镜像/私有卷检查通过。
