@@ -1,5 +1,10 @@
 # Findings
 
+## Worker资源优化发布（2026-09-10 13:53Z，完成）
+- 配置81135d8已部署，image仍14dc6f1/c9。LLM并发2/fast2，50任务尝试与393216KiB高水位任务后回收；真实Admin→Redis→prefork门禁已加入CI，fresh pool证明RSS触发不混同计数触发。回收不是任务中限制、父进程修复、OOM可靠交付或夜间容量保证。
+- 运维实际命令比较必须把Compose字符串规范成Docker argv；首次直接比较导致误拒并自动恢复旧命令，修门禁后新备份重试成功。工具label负过滤不支持、host测试日志名冲突也独立记录并修复；不能把它们混作产品red。报告 docs/audits/2026-09-10-worker-recycling-release.md。
+- 准确CI34483808675成功；643本地、前后实际web/worker四轮MySQL各15、真实broker三轮通过。所有临时资源/凭据删除；清理后可用4.20GiB、LLM365.7MiB，但降幅包含新进程效应，其他站无限额风险不因本次消失。
+
 ## 当前服务器容量复核（2026-09-10 09:10Z，完成）
 - 已读取已有1056个sar样本（七完整日+当日），最低MemAvailable3462MiB/3.38GiB、无<2GiB采样，最高区间CPU忙12.97%。当前负载能承受上限提升，暂不需要为此升级。历史约10分钟分辨率，不证明秒级高峰。
 - FSI五个受限服务合计3968MiB，不含无限额Redis；按当前工作集差额全部用满仍约2461MiB可用。再叠1.25GiB维护测试及其他站工作集翻倍只剩约430MiB，不能无条件并行。报告 docs/audits/2026-09-10-server-capacity.md。
@@ -7,7 +12,7 @@
 - 只读实测4 vCPU/7.57GiB RAM/无swap/根盘剩21GiB；60秒CPU平均忙2.84%、IO等待0.01%，内存/IO PSI avg为0，MemAvailable约3.78GiB。
 - 当前FSI工作集约2.51GiB，另两个项目约0.73GiB；7个其他项目容器均无内存硬上限，FSI Redis同样无cgroup硬限，全部容器无CPU quota。不能只把FSI上限加起来就宣布整机有峰值保证。
 - 新FSI运行约3小时：web377MiB/512、LLM834/1024、fast437/1024、beat245/384；MySQL当前工作集665MiB，生命周期memory.peak到1GiB且max事件318但无OOM（时间未知，不等于现在故障）。PSS证实不能简单叠加Celery RSS；LLM RSS合计1413MiB、PSS832MiB。
-- 发现服务器已有sar历史，无需安装监控；接下来核历史MemAvailable/CPU/队列采样，避免仅凭空闲一分钟推断夜间容量。7日内内核有多次MEMCG事件，归属与整机压力另核实，不盲归全部到当前容器。
+- 发现服务器已有sar历史，无需安装监控；随后已核历史MemAvailable/CPU采样（见本节开头），不是仅凭空闲一分钟推断夜间容量。7日内内核有多次MEMCG事件，能直接对应的旧fast事件另核实，不盲归全部到当前容器。
 
 ## M2-B2b.1发布新证据（2026-09-10）
 - 应用14dc6f1/c9已上线；CI34443459274成功，真正web/worker镜像部署前后四轮各15 MySQL通过，原“15项尚未实跑”只属开发阶段历史。生产policy表空，不自动批准规则。

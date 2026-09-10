@@ -111,7 +111,7 @@ M2-B2b.1 (**deployed at `14dc6f1` / `c9e41a7b620f`**): `/admin/sources/<id>/craw
 
 `celery_app.py` — three queues (crawl, llm, email) with explicit task routing. Task modules must be in the `include` list or they won't be discovered by workers. Beat schedule: crawl check every 600s (the task additionally has a default six-hour Redis gate), daily crawl at 01:00 Paris with a DB-hour check, digest at 07:00 Paris, health check every 6h. Unified next-due scheduling remains M2.
 
-Production worker capacity is set in `docker-compose.prod.yml`: LLM concurrency 2 (development remains 4), fast concurrency 2; both prefork pools recycle after 50 completed attempts or a task-completion RSS high-water mark above 393216KiB. This is not an in-task memory limit or OOM recovery. See [worker capacity operations](docs/ops/worker-capacity.md) for isolated broker validation and configuration-only rollback.
+Production worker capacity is set in `docker-compose.prod.yml`: LLM concurrency 2 (development remains 4), fast concurrency 2; both prefork pools recycle after 50 completed attempts or a task-completion RSS high-water mark above 393216KiB. This is not an in-task memory limit or OOM recovery. See [worker capacity operations](docs/ops/worker-capacity.md) for isolated broker validation and configuration-only rollback. Released as configuration `81135d8` using the unchanged `14dc6f1` images/schema c9; only two workers were recreated and the original beat resumed. CI now runs a bounded real Admin/Redis/prefork recycling gate in addition to MySQL. See [release evidence](docs/audits/2026-09-10-worker-recycling-release.md), including the initial command-format gate rollback; this is not full M2 delivery/recovery or a long-term capacity test.
 
 ### Key Design Decisions
 

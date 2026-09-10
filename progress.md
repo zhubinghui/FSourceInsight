@@ -1,11 +1,14 @@
 # Progress
 
-## Worker并发/回收实施与发布（2026-09-10，进行中）
+## Worker并发/回收实施与发布（2026-09-10，完成）
+- 配置81135d8/CI34483808675两job通过（含新增真实broker）；复用14dc6f1 images/c9。首次误比较Compose字符串/Docker argv而自动恢复旧命令与beat，修门禁保留严格断言，retry-2新备份后13:53:30Z→13:53:54Z成功。仅两worker重建，web/其他项目未重启。
+- 部署后实际web/worker MySQL各15/15（29.475/28.779秒），部署worker image完整生命周期再通过RSS450672KiB。清理前host日志重名覆盖，暂停并从保留的准确Docker日志恢复15项证据，lifecycle改独立前缀；没有重跑业务或把工具错误当产品失败。
+- 14:02:28Z公网健康、临时9容器/网络/测试卷/凭据全部清理、helpers归档且原入口删除。两份备份（重试19,094,088 bytes/600/gzip/SHA256）、原证据卷/旧镜像保留；可用4297MiB，LLM365.7MiB/fast378.7MiB。降幅含重启效应，夜间/长期/吞吐未验收。详见 docs/audits/2026-09-10-worker-recycling-release.md。
 - 用户明确继续实现并授权合入/部署。生产overlay LLM4→2、fast2，两个prefork池50次完成尝试/393216KiB高水位任务后回收；dev不变，不修改业务代码、确认/重试或其他项目。
 - Compose并发3个生产组合真实red→green，随后回收参数缺失red→green；原dev直接通过。10项运维通过，全套643/15专用skip、184.44秒，静态检查通过。
 - 新Linux internal MySQL/Redis环境wr-20260910132339：实际worker image完整broker/prefork通过，实际fast image补49不提前回收后完整复跑通过。真实Admin/Redis100任务回收、fresh pool持有RSS450420/450720KiB且任务内不杀、完成后PID消失/父进程存活/后续任务成功，Article0，不新增测试任务/API、不调模型。
 - 本轮实际web/worker独立MySQL候选各15通过（30.023/29.817秒）。CI已加入真实Compose commands artifact→隔离broker生命周期门禁。
-- 采用配置发布：运行源码、依赖、Dockerfiles自14dc6f1无差异，复用固定image并记录配置ref，不无意义重建；生产尚未暂停/改配。下一步准确commit/CI、备份、只换两worker并恢复原beat、部署后复验与清理。
+- 采用配置发布：运行源码、依赖、Dockerfiles自14dc6f1无差异，复用固定image并记录配置ref，不无意义重建；此为发布前记录；后续准确commit/CI、备份、两worker切换/原beat恢复、部署后复验与清理均已完成，见本节开头。
 
 ## 服务器整体容量评估（2026-09-10，完成）
 - 用户质询当前VPS是否承受提高限额；从clean de80b81起，仅SSH stdin只读/proc/cgroup/现有sar，无配置/部署/安装/付费采集。报告 docs/audits/2026-09-10-server-capacity.md。

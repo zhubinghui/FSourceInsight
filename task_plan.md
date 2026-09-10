@@ -8,10 +8,10 @@
 - 随后用户在架构导览后要求“继续”，推进M2本地。用户已选择后台HTTP作为M2主要验收入口，从真实页面操作逐切片TDD，不增加测试专用API；不继承上次提交/SSH/部署授权，不额外真实爬取/付费LLM/邮件，不使用子代理。
 
 ## 当前追加：Worker并发与任务后回收发布
-- [in_progress] 用户明确继续实现，并保留合入/部署授权。按 docs/superpowers/plans/2026-09-10-worker-recycling-release.md：仅生产LLM并发2，两worker任务后回收，真实Compose/隔离broker与现有Admin任务验收；不改另外两个项目或触发生产付费/新闻任务。
+- [complete] 配置81135d8已合入/部署，运行image仍14dc6f1/c9：LLM并发2、fast2，两worker50次完成尝试/393216KiB任务后回收。643本地/15专用skip、准确CI34483808675（含新真实Admin/Redis/prefork）、前后四轮实际image MySQL各15通过。首次门禁字符串/argv误判自动恢复旧命令，新备份后13:53:30Z→13:53:54Z重试成功。web/其他项目未重启，测试资源/凭据清理完毕，清理后可用4.20GiB。详见 docs/audits/2026-09-10-worker-recycling-release.md；文档同步不重建，长期/夜间/吞吐仍未验收。
 
 ## 当前追加：服务器整体容量评估
-- [complete] 只读整机容量核算完成，报告 docs/audits/2026-09-10-server-capacity.md：4vCPU/7.57GiB RAM/无swap、当前可用3.78GiB，1056个已有sar样本最低3.38GiB。现负载可承受fast1GiB/beat384MiB，不必立即升级；其他项目无硬限、LLM834MiB、维护叠峰为风险。无生产修改/重启/安装/提交，优化建议未实施。
+- [complete] 只读整机容量核算完成，报告 docs/audits/2026-09-10-server-capacity.md：4vCPU/7.57GiB RAM/无swap、当前可用3.78GiB，1056个已有sar样本最低3.38GiB。现负载可承受fast1GiB/beat384MiB，不必立即升级；其他项目无硬限、LLM834MiB、维护叠峰为风险。该只读阶段无生产修改/重启/安装/提交；后续worker调整已按新授权完成，见上方独立发布记录。
 
 ## 当前追加：M2-B2b.1提交与部署
 - [complete] 用户新授权已完成：应用14dc6f1/schema c9，06:15:19Z→06:15:25Z切换；本地639/15、CI34443459274两job、真正web/worker切换前后四轮各15 MySQL通过。详见 docs/audits/2026-09-10-m2-policy-release.md。仅四应用更新，保留私有卷，测试资源/凭据清理完毕；无额外真实新闻/模型/邮件。
