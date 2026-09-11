@@ -201,4 +201,6 @@
 - tracked只描述结构覆盖，不能替代逐条元数据完整性、原文可用或独立验证；旧程序混写须检测未追踪报告，不能静默补历史。
 - 台账必须额外保留fetch/quality指纹：B1的临时标准没有持久policy行可引用。预览引用的合法ID/hash也不够，需同时核原report/profile/version/capture_id；源码已通过对应真实red→green。
 - JSON/字段类型/大小/绑定与hash分别校验；重hash不能让原文、错误URL指纹或另一候选身份进入可用审计。采样仅是已保存Admin preview链的暴露，不是旧爬虫/CLI/其他模型的完整输入历史。
-- f2迁移保留全部旧数据及unknown过去；本地673/16 skip，新MySQL第16项未执行。发生源码/迁移变化，下次发布不能复用上次配置only免构建结论；旧web回滚必须限制未追踪preview写入。
+- f2迁移保留全部旧数据及unknown过去；开发时本地673/16 skip。随后09-11已另授权部署330d50b/f2，CI及实际web/worker前后各16项MySQL通过，不再待补该项。
+- 本次实际重建四应用，保留worker2/50/393216与原私有卷；旧web不理解追踪，guard同时拒绝capture行、tracked档案和非零capture marker，无跟踪才恢复。隔离正/负控制已通过，生产未触发回滚。
+- 09-11发布的来源/M2旧投影hash及4模型配置均保留；备份gzip/hash不是恢复演练。6runner+MySQL+Redis+锁holder共9容器及3测试卷/网络/合成凭据已清理，其他项目/Caddy未变。短期可用4.30GiB包含fresh-process效应，不宣称长期内存问题解决。

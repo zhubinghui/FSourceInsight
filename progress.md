@@ -250,3 +250,11 @@
 - 驱动实际COMMIT后丢ack返回503，文件/报告/台账/计数均保留且新请求可回放；SQL四个写入/提交前失败整体回滚，20份裁剪亦回滚。网络中另一真实HTTP采样与源变化、24h原文清理后指纹保留、Admin权限/只读等回归通过。
 - 一次edit重复匹配拒绝无部分改动；owner登录fixture旧User detached发生在HTTP前，改合成账号真实HTTP登录，不改业务Session.remove。工具/fixture错误与业务red分列审计。
 - 尚未实现B2b.2b/c独立留出与人工规则审批；本轮只记录已保存Admin preview，不覆盖全部采集/模型暴露。未提交/推送/SSH/部署，暂存为空；不继承既有发布授权。
+
+## 2026-09-11 B2b.2a提交/部署（新授权完成）
+- 用户要求“提交并部署”；24文件正常提交/推送330d50b，CI34580807525全成功：673/16（272.09s）、MySQL16（22.729s）、真实broker回收（RSS442648KiB）。
+- 只读预检9c531e4 clean/c9，原四M2表0/Article10284/source38/log15507，MemAvailable约3.90GiB、四应用无OOM/restart；并发/回收配置不变。
+- 新备份cl-20260911084734为19,177,150 bytes/600/gzip/SHA256通过；旧image及argv保留，串行四image构建时原13容器未变。实际候选web/worker各16通过33.958/33.263s；真实worker生命周期RSS450992KiB、四47模板/HTTP/prefork及跨容器证据/台账通过。
+- 新回滚guard在隔离MySQL正负控制通过，不是生产恢复演练。09:04:25Z停止web、09:04:32Z健康、09:04:54Z完成，未回滚；c9→f2、model diff0、旧数据/4模型指纹保持。只四应用更新，原卷及其他项目保持。
+- 部署后web/worker各16再次通过32.851/32.257s；公网匿名capture入口权限/health/实际SafeFetcher本站TLS/argv/限额/挂载通过。四应用memory.events max/oom/oom_kill均0，仅短观察。
+- 09:09:25Z精确清理9测试容器/网络/3卷/临时合成凭据；归档helper600，原入口删除。可用4.30GiB，health全ok。报告docs/audits/2026-09-11-capture-ledger-release.md；收尾文档同步不重建，文档CI按准确SHA核对。
