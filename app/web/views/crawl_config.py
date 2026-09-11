@@ -7,17 +7,19 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.crawlers import _evidence, _source_policy
+from app.crawlers import _capture, _evidence, _source_policy
 from app.crawlers.schema import validate_recipe
 from app.crawlers.engine import CrawlEngine
 from app.crawlers._preview import preview_policy, report_data, source_fingerprint
 from app.extensions import db
-from app.models.crawl_schema import CrawlSchemaVersion, CrawlSourceProfile, CrawlPreviewReport
+from app.models.crawl_schema import CrawlSchemaVersion, CrawlSourceProfile, CrawlPreviewReport, CrawlCaptureManifest
 from app.models.source import NewsSource
 from .crawl_policy import crawl_policy_bp
+from .crawl_capture import crawl_capture_bp
 
 crawl_config_bp = Blueprint('crawl_config', __name__, url_prefix='/sources/<int:source_id>/crawl-config')
 crawl_config_bp.register_blueprint(crawl_policy_bp)
+crawl_config_bp.register_blueprint(crawl_capture_bp)
 
 
 @crawl_config_bp.errorhandler(SQLAlchemyError)
@@ -121,6 +123,7 @@ def preview(source_id, version_id):
                  .first_or_404())
     profile = CrawlSourceProfile.query.filter_by(id=candidate.profile_id).populate_existing().with_for_update().one()
     generation, source_hash, actor_id = profile.generation, source_fingerprint(source), current_user.id
+    source_generation = profile.source_generation
     if (not source.is_active or request.form.get('expected_generation') != str(generation)
             or request.form.get('expected_source') != source_hash):
         abort(409, description='Source configuration changed; reload before previewing')
@@ -147,14 +150,16 @@ def preview(source_id, version_id):
             raise ValueError('Changed candidate')
     except ValueError:
         abort(400, description='Invalid preview input')
+    if _capture.history_state(profile) == 'unavailable':
+        abort(409, description='Capture history unavailable; review source before previewing')
     # Copy only immutable inputs, then release the request's database transaction.
     db.session.remove()
     try:
         result = CrawlEngine(source_id, recipe=recipe, fetch_policy=policy, profile=quality).preview()
         payload = report_data(result, policy, quality)
         payload['source_policy'] = permission
+        payload['capture_id'] = uuid.uuid4().hex
         if retain:
-            payload['capture_id'] = uuid.uuid4().hex
             inputs = _evidence.binding(source_id, version_id, generation, source_hash,
                                        recipe.fingerprint, CrawlEngine.VERSION, policy, quality, payload['capture_id'])
             payload['evidence'] = _evidence.save(current_app.config.get('CRAWL_EVIDENCE_DIR'), result.snapshots, inputs)
@@ -174,9 +179,28 @@ def preview(source_id, version_id):
     profile = CrawlSourceProfile.query.filter_by(source_id=source_id).populate_existing().with_for_update().one()
     if generation != profile.generation or source_hash != source_fingerprint(source):
         report.status = 'stale'
+    if _capture.history_state(profile) == 'unavailable':
+        abort(409, description='Capture history changed during preview; no report saved')
     db.session.add(report)
     db.session.flush()
     report_id = report.id
+    manifest = _capture.document(source_id, source_generation, report, result.snapshots)
+    sequence = profile.capture_generation + 1
+    manifest['sequence'] = sequence
+    document_hash = _capture.fingerprint(manifest)
+    updated = db.session.execute(db.update(CrawlSourceProfile).where(CrawlSourceProfile.id == profile.id,
+                                 CrawlSourceProfile.capture_generation == sequence - 1)
+                                 .values(capture_generation=sequence).execution_options(synchronize_session=False))
+    if updated.rowcount != 1:
+        abort(409, description='Capture history changed; no report saved')
+    capture = CrawlCaptureManifest(profile_id=profile.id, version_id=version_id, preview_report_id=report_id,
+                                   sequence=sequence,
+                                   document=manifest, document_hash=document_hash, created_by_id=actor_id)
+    db.session.add(capture)
+    db.session.flush()
+    report.report = {**payload, 'capture_manifest': {'id': capture.id, 'hash': capture.document_hash}}
+    if len(json.dumps(report.report, ensure_ascii=False, allow_nan=False).encode()) > 65536:
+        abort(503, description='Preview report too large')
     cutoff = (db.session.query(CrawlPreviewReport.id).filter_by(version_id=version_id)
               .order_by(CrawlPreviewReport.id.desc()).offset(19).limit(1).scalar())
     if cutoff is not None:
@@ -253,4 +277,5 @@ def preview_report(source_id, version_id, report_id, replay_data=None):
         abort(409, description='Inputs or evidence changed during replay')
     return render_template('admin/crawl_preview_report.html', source=source, preview=report,
                            version_id=version_id, stale=stale, evidence_status=evidence_status, replay_data=replay_data,
-                           policy_reference_id=_source_policy.reference_id(report.report.get('source_policy')))
+                           policy_reference_id=_source_policy.reference_id(report.report.get('source_policy')),
+                           capture_reference_id=_capture.reference_id(report, profile))

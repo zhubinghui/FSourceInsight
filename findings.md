@@ -194,3 +194,11 @@
 - 发布准备umask077会使git写入源码为600，Docker COPY保留权限；非root测试不能假定可读。实际生产默认root；候选复验按生产UID0并保留cap-drop/只读，测试挂载644，避免以覆盖应用源码绕过候选验证。
 - /admin会308规范化到/admin/，然后302到登录；验收需检查完整权限链，不能把合法尾斜线重定向误报为鉴权失败。
 - 本次发布备份/旧镜像在m05-20260906134051，应用5秒恢复，无回滚。四个模型配置指纹未变，role/priority仅加兼容默认值；缓存v2冷启动和严格契约的实际provider表现仍需运行监测，未手工付费验收。
+
+## B2b.2a采样历史设计（本地）
+- 报告20份/原文24h均不能充当完整训练历史；新增持久指纹台账，旧profile迁移须incomplete，新ORM档案才声明开始追踪，DB server default仍False防旧程序误声明。
+- capture_generation独立于source/profile generation；捕获不撤销现有policy，不批准候选。报告/台账/裁剪/计数CAS同事务；原preview ID只保存整数不设会随裁剪消失的FK。
+- tracked只描述结构覆盖，不能替代逐条元数据完整性、原文可用或独立验证；旧程序混写须检测未追踪报告，不能静默补历史。
+- 台账必须额外保留fetch/quality指纹：B1的临时标准没有持久policy行可引用。预览引用的合法ID/hash也不够，需同时核原report/profile/version/capture_id；源码已通过对应真实red→green。
+- JSON/字段类型/大小/绑定与hash分别校验；重hash不能让原文、错误URL指纹或另一候选身份进入可用审计。采样仅是已保存Admin preview链的暴露，不是旧爬虫/CLI/其他模型的完整输入历史。
+- f2迁移保留全部旧数据及unknown过去；本地673/16 skip，新MySQL第16项未执行。发生源码/迁移变化，下次发布不能复用上次配置only免构建结论；旧web回滚必须限制未追踪preview写入。

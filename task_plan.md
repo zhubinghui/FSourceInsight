@@ -7,6 +7,13 @@
 - 已完成的M1发布授权：用户要求直接生产，已按 docs/superpowers/plans/2026-09-07-m1-release.md 完成提交/备份/CI与候选门禁/增量迁移/四应用切换，当时生产应用1052edf/schema e6；该历史发布不再有待执行阶段。
 - 随后用户在架构导览后要求“继续”，推进M2本地。用户已选择后台HTTP作为M2主要验收入口，从真实页面操作逐切片TDD，不增加测试专用API；不继承上次提交/SSH/部署授权，不额外真实爬取/付费LLM/邮件，不使用子代理。
 
+## 当前追加：B2b.2a提交与部署（2026-09-11新授权）
+- [in_progress] 用户要求提交并部署；按 docs/superpowers/plans/2026-09-11-capture-ledger-release.md 重新预检/备份/固定候选/隔离16项MySQL与生命周期/迁移f2/四应用发布。不运行归档旧activate，不额外真实新闻/模型/邮件；只清理本轮精确label资源。
+
+## 当前追加：M2-B2b.2本地继续
+- [complete local] 从clean 9c531e4继续完成B2b.2a长期Admin采样台账：28项新HTTP+2迁移，全文673 passed/16 MySQL skip；新head f2a67b904d31。现存20份preview不是完整调试历史，新增只保留指纹、裁剪后审计、legacy incomplete与计数CAS；未提交/推送/SSH/部署。详见 docs/audits/2026-09-10-m2-capture-ledger.md。
+- [pending] B2b.2b/c独立留出验证及人工规则审批：台账只是前置，不是独立验证/批准；新MySQL第16项已追加但未实跑。生产仍9c531e4 checkout/81135d8配置/14dc6f1镜像/c9 schema，未发生本轮生产变化。
+
 ## 当前追加：Worker并发与任务后回收发布
 - [complete] 配置81135d8已合入/部署，运行image仍14dc6f1/c9：LLM并发2、fast2，两worker50次完成尝试/393216KiB任务后回收。643本地/15专用skip、准确CI34483808675（含新真实Admin/Redis/prefork）、前后四轮实际image MySQL各15通过。首次门禁字符串/argv误判自动恢复旧命令，新备份后13:53:30Z→13:53:54Z重试成功。web/其他项目未重启，测试资源/凭据清理完毕，清理后可用4.20GiB。详见 docs/audits/2026-09-10-worker-recycling-release.md；文档同步不重建，长期/夜间/吞吐仍未验收。
 
@@ -19,7 +26,7 @@
 
 ## 当前追加：M2-B2b本地继续
 - [complete] 用户发布后继续，从clean e98af16完成B2b.1本地：持久策略/质量版本→真实preview约束→撤权/来源ABA使旧回放失效→历史/diff。新增60 HTTP/2迁移，全套638/15、166 AST/45模板/指定flake8及单head c9通过，见 docs/audits/2026-09-09-m2b2b-policy.md。
-- [pending] B2b.2独立留出验证、长期验证/审批审计、规则diff与人工批准/拒绝/回滚/CAS；此前待跑的15 MySQL已在本次独立远端/CI补齐，policy新并发/压力/恢复仍后续。
+- [pending] B2b.2b/c独立留出验证、长期验证/审批审计、规则diff与人工批准/拒绝/回滚/CAS；B2b.2a采样台账已在后续本地完成但未发布。下文历史发布的15 MySQL已补齐，不等于新f2迁移/第16项已经通过远端门禁；policy新并发/压力/恢复仍后续。
 - 沿用真实Admin HTTP逐条TDD；不继承上次SSH/提交/部署授权，无真实新闻/模型/邮件/子代理。独立留出验证和人工发布另一个切片，不把policy保存称作审批完成。
 
 ## 最近生产发布（已完成）

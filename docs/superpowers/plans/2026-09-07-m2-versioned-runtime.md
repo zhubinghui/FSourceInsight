@@ -57,7 +57,8 @@ M2不是直接把`get_crawler()`替换为`CrawlEngine()`；没有档案的旧来
 [B1受控预览](2026-09-08-m2b1-admin-preview.md)已本地完成：每次由管理员独立授权host/质量标准，保存有限报告，不保存原始HTML、不标validated、不提供审批；36 HTTP+2迁移，全套525/14，[证据](../../audits/2026-09-08-m2b1-admin-preview.md)。随后[B2a私有证据/回放](2026-09-08-m2b2-evidence.md)也本地完成，49个新HTTP用例，全套574/14；原文默认不保存、显式启用受限目录/额度/24h期限。持久policy/独立验证/发布仍B2b，不能把捕获/回放ready冒充可审批。
 
 - [complete] B2b.1管理员单独编辑受限source policy/质量标准并版本化，grant/revoke/当前标记完整性、策略CAS/source ABA与预览回放受控完成；不是候选携带权限。
-- [ ] B2b.2加入规则active/previous/base版本、独立验证/审批与相关发布CAS约束。
+- [complete local] B2b.2a先补长期Admin预览采样台账（2026-09-10）：原有限20份报告不能证明调试历史完整。指纹条目/独立capture_generation/CAS/legacy incomplete/裁剪后审计已实现，详见`2026-09-10-m2-capture-ledger.md`。本地673/16 skip；f2新迁移未远端实跑，未提交/部署。
+- [ ] B2b.2b/c：系统独立留出验证、长期验证/审批审计、规则active/previous/base与批准/拒绝/回滚/CAS。本轮台账不等于这些功能已实现。
 - [complete] 真正调用M1 preview，外部HTTP使用合成bootstrap；不mock引擎/抽取/门禁。
 - [ ] 记录不可变验证证据：输入版本、policy/profile/engine、质量、错误、有限字段样本与快照引用。报告不能由提交者自报“通过”。
 - [complete] B2a私有快照限目录/大小/数量/总容量/24h期限及显式清理，失败/丢失拒绝回放，不伪造可审批；DB仅存引用。原文不进页面/日志；实际共享卷/压力及部署验证仍E。

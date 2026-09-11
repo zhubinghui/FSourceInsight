@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'c9e41a7b620f'
+HEAD = 'f2a67b904d31'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -308,6 +308,64 @@ class MySQLM0Tests(unittest.TestCase):
                 self.assertEqual(http('post', preview.location + '/replay', data={'csrf_token': token}).status_code, 409)
                 status = BeautifulSoup(http('get', root + '/policies').text, 'html.parser').select_one('[data-policy-state]').get_text(strip=True)
                 self.assertEqual(status, 'revoked')
+                self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
+                self.assertIn('No active recipe', http('get', root).text)
+
+    def test_admin_http_capture_history_survives_pruning_and_atomic_failure(self):
+        import json
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models.user import User
+
+        with self.synthetic_news_engine() as fixture:
+            self.db.session.add(User(email='capture-admin@test.invalid', is_admin=True,
+                                     password_hash=generate_password_hash('test-password')))
+            self.db.session.commit()
+            self.db.session.remove()
+            client = self.app.test_client()
+
+            def http(method, url, **kwargs):
+                with self.app.app_context():
+                    return getattr(client, method)(url, **kwargs)
+
+            token = BeautifulSoup(http('get', '/auth/login').text, 'html.parser').select_one('input[name=csrf_token]')['value']
+            self.assertEqual(http('post', '/auth/login', data={'email': 'capture-admin@test.invalid',
+                             'password': 'test-password', 'csrf_token': token}).status_code, 302)
+            root = f'/admin/sources/{fixture.source_id}/crawl-config'
+            saved = http('post', root, data={'csrf_token': token, 'recipe': json.dumps(fixture.recipe.to_dict())})
+            self.assertEqual(saved.status_code, 302)
+            form = BeautifulSoup(http('get', saved.location).text, 'html.parser').select_one('form[data-preview]')
+            data = {field['name']: field.get('value', '') for field in form.select('input[name]')
+                    if not field.has_attr('disabled') and field.get('type') != 'checkbox'}
+            data.update(allowed_hosts='news.test.invalid', quality_kind='news')
+            with patch('celery.app.base.Celery.send_task', side_effect=AssertionError('No dispatch')), patch('litellm.completion', side_effect=AssertionError('No model')):
+                first = http('post', form['action'], data=data)
+                self.assertEqual(first.status_code, 302)
+                page = BeautifulSoup(http('get', first.location).text, 'html.parser')
+                capture_url = page.select_one('a[data-capture-reference]')['href']
+                document = json.loads(BeautifulSoup(http('get', capture_url).text, 'html.parser').select_one('[data-capture-document]').get_text())
+                self.assertEqual(document['format'], 'crawl-capture.v1')
+                self.assertEqual(len(document['documents']), 1)
+                self.assertNotIn('Research', json.dumps(document))
+                data['allowed_hosts'] = 'other.test.invalid'
+                for _ in range(20):
+                    self.assertEqual(http('post', form['action'], data=data).status_code, 302)
+                self.assertEqual(http('get', first.location).status_code, 404)
+                self.assertEqual(http('get', capture_url).status_code, 200)
+                with self.db.engine.begin() as conn:
+                    conn.execute(text("CREATE TRIGGER reject_capture BEFORE INSERT ON crawl_capture_manifest FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'PRIVATE_CAPTURE_SQL'"))
+                try:
+                    failed = http('post', form['action'], data=data)
+                    self.assertEqual(failed.status_code, 503)
+                    self.assertNotIn('PRIVATE_CAPTURE_SQL', failed.text)
+                finally:
+                    with self.db.engine.begin() as conn:
+                        conn.execute(text('DROP TRIGGER reject_capture'))
+                listing = BeautifulSoup(http('get', root + '/captures').text, 'html.parser')
+                self.assertEqual(listing.select_one('[data-capture-history-state]').get_text(strip=True), 'tracked')
+                self.assertEqual(listing.select_one('[data-capture-generation]').get_text(strip=True), '21')
+                self.assertEqual(len(listing.select('a[data-capture-entry]')), 21)
+                self.assertEqual(http('post', form['action'], data=data).status_code, 302)
                 self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
                 self.assertIn('No active recipe', http('get', root).text)
 

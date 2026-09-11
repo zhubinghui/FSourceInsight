@@ -15,6 +15,7 @@
     <button type="submit" class="btn btn-primary my-3">Save candidate</button>
 </form>
 <p><a data-policy-link href="{{ url_for('admin.crawl_config.policy.index', source_id=source.id) }}">Source policy and quality standard</a></p>
+<p><a data-capture-history-link href="{{ url_for('admin.crawl_config.capture.index', source_id=source.id) }}">Permanent sampling history</a></p>
 <h3>Private evidence maintenance</h3>
 <p>Global store: at most 32 bundles / 64 MiB, 3 MiB per bundle. Evidence expires after 24 hours.
     Expired files are deleted on the next retained preview or explicit cleanup, not automatically on expiry.

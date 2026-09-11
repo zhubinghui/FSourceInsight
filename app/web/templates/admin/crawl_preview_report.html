@@ -9,6 +9,8 @@
 {% if stale %}<div class="alert alert-danger">Configuration changed since this preview. Reload the candidate and run a new preview.</div>{% endif %}
 <p>Recorded engine result: {{ preview.report.result_status }}</p>
 <p>Raw evidence: <strong data-evidence-status>{{ evidence_status }}</strong></p>
+{% if capture_reference_id %}<p><a data-capture-reference href="{{ url_for('admin.crawl_config.capture.detail', source_id=source.id, capture_id=capture_reference_id) }}">Permanent capture fingerprints</a></p>
+{% elif preview.report.capture_manifest %}<p>Capture reference unavailable; do not infer an unseen sample.</p>{% endif %}
 {% if evidence_status == 'not_retained' %}
 <div class="alert alert-warning">No raw snapshots retained. This report contains limited samples and hash references only;
     it cannot be replayed or used directly for approval. No articles or LLM tasks were created.</div>

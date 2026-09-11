@@ -1,0 +1,19 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Capture history{% endblock %}
+{% block content %}
+<h2>{{ source.name }} — Capture history</h2>
+<p><a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">Back to crawl configuration</a></p>
+<p>History: <strong data-capture-history-state>{{ history_state }}</strong>;
+    sequence <span data-capture-generation>{{ generation }}</span>.</p>
+<p>Only saved Admin preview sampling fingerprints, not independent validation or approval.
+    Raw evidence still expires after 24 hours. Previously pruned or untracked samples cannot be reconstructed.</p>
+<p>Tracked describes record coverage, not verification of every stored document. Individual entries are checked when opened.
+    Legacy crawlers, CLI runs and samples seen outside this workflow are not tracked here.</p>
+{% if history_state == 'incomplete' %}<p>Legacy history is incomplete; new records do not recover the unknown past.</p>{% endif %}
+{% if history_state == 'unavailable' %}<p>History integrity is unavailable; do not infer an unseen sample.</p>{% endif %}
+<h3>Recent 50 captures (older audit records are retained)</h3>
+<ul>{% for record in records %}
+<li><a data-capture-entry href="{{ url_for('admin.crawl_config.capture.detail', source_id=source.id, capture_id=record.id) }}">Capture {{ record.id }}</a>
+    — sequence {{ record.sequence }} — {{ record.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</li>
+{% else %}<li>No recorded captures.</li>{% endfor %}</ul>
+{% endblock %}

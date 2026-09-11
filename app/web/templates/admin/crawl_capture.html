@@ -1,0 +1,14 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Capture {{ record.id }}{% endblock %}
+{% block content %}
+<h2>{{ source.name }} — Capture {{ record.id }}</h2>
+<p><a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">Back to crawl configuration</a></p>
+<p>Fingerprint-only sampling history, not independent validation or approval.
+    This does not retain raw pages or extend their 24-hour lifetime.</p>
+<p>Integrity: <strong data-capture-integrity>{{ 'available' if available else 'unavailable' }}</strong></p>
+<p>Administrator <span data-capture-actor>#{{ record.created_by_id }}</span> —
+    <span data-capture-created>{{ record.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span></p>
+<p>Candidate <a href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=record.version_id) }}">{{ record.version_id }}</a>;
+    original preview #{{ record.preview_report_id }} may have been pruned.</p>
+{% if available %}<pre data-capture-document>{{ document }}</pre>{% else %}<p>Capture metadata is unavailable; do not infer an unseen sample.</p>{% endif %}
+{% endblock %}

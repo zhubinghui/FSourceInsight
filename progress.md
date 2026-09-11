@@ -239,3 +239,14 @@
 - 生产revision c821/model diff0，真实镜像无env/Git/dump；MySQL/Redis及所有同机其他应用ID未变。无手工触发真实爬取/付费LLM/邮件，原后台服务正常恢复。
 - label核对后精确删除fsi-m0-20260906100910临时容器/卷/internal网络及EYVS00测试密码目录；日志转存备份目录，旧镜像/数据库备份保留。
 - 最终代码release858a14b（首批功能ea96dde），本地52通过/7远程专用skip，远端最终镜像7项MySQL均实跑通过。后续仅提交/同步发布文档，不重建镜像。M0.5与Agent继续TDD，未宣称全项目改造完成。
+
+## 2026-09-10 继续开发：B2b.2a采样台账（本地完成，未提交/部署）
+- 新计划先补20份preview裁剪以外的长期指纹台账，不把台账当独立验证/审批。未提交/SSH/部署。
+- 已完成真实HTTP首条red（缺capture链接）→green；21次preview裁剪后的旧capture仍可读（缺历史入口red→green）。
+- missing_row/reverted_marker/sequence_gap/untracked_report 四项先错误tracked，再数量/min/max/当前报告覆盖交叉验证及抓前/抓后门禁green。
+- 坏hash已有保护直接通过；重hash额外原文、错version绑定、坏URL指纹三项真实red→严格字段/绑定/大小类型检查green。随后补fetch/quality指纹、跨报告引用绑定的真实red→green。
+- 最终28 HTTP+2迁移新增；全套673 passed/16专用MySQLskip/5437 warnings，209.01s，日志/tmp/fsi-capture-local-final.log。175 Python AST、47应用模板、指定flake8、diff检查通过。
+- f2a67b904d31只扩展capture表及profile两列；旧档案/旧程序默认incomplete，不回填未知过去、不删原审计。MySQL第16项已追加但本轮未实跑，无CI/实际镜像/生产新证据。
+- 驱动实际COMMIT后丢ack返回503，文件/报告/台账/计数均保留且新请求可回放；SQL四个写入/提交前失败整体回滚，20份裁剪亦回滚。网络中另一真实HTTP采样与源变化、24h原文清理后指纹保留、Admin权限/只读等回归通过。
+- 一次edit重复匹配拒绝无部分改动；owner登录fixture旧User detached发生在HTTP前，改合成账号真实HTTP登录，不改业务Session.remove。工具/fixture错误与业务red分列审计。
+- 尚未实现B2b.2b/c独立留出与人工规则审批；本轮只记录已保存Admin preview，不覆盖全部采集/模型暴露。未提交/推送/SSH/部署，暂存为空；不继承既有发布授权。
