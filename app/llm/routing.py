@@ -1,5 +1,5 @@
 """One configured order for the client and Admin routing matrix."""
-TASK_TYPES = ['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight', 'company_analysis']
+TASK_TYPES = ['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight', 'company_analysis', 'crawl_schema']
 
 
 def ordered_configs(configs, task):
@@ -9,7 +9,7 @@ def ordered_configs(configs, task):
     # compatibility only when no explicit company_analysis assignment exists.
     if task == 'company_analysis' and not assigned:
         assigned = [c for c in configs if 'insight' in (c.tasks or [])]
-    defaults = [c for c in configs if c.is_default and c not in assigned]
+    defaults = [] if task == 'crawl_schema' else [c for c in configs if c.is_default and c not in assigned]
 
     def order(config):
         cost = float(config.cost_per_1k_input) if config.cost_per_1k_input is not None else float('inf')

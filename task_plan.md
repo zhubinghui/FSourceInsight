@@ -1,5 +1,29 @@
 # 全项目审查与动态爬虫 Agent 改造
 
+## 当前追加：全部现有内容提交与发布（2026-09-19新授权）
+- [in_progress] 用户要求全部提交并部署；先清点97项变更、敏感信息/准确CI与生产只读预检，正常提交推送，补隔离MySQL/候选门禁。执行计划 docs/superpowers/specs/2026-09-19-m3-current-release.md。
+- [pending] 计费上界/真实价格审核或用户明确接受付费暂停模式；不能把旧NULL配置当透明升级。学习默认关闭，不自动授予模型/来源许可。
+- [pending] 门禁通过才备份/受控停止旧调用方/扩展迁移/切换一致镜像/验收与清理。主会话，无子代理；不恢复整库、不动非目标服务、不真实抓取/付费/邮件验收。
+
+## 当前追加：M3实施前置核对（2026-09-18）
+- [complete] 用户要求继续完成M3；核对原设计/源码/TDD验收接口，保留已有文档改动，不使用子代理/SSH/真实调用。
+- [complete] 用户回复“确认”：将学习所需独立留出/模型样本暴露审计、会话认领/可靠派发作为M3必要前置纳入，不捆绑整个M2日常路由/调度或M4；新增Admin学习行为/LLM公共方法/Alembic验收已确认。
+- [complete local slice] M3.1a全局预留/结算/未知费用/Admin对账/配置审核与迁移完成，729通过/18 MySQL跳过（新增2），head a8d31c5e7902；未提交/部署。见 docs/audits/2026-09-19-m31a-budget-accounting.md。
+- [complete local slice] M3.1b子预算与Admin启动/详情/取消→持久认领/queued重派→显式模型提案→训练候选完成；3轮/$0.20会话/$1 Agent日与来源日/20,000 token，head c4e92f7a610b。新增39离线，最终768通过/19 MySQL跳过。见 docs/audits/2026-09-19-m31b-learning-sessions.md。
+- [complete local prerequisite] M3.3a受控学习暴露历史：全局连续序号/计数、输入与文档hash、规范化正文指纹、Admin可见及准入检查；新增29离线，797通过/19 MySQL跳过，head d9b72a6e410c。见 docs/audits/2026-09-19-m33a-exposure-history.md。尚未选样或输出独立验证报告。
+- [complete local restricted slice] M3.3b系统冻结/选样→真实M1单列表HTML/至少三详情→受限验证报告，42新增离线，839通过/19 MySQL跳过；head e1c73d9b502a。报告失效显示stale，候选始终未发布。见 docs/audits/2026-09-19-m33b-holdout-validation.md。
+- [complete local bounded slice] M3.2c失败/取消6小时同源冷却；原期限和轮次内的零供应商准入人工重试、审计与历史校验、认领异常fence、模型后解析前检查点。39新增，878通过/19 MySQL跳过，head f8b64d2c901e；见 docs/audits/2026-09-19-m32c-learning-lifecycle.md。
+- [complete local config/protocol] M3.4a可选worker/RO共享证据配置/启动guard与专用节点健康CLI；46新增离线，全套924/19 MySQL skips，无DDL，head f8b64d2c901e。配置不是实际mount/prefork/容量证明，见 docs/audits/2026-09-19-m34a-learning-worker.md。
+- [complete local bounded slice] M3.4b企业初始分析迁LLM：原子新公司job/来源输入代次/全局账本关联/持久有界重派/无付费接管，SafeFetcher目录出口。64新增离线；最终988通过/20专用MySQL跳过，head a2f6d9b3107c。见 docs/audits/2026-09-19-m34b-startup-analysis.md；非全部refresh/实际服务完成。
+- [complete local bounded slice] M3.2d学习派发键（轮次/retry fence）、持久UTC派发槽位间隔/到期恢复/晚期deadline检查。31新增离线；全套1019通过/20专用MySQL跳过，head b5d81e6a430f；223 AST/48模板。见 docs/audits/2026-09-19-m32d-learning-dispatch.md。不接管未知付费、不延长期限，也不是物理broker发送限速/完整lease或实际服务验收。
+- [in_progress overall] 通用RSS/分页/多列表留出与全系统暴露覆盖、完整付费恢复、worker实际共享证据/mount/容量/服务、真实broker与MySQL门禁、全部公司refresh可靠性仍未完成。不宣称M3完成；未提交/部署。计费上界旧配置保持NULL，部署前必须显式审价、暂停旧付费进程并完成隔离门禁。
+- 验证环境变化：旧临时venv已不存在，实施时需建立新的隔离环境，历史673/16不代表新代码验证。
+
+## 当前追加：遗留工作复核（基线8bf2563）
+- [complete] 核对最新发布、总计划与当前源码，区分已完成、未实现及尚待验证，输出按优先级排序的遗留清单。
+- [complete] 形成 docs/audits/2026-09-18-remaining-work.md：M2独立验证/审批/可靠运行/路由调度、M3/M4及现有安全/运维/邮件/数据/性能遗留；最新发布历史673/16不当作本轮测试，未验证当前生产。
+- 本轮只做本地审阅和文档记录，不修改业务、不提交/部署、不SSH、不真实爬取/调用模型/发邮件，不使用子代理；历史授权不继承。
+
 ## 目标与范围
 - 用户要求：全量检查当前项目、提出具体优化点，并依照给定流程图设计动态 Agent 爬虫改造。
 - 基线：master，bf9cc61b94556e00218af267db82bf42a3b80eef；初始工作区干净。
@@ -48,7 +72,7 @@
 6. [complete] M0当前已批准基础切片代码/验收/发布完成。M0.5代码6451b36、迁移d472已部署；本地131项、两候选各10项MySQL、CI两job和公网/worker门禁通过。后续硬预算/消息可靠性/网络安全等不在此完成声明内。
 7. [complete] M1已部署：契约、Safe Fetch、HTML/RSS/JSON-LD执行/回放、基础Adapter、手工CLI、质量及入库/下游保护。离线459通过、CI及两真正候选各12项MySQL通过；旧自定义出口未全迁移、自动schema路由仍属M2。
 8. [in_progress] M2-A候选保存、B1后台预览、B2a私有证据/回放本地完成。B2a新增49 HTTP，全套574 passed/14 MySQL专用skip，147.67秒；158 AST/43模板/指定flake8通过，无新DDL/head仍b6。报告 docs/audits/2026-09-08-m2b2a-private-evidence.md。90c94b6已合入master，本提交CI MySQL14/14也已实跑通过。A/B1/B2a随后已按独立授权发布22c098c/b6（见顶部记录）。B2b.1持久policy闭环随后已发布14dc6f1/c9（本地639/15、远端15项与CI通过）；独立验证/人工审批/CAS、路由/可靠运行仍未完成。
-9. [pending] M3 有界学习、预算账本与候选验证。
+9. [in_progress] M3 有界学习、预算账本与候选验证。09-19本地1a/1b、3a历史和3b限定HTML留出路径完成；通用独立验证/完整恢复/专用worker尚未完成，19项MySQL未实跑。
 10. [pending] M4 浏览器隔离及小范围上线前验证（上线/真实访问另行授权）。
 
 ## OVH SQL 验证与首批发布（新授权）

@@ -1,5 +1,115 @@
 # Progress
 
+## 2026-09-19 全部现有内容提交与发布（新授权，进行中）
+- 用户明确要求全部提交并部署；旧开发期禁止提交/SSH/部署不再是当前授权边界，但验收、备份和计费审核不能跳过。
+- 22:06Z清点master@8bf2563，97项变更/暂存空；离线最新1019/20 MySQL skips，head b5。本地Docker无socket，gh可用；未修改生产。
+- 先写 docs/superpowers/specs/2026-09-19-m3-current-release.md：正常提交/准确CI/SSH只读→审核计费与真实隔离门禁→备份/受控切换。学习不开启；若普通LLM上界无法审核，须用户明确接受暂停才切换，不能偷偷制造功能停摆。
+- 只读CI路径ci.yml不存在，实际tests.yml；记录后改读。旧04月初始化含dump/删卷，不执行，采用最近增量发布纪律。
+- 22:07Z发现生产刚发布生态地图b08fb8d/schema b3，origin随后又推进文档23de19e；另一工作树现clean并记录发布完成。本轮没有改生产。M3与b3为并行迁移链，需要明确合并及重验，不能用旧8bf基线覆盖。
+- 只读真实模型：活跃OpenAI gpt-5.4-mini/nano，生产尚无billing上界列；当前UTC日无未知费用日志。不能在缺审核情况下透明切换。先独立release分支提交全部本地工作，整合新主干、准确CI，不强推或触另一工作树。敏感pattern检查98文件/855671 bytes无命中。
+
+## 2026-09-19 M3.2d学习派发可靠性（本地切片完成，M3仍进行中）
+- 用户继续；基线8bf2563、既有累积未提交/未暂存改动保留。Docker socket仍缺，PATH无mysqld/redis-server；临时venv可用。不连服务/生产、不提交或子代理。
+- 核对后先补计划：学习单session ID消息缺轮次/retry fence、重复HTTP/recover无重派间隔；旧未认领异常可能阻断新queued。拟用版本化派发键及单个可空due列，不另造付费额度/历史授权。
+- 完成实际red：旧消息跨retry执行；重复POST/recover热重派；缺迁移；证据/配额查询跨deadline；收敛自身DB失败向外抛私有异常；缺派发UI。失败日志delivery-*-red保留（UI红位于focused-02）。
+- 新增31离线（2迁移），最终专门子集31通过/575 warnings/33.65秒；此前关联169通过/3709 warnings/292.69秒，位于最终两条回归之前。旧恢复测试仅按新协议推进32秒/通过真实recover取得下一轮消息，原业务断言保留；既有MySQL门禁同步新head/双参数消息，仍未运行。
+- 已知坏history先隔离，不能因损坏counter改变键而留在queued；SQL不可读不等价于已知损坏，旧键异常仍不能关闭有效新意图。暂无完整M3/实际MySQL/broker/容量证明。
+- 全量1019 passed/20专用MySQL skipped/10149 warnings/570.29秒，`m32d-full-01.log`；无30秒faulthandler dump。223 AST/48模板，唯一head b5d81e6a430f；指定flake8 E9/F与diff检查通过，`m32d-static-01.log`。
+- 30秒仅为记录UTC准入时刻的派发槽位间隔：慢COMMIT/RPC可越过时窗并晚到，非物理发送速率/排它publisher租约。全套后完善该说明文案与文档；HTTP显示回归1 passed/22 warnings/3.14秒，11文档/26本地链接/围栏/48模板/日志检查通过（delivery-copy-final.log、m32d-docs-final.log）。审计 `docs/audits/2026-09-19-m32d-learning-dispatch.md`；基线/未暂存/未提交/未部署不变。
+
+## 2026-09-19 M3.4b企业初始分析（本地有限切片完成）
+- 最终 **988 passed / 20 dedicated-MySQL skipped / 9574 warnings / 548.86秒**，`/tmp/fsi-m3-izjIZv/m34b-full-03.log`；新增64离线，最终专门子集64/53.43秒。218 AST/48模板、唯一head a2f6d9b3107c、指定flake8/diff通过。
+- 收尾文档15个本地链接/围栏与最终日志核对通过；扩大flake8范围另发现两项HEAD已有F401（admin test-email的User、celery_app的db），保留未改且写入审计，不冒称全仓库lint清零。
+- 企业初始分析迁到llm，持久输入/费用/派发/认领及只读Admin审计；未迁移全部手动/Article refresh。文档 docs/audits/2026-09-19-m34b-startup-analysis.md、docs/ops/startup-analysis.md。M3完整可靠性/通用留出/实际worker/MySQL/broker/容量仍未完成。
+- 全套第一轮122失败/864通过/20skip，后证实为新增fixture在实例上patch Celery.send_task后的teardown残留，类边界+真实Task.delay修复，4项顺序探针通过；不改旧学习断言。第二轮986通过是最终慢查询deadline回归前结果。第三轮上述988才是最终版本。
+- 真实追加red→green：JSON null别名兼容、缺账本精确job链接/坏输入标签、整秒截断提前重派、锁定读取跨deadline后仍支付或应用。回执丢失fixture误定位、非Admin账号detached、静态漏计wsgi/邮件模板与业务red分列。
+
+以下为实施过程记录：
+- 先记计划：新公司与source-owned job同事务、llm队列、queued持久重派、running/terminal不付费接管、不重置历史失败。必要差异含SafeFetcher取数和有界目录/别名扫描。
+- 真实TDD reds：旧requests不能走受控合成HTTP→收口SafeFetcher；随后旧扫描实际同步调用模型（且挑历史公司）→持久队列green。新Alembic revision不存在red→expand-only迁移green，head a2f6d9b3107c。
+- 实施期先补API/任务/fault回归，再全量验证。SQL提交回执故障用外部事务事件；误定位fixture已纠正，不修改业务断言来容忍重复费用。
+- 全程主会话/本地合成，保留此前所有未提交未暂存改动；无SSH、daemon接入、实际网络/模型/邮件/部署。
+
+## 2026-09-19 M3.4a学习worker（本地配置/协议完成，非实际服务完成）
+- 最终 **924 passed / 19 dedicated-MySQL skipped / 8869 warnings / 481.94秒**，完整日志`/tmp/fsi-m3-izjIZv/m34a-full-01.log`。新增46离线；209 Python AST、48 Jinja模板、单head f8b64d2c901e、指定flake8/diff、Compose离线merge通过。
+- 审计`docs/audits/2026-09-19-m34a-learning-worker.md`、新运维`docs/ops/learning-worker.md`及已有学习/证据/容量说明、CLAUDE/计划同步。无DDL、实际新worker build/start、RO mount/prefork/硬杀/容量证明。
+- 主会话、基线8bf2563未变；所有旧/新改动未提交未暂存，无生产访问或真实调用。M3实际服务门禁、企业发现迁队列/补偿与其它余项继续后续。
+
+以下为执行过程记录：
+- 核对已有路由/Compose/证据读路径/CLI门禁，先追加实施计划；主会话本地，无真实学习/生产/提交授权。
+- 新可选learning层：profile默认不消费，web/beat/学习worker开关统一默认0；独立prefork并发1/prefetch1、限额与回收、soft180/hard195，证据同外部卷RO，根只读、64MiB tmpfs、cap drop、PIDs64。不是实际容量/硬杀证明。
+- 真实Compose 5.1.0要求PIDs同时在service和deploy limits中一致，先记计划再显式补64；CPU在解析JSON中为数值，修正测试协议期待，不当产品缺陷。现有两worker不变。
+- 新CLI check/run：本地开关/0700同UID/RO挂载/schemahead guard；实际控制查询指定learn节点并核对注册/队列/prefork，不发业务任务；可选snapshot明确不是live。启动只接受已审查的学习命令，不做通用exec入口。
+- 配置/CLI旧新相关58项通过（6.20秒）；真正的缺层/缺CLI/缺live/缺run先红后绿。随后增加真实Admin学习流程的只读文件边界兼容回归。
+- Docker CLI可用但socket仍缺失，无mysqld/redis-server。真实容器挂载/进程/服务/容量未验证；本轮无DDL，head保持f8b64d2c901e。企业发现迁队列等仍后续。
+
+## 2026-09-19 M3.2c继续（本地有限切片完成，M3仍进行中）
+- 最终 **878 passed / 19 dedicated-MySQL skipped / 8807 warnings / 481.68秒**，日志`/tmp/fsi-m3-izjIZv/m32c-full-01.log`；39新增离线。205 Python AST、48 Jinja、单head f8b64d2c901e、指定flake8和diff通过。
+- 139相关子集为最后认领fence修复前阶段结果，最终全量包含该修复；所有19项真实MySQL仍未运行，无真实broker/prefork/硬杀进程证明。
+- 审计`docs/audits/2026-09-19-m32c-learning-lifecycle.md`，运维/领域词汇/CLAUDE/计划同步；基线8bf2563未变，保留所有原有未提交改动，未暂存/提交/部署。
+
+以下为执行过程记录：
+- 先更新计划再实现：失败/取消6小时同源冷却；blocked且从未预留、原期限/轮次内的人工重试；追加操作者/原因/轮次审计和连续计数/hash，不重置预算/期限/暴露。
+- 新head f8b64d2c901e，两列一表；旧失败终态只隔离自迁移起6小时，不伪造结束时间或释放未知费用。Alembic两项通过；实际MySQL只同步head，未运行。
+- 已有139项相关子集通过（254.89秒）；随后补“未认领成功的重复消息不能中止在途owner”的真实red。任务现在认领前产生attempt身份，commit-ack丢失仍能按旧身份收敛，不跨轮停止。
+- 其它真实red→green：失败换capture立即启动、缺人工重试表单、模型返回后仍解析过期/取消/撤权证据、旧拒绝轮次commit-ack丢失阻断新轮、文件检查期间越过deadline仍写重试事件。其它权限/费用/SQL回归直接通过，不冒称新red。
+- 用户界面提示冷却和审计；声明仅安全零准入重试，不声称付费工作接管、专用worker或完整M3完成。真实MySQL/broker仍不可用；本轮优先完成生命周期，worker配置后续。
+
+## 2026-09-19 M3.3b继续（限定HTML路径本地完成，M3仍进行中）
+- 最终 **839 passed / 19 dedicated-MySQL skipped / 8035 warnings / 436.47秒**，日志`/tmp/fsi-m3-izjIZv/m33b-full-02.log`。新增42离线；单列表HTML/三详情成功，未支持RSS/多列表/分页通用通过。
+- 201 Python AST、48 Jinja模板、单head e1c73d9b502a、指定flake8/diff通过。实际MySQL门禁仅同步head，全19项仍未运行；没有真实broker/硬杀进程证据。
+- 新学习协议v3同事务冻结候选；全局连续选样和报告覆盖检查、模型/较早验证暴露排除、M1覆盖/质量、当前stale判定、超时保守收敛落地。没有发布/Article/文章LLM副作用。
+- 收尾red→green：旧报告丢失后阻断付费、state单列修改不能冒充通过、操作者/期限纳入绑定、模拟低精度DB舍入后时间hash稳定、候选未触发分页/额外列表分支不得通过。写入前整秒化，不延长期限、不重签旧历史。
+- 第一轮836/19/428.34秒为上述精度/列表边界修复前结果，保留`m33b-full-01.log`，没有覆盖；97项相关子集是较早阶段，精度后14项另通过，最新全量以上方为准。
+- 审计`docs/audits/2026-09-19-m33b-holdout-validation.md`、操作说明/领域词汇/CLAUDE/计划同步。未提交、部署或启用真实调用；M3剩余服务/通用验证前置仍明确待办。
+
+以下是执行过程记录：
+- 已核对现有输入/证据/台账/引擎，先补计划：候选冻结→base水位后首份保留采样→系统选样→真实M1列表/三详情检验→不可发布的限定范围报告；不让模型或表单选择样本，不按结果挑好样本。
+- 沿用真实Admin HTTP/Alembic TDD，主会话、本地合成外部边界，无子代理或生产授权。
+- 正例已跑通；同字节/换包装正文/旧详情URL被当独立样本的三项真实red后接入污染拒绝。质量回归中的:first-child不属于允许recipe CSS，先被既有契约挡住；改为合法.first-card合成标记，不当成产品缺陷。模板无样本原返回failed，已按证据不足改为inconclusive。
+- 故障回归复现运行中断后无验证超时收敛，将接入既有recover。非管理员测试原期待403，但既有Admin守卫明确重定向首页；改为校验该拒绝跳转，不改权限实现。
+
+## 2026-09-19 M3.3a受控暴露历史前置（本地完成，非独立验证）
+- 先记录计划差异：逐会话计数不能发现整会话丢失；字节hash不足以识别换包装正文。仅主会话实现，无子代理/SSH/生产/真实网页或模型/提交部署。
+- 新增29离线，先红后绿覆盖历史展示、缺失/回退、损坏记录、容量越界、错误控制行和迁移；原子失败/claim commit后丢ack/准入及响应后失效等为直接通过回归，未冒称新red。
+- 全套 **797 passed / 19 MySQL skipped / 6972 warnings / 296.71秒**，日志`/tmp/fsi-m3-izjIZv/m33a-full-01.log`。本轮未超时，历史1b超时原因仍未知。
+- 静态收尾196 Python AST、48 Jinja模板、Alembic单head、指定flake8/diff、文档链接围栏和完整日志检查通过；HEAD仍master@8bf2563，未暂存。
+- 新head d9b72a6e410c；crawl-learning.v2；旧历史保持incomplete/NULL，不补认证或释放费用。每类4096元数据检查硬上限，可降低配置，满后拒绝新增而不清历史。
+- 实际MySQL学习HTTP门禁已加全局计数/回退断言，但19项均未运行；本机记录的Docker socket不可用且无mysqld/redis-server，未借生产验证。
+- 独立选样/验证报告、全系统暴露覆盖、冷却/完整恢复、专用worker/共享证据/容量及企业发现迁队列仍待办。审计`docs/audits/2026-09-19-m33a-exposure-history.md`，不宣称M3完成。
+
+## 2026-09-19 M3.1b继续（本地切片完成，M3整体进行中）
+- 最新全套 **768 passed/19 MySQL skipped/6330 warnings/272.63秒**，逐项完整日志`/tmp/fsi-m3-izjIZv/m31b-full-diagnostic-02.log`，30秒faulthandler未触发。新增39离线+1未跑MySQL，head c4e92f7a610b。
+- 静态收尾191 Python AST（app/scripts/migrations/tests及根目录Python）、48 Jinja模板、Alembic单head、指定flake8/diff检查、新运维/审计链接围栏及最终日志校验通过；HEAD仍8bf2563。
+- 收尾两项竞争回归red→green：profile锁读刷新identity-map、学习配置/报价变化拒绝。新子集39通过，实际MySQL行级竞争仍待验证。
+- 一次全套420秒超时停在第704项后且无残留；旧final日志被覆盖，另存`m31b-timeout-01.log`。既有撤权单测1 passed/3.44秒及race→policy顺序探针62 passed/36.95秒均未复现，再全量得到上方768/19。根因未知，不伪称已修复确定性卡死。此前766/19与764/18只属当时历史结果。
+- 已完成恢复扫描（默认关闭不排队）、迁移/学习协议绑定、公共学习缓存身份拦截、近期会话链接、预算拒绝原因及丢弃/阻断attempt状态。模型/SQL异常不记录私有正文；取消/撤权后费用仍结算。
+- 已补审计/运维说明、领域词汇和CLAUDE/计划。独立留出/暴露覆盖、冷却、完整恢复门禁、专用worker Compose/共享私有卷/容量和企业发现迁队列仍待实施。全程主会话，无生产/真实LLM/子代理或提交。
+
+以下保留开始时记录：
+- 先更新M3计划：真实Admin启动/取消→持久会话/attempt→仅保留证据学习→未独立验证候选；默认关闭，不接真实网络/模型，后续独立留出/专用worker部署仍未完成。
+- 新HTTP启动缺表单、任务缺失、会话0.20上界仍付费、20,000 token上界仍付费依次red→green。真实引擎训练回放已跑通，暴露只记指纹/提示hash，预算与全局同事务，现有LLM回归137项通过。
+- 已有防护直接通过：policy撤权/来源ABA/证据损坏、模型返回期间取消/撤权仍结算但不写候选、重投、显式模型路由、全局/Agent/来源跨会话额度。
+- 恢复测试当前red：缺recover任务。权限测试有fixture问题：移除请求Session后原users对象已detach，且logout实际是GET；改为真实HTTP固定合成邮箱登录/GET退出后继续，不将此当权限漏洞。两次无效精确编辑及一次相同内容编辑未产生文件变化。
+
+## 2026-09-19 M3.1a全局预留/对账本地切片
+- 用户确认范围后持续主会话TDD，临时Python3.12 venv `/tmp/fsi-m3-izjIZv/venv`；没有子代理/SSH/真实源/LLM/邮件或提交部署。
+- 先红后绿实现预付余额阻断、跨线程在途竞争、Admin计费上界/预留/对账/固定路由审计、usage总量损坏、超旧费用列精度的越界、对账后旧失效上界仍不得付费、扩展迁移和私有响应。未知费用/SQL故障/COMMIT后丢ack/缓存免费/微额取整/权限及状态竞争等直接回归通过，未冒称全为新red。
+- 全套最终729 passed/18 MySQL专用skip/5610 warnings，224.09秒；LLM+新迁移子集139通过。日志 `/tmp/fsi-m3-izjIZv/full-tests-final.log`。最初全套724/18后又加5项回归，最终已重跑。
+- 新head a8d31c5e7902，两列/三表且旧配置NULL、provider/usage保持；真实MySQL增加2项（合计18），本地socket不存在/无mysqld，全部未实跑，不能借旧release背书。指定flake8与diff检查已通过（EOF多余空行已修）。
+- 静态收尾181 Python AST、47 Jinja模板、单head a8d31c5e7902、指定flake8/diff/新文档链接围栏通过。
+- 交付 docs/audits/2026-09-19-m31a-budget-accounting.md、docs/ops/llm-budget-accounting.md 并更新CLAUDE/计划。M3.1b学习子预算/会话及之后独立验证/可靠worker仍未实施；这是本地纵向切片，不是M3整体或生产完成。
+
+## 2026-09-18 M3实施前置（待范围/行为确认）
+- 用户要求继续完成M3。已读完整原设计、CONTEXT、TDD/tests/mocking，核对既有LLM用量/预算测试、模型及Admin预览入口。
+- 原M3假设M2完成，实际缺独立验证、模型样本暴露审计和学习可靠认领/派发；先新增 docs/superpowers/plans/2026-09-18-m3-bounded-learning.md 记录差异，拟纳入最小前置，保留整个M2日常路由/调度与M4为独立范围。
+- 旧临时venv路径已不存在，尚未安装新环境或运行测试。未写新测试/业务/迁移，不自动采用新的学习HTTP用户行为；向用户一次确认范围后再按公共入口TDD。无子代理/SSH/生产或付费调用。
+
+## 2026-09-18 遗留工作复核（完成）
+- 从clean master@8bf2563审阅最新release、总计划/M2分解及当前爬虫、LLM、邮件、Web/API、Compose/部署/备份源码；未使用子代理或访问生产。
+- 已交付 docs/audits/2026-09-18-remaining-work.md，区分已部署成果、M2–M4功能缺口、现有安全/可靠性与产品欠账、待运行验收。确认15个source模块仍直连；不是重复旧审查里的已修复缺陷。
+- 新报告链接/代码围栏、直连模块计数和git diff --check通过；两个文档源码行号核对后更正。只新增报告并更新三份规划记录，无业务/迁移/配置改动，未跑pytest/真实源/LLM/SMTP，未提交部署。673离线/16 MySQL/真实broker仅引用09-11发布历史。
+
 ## Worker并发/回收实施与发布（2026-09-10，完成）
 - 配置81135d8/CI34483808675两job通过（含新增真实broker）；复用14dc6f1 images/c9。首次误比较Compose字符串/Docker argv而自动恢复旧命令与beat，修门禁保留严格断言，retry-2新备份后13:53:30Z→13:53:54Z成功。仅两worker重建，web/其他项目未重启。
 - 部署后实际web/worker MySQL各15/15（29.475/28.779秒），部署worker image完整生命周期再通过RSS450672KiB。清理前host日志重名覆盖，暂停并从保留的准确Docker日志恢复15项证据，lifecycle改独立前缀；没有重跑业务或把工具错误当产品失败。

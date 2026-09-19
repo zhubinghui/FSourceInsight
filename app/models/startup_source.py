@@ -11,6 +11,8 @@ class StartupSource(db.Model):
     """
     __tablename__ = 'startup_source'
 
+    analysis_generation = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     url = db.Column(db.String(500), nullable=False)

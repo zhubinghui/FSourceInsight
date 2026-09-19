@@ -2,8 +2,9 @@ import os
 from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from sqlalchemy.exc import SQLAlchemyError
 from flask_login import login_required, current_user
-from sqlalchemy import func
+from sqlalchemy import case, func
 
 from slugify import slugify
 
@@ -13,14 +14,17 @@ from app.models.crawl_schema import CrawlSourceProfile
 from app.crawlers._preview import source_fingerprint
 from app.models.article import Article, ArticleCompany
 from app.models.company import Company
-from app.models.llm import LLMConfig, LLMUsageLog
+from app.models.llm import LLMConfig, LLMUsageLog, LLMReservation
 from app.models.startup_source import StartupSource
+from app.models.startup_analysis import StartupAnalysisJob
 from app.models.sector_group import SectorGroup
 
 from .crawl_config import crawl_config_bp
+from .llm_budget import llm_budget_bp
 
 admin_bp = Blueprint('admin', __name__)
 admin_bp.register_blueprint(crawl_config_bp)
+admin_bp.register_blueprint(llm_budget_bp)
 
 
 @admin_bp.before_request
@@ -376,21 +380,40 @@ def _save_llm_config_from_form(config: LLMConfig) -> LLMConfig:
         abort(400, description='Priority must be an integer between 0 and 10000')
     if role not in ('primary', 'fallback') or not 0 <= priority <= 10000:
         abort(400, description='Invalid LLM route role or priority')
+    from app.llm.budget import money, quote, BudgetError
+    import math
+    if any(len(values) != 1 for name, values in request.form.lists() if name != 'tasks'):
+        abort(400, description='Duplicate LLM configuration field')
+    # Validate the complete numeric/billing input BEFORE touching a managed row.
+    try:
+        candidate = LLMConfig(max_tokens=int(request.form.get('max_tokens', 4096)),
+                              temperature=float(request.form.get('temperature', 0.3)))
+        if not 1 <= candidate.max_tokens <= 10_000_000 or not math.isfinite(candidate.temperature) or not 0 <= candidate.temperature <= 2:
+            raise ValueError
+        for field in ('cost_per_1k_input', 'cost_per_1k_output'):
+            value = request.form.get(field, '').strip()
+            price = money(value) if value else None
+            if price is not None and price > 9999:
+                raise ValueError
+            setattr(candidate, field, price)
+        for field in ('billing_input_limit', 'billing_output_limit'):
+            value = request.form.get(field, '').strip()
+            setattr(candidate, field, int(value) if value else None)
+        if candidate.billing_input_limit is not None or candidate.billing_output_limit is not None:
+            if request.form.get('billing_reviewed') != '1':
+                raise ValueError
+            quote(candidate)
+    except (ValueError, TypeError, BudgetError):
+        abort(400, description='Invalid or unreviewed billing terms')
     config.role, config.priority = role, priority
     config.provider = request.form.get('provider', '').strip()
     config.model = request.form.get('model', '').strip()
     config.api_key_env_var = request.form.get('api_key_env_var', '').strip() or None
     config.api_base_url = request.form.get('api_base_url', '').strip() or None
     config.is_default = request.form.get('is_default') == 'on'
-    config.max_tokens = int(request.form.get('max_tokens', 4096))
-    config.temperature = float(request.form.get('temperature', 0.3))
-
-    cost_in = request.form.get('cost_per_1k_input', '').strip()
-    config.cost_per_1k_input = float(cost_in) if cost_in else None
-    cost_out = request.form.get('cost_per_1k_output', '').strip()
-    config.cost_per_1k_output = float(cost_out) if cost_out else None
-
-    # Tasks: collect checked checkboxes
+    for field in ('max_tokens', 'temperature', 'cost_per_1k_input', 'cost_per_1k_output',
+                  'billing_input_limit', 'billing_output_limit'):
+        setattr(config, field, getattr(candidate, field))
     config.tasks = request.form.getlist('tasks')
     return config
 
@@ -451,15 +474,23 @@ def llm_usage():
     total_cost = sum(float(d.cost or 0) for d in daily_stats)
     total_calls = sum(d.calls for d in daily_stats)
 
+    pending = LLMReservation.state.in_(('reserved', 'unknown', 'overrun'))
+    unsettled_count, unsettled_usd = db.session.query(
+        func.count(LLMReservation.id),
+        func.coalesce(func.sum(case((LLMReservation.actual_usd > LLMReservation.reserved_usd,
+                                    LLMReservation.actual_usd), else_=LLMReservation.reserved_usd)), 0),
+    ).filter(pending).one()
     return render_template(
         'admin/llm_usage.html',
+        unsettled_count=unsettled_count, unsettled_usd=unsettled_usd,
+        reservations=LLMReservation.query.order_by(pending.desc(), LLMReservation.created_at.desc(), LLMReservation.id.desc()).limit(100).all(),
         daily_stats=daily_stats,
         task_stats=task_stats,
         provider_stats=provider_stats,
         total_cost=total_cost,
         total_calls=total_calls,
         days=days,
-    )
+    ), 200, {'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer'}
 
 
 # ── LLM Reprocessing ─────────────────────────────────────────────
@@ -539,10 +570,34 @@ def sector_group_delete(group_id):
 
 # ── Startup Discovery Sources ────────────────────────────────────
 
+@admin_bp.after_request
+def private_startup_status(response):
+    if request.path.startswith('/admin/startup-sources'):
+        response.headers['Cache-Control'] = 'no-store'
+        response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    return response
+
+
 @admin_bp.route('/startup-sources')
 def startup_sources():
-    sources = StartupSource.query.order_by(StartupSource.name).all()
-    return render_template('admin/startup_sources.html', sources=sources)
+    try:
+        sources = StartupSource.query.order_by(StartupSource.name).all()
+        selected = request.args.getlist('analysis_id')
+        if len(selected) > 1:
+            return 'Select one analysis job', 400
+        if selected:
+            analysis_jobs = StartupAnalysisJob.query.filter_by(id=selected[0]).limit(1).all()
+            if not analysis_jobs:
+                return 'Analysis job not found', 404
+        else:
+            analysis_jobs = StartupAnalysisJob.query.order_by(
+                StartupAnalysisJob.created_at.desc(), StartupAnalysisJob.id.desc()).limit(50).all()
+        from app.llm.startup_analysis import label
+        return render_template('admin/startup_sources.html', sources=sources, analysis_jobs=analysis_jobs,
+                               analysis_labels={item.id: label(item) for item in analysis_jobs})
+    except SQLAlchemyError:
+        db.session.rollback()
+        return 'Discovery status unavailable', 503
 
 
 @admin_bp.route('/startup-sources/new', methods=['GET', 'POST'])
@@ -590,7 +645,10 @@ def startup_source_delete(source_id):
 @admin_bp.route('/startup-sources/scan-now', methods=['POST'])
 def startup_scan_now():
     from app.crawlers.startup_discovery import scan_startup_sources
-    scan_startup_sources.delay()
+    try:
+        scan_startup_sources.delay()
+    except Exception:
+        return 'Discovery scan dispatch unavailable; no scan queued confirmation', 503
     flash('Startup discovery scan queued.', 'success')
     return redirect(url_for('admin.startup_sources'))
 

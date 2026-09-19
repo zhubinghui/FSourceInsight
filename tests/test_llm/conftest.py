@@ -56,7 +56,8 @@ def llm_env(db, monkeypatch):
     monkeypatch.setattr(client_module.litellm, 'completion', provider)
     config = LLMConfig(provider='synthetic', model='primary', is_default=True,
                        tasks=['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight'],
-                       cost_per_1k_input='0.01', cost_per_1k_output='0.02')
+                       cost_per_1k_input='0.01', cost_per_1k_output='0.02',
+                       billing_input_limit=1024, billing_output_limit=4096)
     source = NewsSource(name='Synthetic', slug='synthetic', url='https://test.invalid', category='national')
     db.session.add_all([config, source])
     db.session.flush()

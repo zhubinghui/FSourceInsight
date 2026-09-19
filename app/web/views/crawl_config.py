@@ -14,12 +14,15 @@ from app.crawlers._preview import preview_policy, report_data, source_fingerprin
 from app.extensions import db
 from app.models.crawl_schema import CrawlSchemaVersion, CrawlSourceProfile, CrawlPreviewReport, CrawlCaptureManifest
 from app.models.source import NewsSource
+from app.models.crawl_learning import CrawlRepairSession
 from .crawl_policy import crawl_policy_bp
 from .crawl_capture import crawl_capture_bp
+from .crawl_learning import crawl_learning_bp
 
 crawl_config_bp = Blueprint('crawl_config', __name__, url_prefix='/sources/<int:source_id>/crawl-config')
 crawl_config_bp.register_blueprint(crawl_policy_bp)
 crawl_config_bp.register_blueprint(crawl_capture_bp)
+crawl_config_bp.register_blueprint(crawl_learning_bp)
 
 
 @crawl_config_bp.errorhandler(SQLAlchemyError)
@@ -66,7 +69,9 @@ def index(source_id):
         return redirect(url_for('admin.crawl_config.version', source_id=source_id, version_id=version_id))
     versions = (CrawlSchemaVersion.query.filter_by(profile_id=profile.id)
                 .order_by(CrawlSchemaVersion.id.desc()).limit(50).all()) if profile else []
-    return render_template('admin/crawl_config.html', source=source, versions=versions)
+    learning_sessions = (CrawlRepairSession.query.filter_by(source_id=source_id)
+                         .order_by(CrawlRepairSession.created_at.desc(), CrawlRepairSession.id.desc()).limit(50).all())
+    return render_template('admin/crawl_config.html', source=source, versions=versions, learning_sessions=learning_sessions)
 
 
 @crawl_config_bp.route('/evidence/cleanup', methods=['POST'])

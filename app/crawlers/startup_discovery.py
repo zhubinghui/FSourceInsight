@@ -3,29 +3,45 @@
 Extracts company names from portfolio/directory pages, creates Company
 records with is_grenoble=True, and triggers AI analysis generation.
 """
-import hashlib
 import logging
 import re
 from datetime import datetime
 
-import requests
+from urllib.parse import urlsplit
+
+from app.crawlers.fetcher import SafeFetcher, FetchPolicy
 from bs4 import BeautifulSoup
 from slugify import slugify
 
 from celery_app import celery
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.extensions import db
 from app.models.company import Company
 from app.models.startup_source import StartupSource
 
 logger = logging.getLogger(__name__)
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-    'Accept-Language': 'en-US,en;q=0.9,fr;q=0.5',
-}
-
-
 def _extract_companies_from_page(url: str) -> list[dict]:
+    # The configured directory host only. No redirect host auto-approval or
+    # direct HTTP fallback, and every pagination request shares these limits.
+    policy = FetchPolicy(allowed_hosts=(urlsplit(url).hostname,), max_seconds=30,
+                         max_requests=6, max_response_bytes=512 * 1024,
+                         max_wire_bytes=512 * 1024, max_total_bytes=2 * 1024 * 1024,
+                         max_total_wire_bytes=2 * 1024 * 1024)
+    with SafeFetcher(policy) as fetcher:
+        return _extract_pages(url, fetcher)
+
+
+def _page(fetcher, url):
+    response = fetcher.fetch(url)
+    if response.observation.http_status != 200:
+        raise ValueError('Directory page unavailable')
+    return BeautifulSoup(response.body, 'lxml')
+
+
+def _extract_pages(url, fetcher):
     """Extract company names and metadata from a startup portfolio/directory page.
 
     Uses multiple strategies and handles pagination:
@@ -38,9 +54,7 @@ def _extract_companies_from_page(url: str) -> list[dict]:
 
     # Fetch page(s) — handle SharePoint-style pagination for CEA sites
     pages_to_parse = []
-    resp = requests.get(url, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, 'lxml')
+    soup = _page(fetcher, url)
     pages_to_parse.append(soup)
 
     # Check for SharePoint pagination (Voir aussi / Suivant links)
@@ -54,15 +68,12 @@ def _extract_companies_from_page(url: str) -> list[dict]:
             if gm:
                 guid_params.add(gm.group(1))
 
-        for param in guid_params:
-            for pg in range(1, 10):
+        for param in sorted(guid_params)[:1]:
+            for pg in range(1, 5):
                 sep = '&' if '?' in url else '?'
                 pg_url = f'{url}{sep}{param}={pg}'
                 try:
-                    r2 = requests.get(pg_url, headers=HEADERS, timeout=15)
-                    if r2.status_code != 200:
-                        break
-                    pg_soup = BeautifulSoup(r2.text, 'lxml')
+                    pg_soup = _page(fetcher, pg_url)
                     pages_to_parse.append(pg_soup)
                     if 'Suivant' not in pg_soup.get_text():
                         break
@@ -94,13 +105,10 @@ def _extract_companies_from_page(url: str) -> list[dict]:
         _extract_directory_links(ps, url, seen, companies)
     if 'member-directory' in url or 'annuaire' in url:
         base_url = url.rstrip('/')
-        for page_num in range(2, 50):
+        for page_num in range(2, 6):
             page_url = f'{base_url}/page/{page_num}/'
             try:
-                r = requests.get(page_url, headers=HEADERS, timeout=15)
-                if r.status_code != 200:
-                    break
-                ps = BeautifulSoup(r.text, 'lxml')
+                ps = _page(fetcher, page_url)
                 before = len(companies)
                 _extract_directory_links(ps, url, seen, companies)
                 if len(companies) == before:
@@ -142,7 +150,7 @@ def _extract_companies_from_page(url: str) -> list[dict]:
                     'year': None,
                 })
 
-    return companies
+    return companies[:1000]
 
 
 def _extract_directory_links(soup, base_url: str, seen: set, companies: list):
@@ -184,68 +192,54 @@ def _extract_directory_links(soup, base_url: str, seen: set, companies: list):
 @celery.task(name='app.crawlers.startup_discovery.scan_startup_sources',
              queue='crawl')
 def scan_startup_sources():
-    """Scan all active startup sources and discover new companies."""
-    sources = StartupSource.query.filter_by(is_active=True).all()
+    """Read bounded directories; atomically save NEW companies and LLM intents."""
+    from app.llm import budget, startup_analysis as jobs
+    with Session(db.engine) as session:
+        sources = list(session.scalars(select(StartupSource).where(StartupSource.is_active.is_(True))
+                                       .order_by(StartupSource.last_scanned_at, StartupSource.id).limit(50)))
     total_new = 0
-
-    for source in sources:
+    for captured in sources:
         try:
-            discovered = _extract_companies_from_page(source.url)
-            new_count = 0
-
-            for entry in discovered:
-                name = entry['name']
-                slug = slugify(name)
-
-                # Skip if already exists
-                existing = Company.query.filter_by(slug=slug).first()
-                if existing:
-                    continue
-
-                # Also check aliases
-                name_lower = name.lower()
-                alias_match = False
-                for c in Company.query.filter(Company.aliases.isnot(None)).all():
-                    if c.aliases and name_lower in [a.lower() for a in c.aliases]:
-                        alias_match = True
+            expected = jobs.source_input(captured)
+            discovered = _extract_companies_from_page(captured.url)
+            pending = []
+            with budget.transaction() as session:
+                source = session.scalar(select(StartupSource).where(StartupSource.id == captured.id)
+                                        .with_for_update().execution_options(populate_existing=True))
+                if (source is None or jobs.source_input(source) != expected or not source.is_active
+                        or source.source_type not in ('startup', 'research_lab')):
+                    raise ValueError('Discovery source changed')
+                aliases = list(session.scalars(select(Company.aliases).where(Company.aliases.is_not(None)).limit(4097)))
+                if len(aliases) > 4096 or any(row is not None and not isinstance(row, list) for row in aliases):
+                    raise ValueError('Discovery alias inventory unavailable')
+                # SQL NULL and JSON null both mean no aliases, not a bad inventory.
+                known = {alias.lower() for row in aliases if row is not None
+                         for alias in row if isinstance(alias, str)}
+                for entry in discovered:
+                    name = entry['name']
+                    slug = slugify(name)
+                    if not 2 <= len(name) <= 300 or not slug or len(slug) > 300 or name.lower() in known:
+                        continue
+                    if session.scalar(select(Company.id).where(Company.slug == slug).limit(1)):
+                        continue
+                    lab = source.source_type == 'research_lab'
+                    company = Company(name=name, slug=slug, description=entry.get('description'),
+                                      website=jobs.website(entry.get('website')), is_grenoble=True,
+                                      company_stage='research_institute' if lab else 'startup',
+                                      sector='Research Institute' if lab else None, is_auto_created=True)
+                    session.add(company)
+                    pending.append(jobs.create(session, source, company))
+                    if len(pending) >= 20:
                         break
-                if alias_match:
-                    continue
-
-                # Create new company — type depends on source
-                stage = 'research_institute' if source.source_type == 'research_lab' else 'startup'
-                sector = 'Research Institute' if source.source_type == 'research_lab' else None
-                company = Company(
-                    name=name,
-                    slug=slug,
-                    description=entry.get('description'),
-                    website=entry.get('website'),
-                    is_grenoble=True,
-                    company_stage=stage,
-                    sector=sector,
-                    is_auto_created=True,
-                )
-                db.session.add(company)
-                db.session.flush()
-                new_count += 1
-                logger.info(f'Discovered new {source.source_type}: {name} (from {source.name})')
-
-            source.last_scanned_at = datetime.utcnow()
-            source.companies_found = len(discovered)
-            db.session.commit()
-
-            if new_count > 0:
-                total_new += new_count
-                logger.info(f'{source.name}: {len(discovered)} found, {new_count} new')
-
-                # Trigger AI analysis for new companies
-                _generate_analyses_for_new(source)
-            else:
-                logger.info(f'{source.name}: {len(discovered)} found, 0 new')
-
-        except Exception as e:
-            logger.warning(f'Startup scan failed for {source.name}: {e}')
-
+                source.last_scanned_at = datetime.utcnow()
+                source.companies_found = len(discovered)
+            total_new += len(pending)
+            for identity in pending:
+                jobs.publish(identity)
+        except Exception:
+            # Independent context rollback prevents one broken directory from
+            # committing its partial companies with the next source's result.
+            logger.warning('Startup source %s scan unavailable; transaction outcome may require inspection', captured.id)
     return {'sources_scanned': len(sources), 'new_companies': total_new}
 
 
@@ -284,62 +278,3 @@ def _infer_sector(analysis: dict) -> str | None:
             best_sector = sector_name
 
     return best_sector if best_score > 0 else None
-
-
-def _generate_analyses_for_new(source: StartupSource):
-    """Generate AI analysis for companies pending analysis.
-
-    Skips companies with 3+ previous failures (retried on next scan).
-    Resets failure counter on next scan cycle.
-    """
-    from app.llm.client import LLMClient
-
-    # Reset failure counters at the start of each scan — gives failed ones another chance
-    Company.query.filter(
-        Company.is_grenoble == True,
-        Company.ai_analysis.is_(None),
-        Company.ai_analysis_failures >= 3,
-    ).update({Company.ai_analysis_failures: 0})
-    db.session.commit()
-
-    new_companies = (
-        Company.query
-        .filter_by(is_grenoble=True)
-        .filter(Company.ai_analysis.is_(None))
-        .filter(Company.ai_analysis_failures < 3)
-        .order_by(Company.created_at.desc())
-        .limit(20)
-        .all()
-    )
-
-    if not new_companies:
-        return
-
-    client = LLMClient()
-    for company in new_companies:
-        try:
-            analysis = client.analyze_company(
-                name=company.name,
-                sector=company.sector,
-                headquarters=company.headquarters or 'Grenoble',
-                description=company.description,
-                spinoff_origin=company.spinoff_origin,
-                company_stage=company.company_stage,
-                recent_news='',
-            )
-            if isinstance(analysis, dict):
-                company.ai_analysis = analysis
-                company.ai_analysis_at = datetime.utcnow()
-                company.ai_analysis_failures = 0
-                if not company.website and analysis.get('website'):
-                    company.website = analysis['website']
-                if not company.sector:
-                    inferred = _infer_sector(analysis)
-                    if inferred:
-                        company.sector = inferred
-                db.session.commit()
-                logger.info(f'AI analysis generated for {company.name} (sector={company.sector})')
-        except Exception as e:
-            company.ai_analysis_failures = (company.ai_analysis_failures or 0) + 1
-            db.session.commit()
-            logger.warning(f'AI analysis failed for {company.name} (attempt {company.ai_analysis_failures}/3): {e}')

@@ -3,17 +3,13 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
-
 import litellm
-from flask import current_app
 from redis.exceptions import RedisError
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.extensions import db, redis_client
 from app.models.llm import LLMConfig, LLMUsageLog
-from app.llm import prompts
+from app.llm import prompts, budget as spend
 from app.llm.circuit_breaker import CircuitBreaker
 from app.llm.routing import ordered_configs
 from app.llm.contracts import CONTRACT_VERSION, JSON_TASKS, InvalidLLMResponse, validate_response
@@ -41,8 +37,8 @@ class LLMClient:
 
     Callers must not hold flushed business write locks across a model call.
     Pending objects are never autoflushed or committed by this client. Article
-    processing collects results first (pipeline.py). Accounting failures abort
-    without fallback; this is a spend check, not a concurrent hard reservation.
+    processing collects results first (pipeline.py). A database reservation is
+    committed before each paid attempt. Accounting failures abort without fallback.
     """
     def __init__(self):
         self._breaker = CircuitBreaker()
@@ -56,17 +52,6 @@ class LLMClient:
 
     def _get_config(self, task_type):
         return next((c for c in self._candidates(task_type) if not self._breaker.is_open(c.provider)), None)
-
-    def _check_daily_budget(self):
-        budget = current_app.config.get('LLM_DAILY_BUDGET_USD', 0)
-        if not budget or budget <= 0:
-            return
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        with Session(db.engine) as ledger:
-            cost = ledger.query(func.coalesce(func.sum(LLMUsageLog.cost_usd), 0)).filter(
-                LLMUsageLog.created_at >= today).scalar()
-        if float(cost or 0) >= budget:
-            raise RuntimeError(f'Daily LLM budget exceeded: ${float(cost):.4f} / ${budget:.2f}')
 
     @staticmethod
     def _cache_key(task_type, messages, config):
@@ -103,7 +88,7 @@ class LLMClient:
         except RedisError:
             logger.warning('LLM response cache write unavailable; paid result retained')
 
-    def _call_llm(self, config, messages, task_type, article_id):
+    def _call_llm(self, config, messages, task_type, article_id, learning_attempt=None, discovery_job=None):
         model = config.model
         if config.provider and '/' not in model:
             model = f'{config.provider}/{model}'
@@ -119,6 +104,7 @@ class LLMClient:
             kwargs['api_base'] = config.api_base_url
         if task_type in JSON_TASKS:
             kwargs['response_format'] = {'type': 'json_object'}
+        permit = spend.reserve(config, task_type, learning_attempt, messages, discovery_job=discovery_job)
         start = time.monotonic()
         usage, error, result = None, None, None
         try:
@@ -131,44 +117,39 @@ class LLMClient:
             error = exc
         log_entry = LLMUsageLog(
             config_id=config.id, task_type=task_type, article_id=article_id,
-            input_tokens=usage.prompt_tokens if usage else None,
-            output_tokens=usage.completion_tokens if usage else None,
             latency_ms=int((time.monotonic() - start) * 1000), success=error is None,
             error_message=type(error).__name__ if error else None,
         )
-        if usage and config.cost_per_1k_input is not None and config.cost_per_1k_output is not None:
-            log_entry.cost_usd = (
-                float(config.cost_per_1k_input) * usage.prompt_tokens / 1000
-                + float(config.cost_per_1k_output) * usage.completion_tokens / 1000
-            )
-        # Outside the provider exception handler: a ledger failure must never
-        # cause another billable call. No business ORM objects enter this Session.
-        with Session(db.engine) as ledger, ledger.begin():
-            ledger.add(log_entry)
+        # Outside the provider exception handler: failed settlement retains the
+        # committed permit and must never cause another billable call.
+        accounting_error = spend.settle(permit, log_entry, usage)
+        if accounting_error and (error is None or usage is not None or learning_attempt is not None
+                                 or discovery_job is not None):
+            raise accounting_error
         if error is not None:
             self._breaker.record_failure(config.provider)
             raise _ProviderFailure(error)
         self._breaker.record_success(config.provider)
         return result
 
-    def _request(self, task, messages, article_id=None):
+    def _request(self, task, messages, article_id=None, learning_attempt=None, discovery_job=None):
         last_error, attempts = None, 0
         for config in self._candidates(task):
             if self._breaker.is_open(config.provider):
                 continue
             key = self._cache_key(task, messages, config)
-            result = self._get_cached(key, task)
+            result = self._get_cached(key, task) if learning_attempt is None else None
             if result is None:
                 if attempts >= MAX_ATTEMPTS:
                     break
-                self._check_daily_budget()
                 attempts += 1
                 try:
-                    result = self._call_llm(config, messages, task, article_id)
+                    result = self._call_llm(config, messages, task, article_id, learning_attempt, discovery_job)
                 except _ProviderFailure as exc:
                     last_error = exc.error
                     continue
-                self._set_cache(key, result, task)
+                if learning_attempt is None:
+                    self._set_cache(key, result, task)
             self.routes[task] = {'provider': config.provider, 'model': config.model}
             return result
         if last_error:
@@ -179,6 +160,12 @@ class LLMClient:
     def _prepare(text, task):
         text = strip_html(text) or text
         return text[:MAX_INPUT_CHARS.get(task, DEFAULT_MAX_INPUT_CHARS)]
+
+    def propose_crawl_recipe(self, attempt_id, messages):
+        """Only a persisted, currently claimed learning attempt may pay for this task."""
+        if not isinstance(attempt_id, str) or not attempt_id:
+            raise spend.BudgetError('Persisted learning attempt required')
+        return self._request('crawl_schema', messages, learning_attempt=attempt_id)
 
     def translate(self, text, target_lang='zh', article_id=None):
         return self._request('translate', prompts.get_translate_messages(
@@ -207,7 +194,14 @@ class LLMClient:
             strip_html(title) or title, self._prepare(text, 'insight'), target_lang), article_id)
 
     def analyze_company(self, name, sector=None, headquarters=None, description=None,
-                        spinoff_origin=None, company_stage=None, recent_news=None, website_excerpt=None):
-        return self._request('company_analysis', prompts.get_company_analysis_messages(
+                        spinoff_origin=None, company_stage=None, recent_news=None, website_excerpt=None,
+                        discovery_job=None):
+        messages = prompts.get_company_analysis_messages(
             name, sector, headquarters, description, spinoff_origin, company_stage,
-            recent_news, website_excerpt=website_excerpt))
+            recent_news, website_excerpt=website_excerpt)
+        if discovery_job is not None:
+            if not isinstance(discovery_job, str) or not discovery_job:
+                raise spend.BudgetError('Persisted discovery job required')
+            from app.llm.startup_analysis import check
+            check(discovery_job, messages)  # Cache hits also require current ownership/input.
+        return self._request('company_analysis', messages, discovery_job=discovery_job)

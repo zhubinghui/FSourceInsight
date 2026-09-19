@@ -19,6 +19,13 @@
     Evidence and replay are not approval. No articles or LLM tasks were created.</div>
 {% endif %}
 {% if evidence_status == 'available' and not stale %}
+{% if config.CRAWL_LEARNING_ENABLED %}
+<form method="post" data-learning-start action="{{ url_for('admin.crawl_config.learning.start', source_id=source.id, version_id=version_id, report_id=preview.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <p>Explicit learning: at most 3 rounds / USD 0.20 per session. Requires current persistent policy and tracked capture history. Cropped retained documents and the recipe will be sent to the explicitly assigned LLM provider; review potentially sensitive source data first. No independent validation or publication.</p>
+    <button class="btn btn-warning mb-3">Start bounded learning</button>
+</form>
+{% else %}<p>Learning is disabled.</p>{% endif %}
 <form method="post" data-replay action="{{ url_for('admin.crawl_config.replay', source_id=source.id, version_id=version_id, report_id=preview.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="btn btn-secondary mb-3">Replay without network or ingestion</button>

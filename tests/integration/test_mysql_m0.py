@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'f2a67b904d31'
+HEAD = 'b5d81e6a430f'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -73,6 +73,91 @@ class MySQLM0Tests(unittest.TestCase):
         self.db.session.remove()
         result = self.app.test_cli_runner().invoke(args=['db', 'upgrade', revision])
         self.assertEqual(result.exit_code, 0, result.output)
+
+    def test_startup_analysis_has_one_mysql_owner_and_fences_source_aba(self):
+        """Actual Admin/scan/tasks, external synthetic HTTP/model/dispatch only."""
+        import json
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        from types import SimpleNamespace
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models import User, Company, LLMConfig, LLMReservation, StartupAnalysisJob
+        from app.models.startup_source import StartupSource
+        from app.crawlers.startup_discovery import scan_startup_sources
+        from app.llm.startup_tasks import analyze
+
+        body = ''.join(f'<div data-name="Synthetic {n}" data-description="Synthetic sensors"></div>' for n in (1, 2))
+        with self.synthetic_news_engine(body=body):
+            self.db.session.add_all([
+                User(email='startup-admin@test.invalid', is_admin=True, password_hash=generate_password_hash('synthetic-password')),
+                LLMConfig(provider='synthetic', model='initial', tasks=['company_analysis'],
+                          max_tokens=300, billing_input_limit=4000, billing_output_limit=500,
+                          cost_per_1k_input='0.001', cost_per_1k_output='0.002'),
+            ])
+            self.db.session.commit()
+            client = self.app.test_client()
+
+            def http(method, path, **kwargs):
+                with self.app.app_context():
+                    return getattr(client, method)(path, **kwargs)
+
+            def token(path='/auth/login'):
+                return BeautifulSoup(http('get', path).text, 'html.parser').select_one('input[name=csrf_token]')['value']
+
+            self.assertEqual(http('post', '/auth/login', data={
+                'email': 'startup-admin@test.invalid', 'password': 'synthetic-password', 'csrf_token': token(),
+            }).status_code, 302)
+            fields = {'name': 'Synthetic directory', 'url': 'https://news.test.invalid/news',
+                      'source_type': 'startup', 'is_active': 'on', 'csrf_token': token('/admin/startup-sources/new')}
+            self.assertEqual(http('post', '/admin/startup-sources/new', data=fields).status_code, 302)
+            with patch('celery.app.base.Celery.send_task') as dispatched:
+                scan_startup_sources.run()
+                self.assertEqual(dispatched.call_count, 2)
+            self.db.session.remove()
+            identities = [r.id for r in StartupAnalysisJob.query.order_by(StartupAnalysisJob.company_id).all()]
+            source_id = StartupSource.query.one().id
+            self.db.session.remove()
+            calls = []
+            reply = {key: '' for key in ('website', 'overview', 'founders', 'spinoff_source', 'core_tech',
+                                         'cn_competitor_names', 'business_status', 'recommendation', 'recommendation_reason')}
+            reply.update(overview='Synthetic result', competitors=[])
+
+            def provider(**kwargs):
+                calls.append(kwargs)
+                return SimpleNamespace(usage=SimpleNamespace(prompt_tokens=100, completion_tokens=50), choices=[
+                    SimpleNamespace(finish_reason='stop', message=SimpleNamespace(content=json.dumps(reply)))])
+
+            barrier = Barrier(2)
+            def deliver():
+                with self.app.app_context():
+                    barrier.wait(timeout=10)
+                    analyze.run(identities[0])
+
+            with patch('app.llm.client.redis_client', None), patch('app.llm.circuit_breaker.redis_client', None), patch('litellm.completion', provider):
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    list(pool.map(lambda _: deliver(), range(2)))
+            self.db.session.remove()
+            self.assertEqual(StartupAnalysisJob.query.get(identities[0]).state, 'succeeded')
+            self.assertEqual(len(calls), 1)
+            self.db.session.remove()
+
+            def revoked(**kwargs):
+                for active in ('', 'on'):
+                    values = dict(fields, is_active=active, csrf_token=token(f'/admin/startup-sources/{source_id}/edit'))
+                    self.assertEqual(http('post', f'/admin/startup-sources/{source_id}/edit', data=values).status_code, 302)
+                return provider(**kwargs)
+
+            with patch('app.llm.client.redis_client', None), patch('app.llm.circuit_breaker.redis_client', None), patch('litellm.completion', revoked):
+                analyze.run(identities[1])
+                analyze.run(identities[1])
+            self.db.session.remove()
+            self.assertEqual(StartupAnalysisJob.query.get(identities[1]).state, 'stale')
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(LLMReservation.query.count(), 2)
+            self.assertTrue(all(r.state == 'settled' for r in LLMReservation.query.all()))
+            self.assertEqual(sum(c.ai_analysis is not None for c in Company.query.all()), 1)
+            self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
 
     def test_empty_database_upgrades_to_current_models(self):
         self.upgrade()
@@ -161,7 +246,7 @@ class MySQLM0Tests(unittest.TestCase):
                          ('owner-choice', ['translate'], 'primary', 100))
 
     @contextmanager
-    def synthetic_news_engine(self):
+    def synthetic_news_engine(self, body=None):
         """External DNS/socket/TLS fixtures, actual parser/engine and disposable MySQL."""
         import json
         from pathlib import Path
@@ -183,7 +268,7 @@ class MySQLM0Tests(unittest.TestCase):
         bootstrap = Path(__file__).resolve().parents[1] / 'support' / 'fetch_network.py'
         with TemporaryDirectory(prefix='fsi-m1-mysql-network-') as directory:
             scenario, trace = Path(directory) / 'scenario.json', Path(directory) / 'trace.jsonl'
-            scenario.write_text(json.dumps({'routes': {source.url: {'body': '<article><a href="/research">Research</a></article>'}}}))
+            scenario.write_text(json.dumps({'routes': {source.url: {'body': body if body is not None else '<article><a href="/research">Research</a></article>'}}}))
             def spawn(command, **kwargs):
                 if Path(command[-1]).name == '_fetch_worker.py':
                     command = [sys.executable, '-I', str(bootstrap), command[-1], str(scenario), str(trace)]
@@ -310,6 +395,87 @@ class MySQLM0Tests(unittest.TestCase):
                 self.assertEqual(status, 'revoked')
                 self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
                 self.assertIn('No active recipe', http('get', root).text)
+
+    def test_learning_duplicate_start_and_inflight_cancel_keep_one_paid_attempt(self):
+        import json
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        from tempfile import TemporaryDirectory
+        from types import SimpleNamespace
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models import User, LLMConfig
+        from app.crawlers.learning_tasks import learn
+
+        with self.synthetic_news_engine() as fixture, TemporaryDirectory(prefix='fsi-learning-') as directory, patch.dict(self.app.config):
+            self.app.config.update(CRAWL_EVIDENCE_DIR=directory, CRAWL_LEARNING_ENABLED=True)
+            self.db.session.add_all([
+                User(email='learning-admin@test.invalid', is_admin=True, password_hash=generate_password_hash('test-password')),
+                LLMConfig(provider='synthetic', model='recipe', tasks=['crawl_schema'], is_active=True,
+                          cost_per_1k_input='0.01', cost_per_1k_output='0.02', billing_input_limit=1024, billing_output_limit=4096)])
+            self.db.session.commit()
+            self.db.session.remove()
+            client = self.app.test_client()
+            def http(method, url, **kwargs):
+                with self.app.app_context():
+                    return getattr(client, method)(url, **kwargs)
+            def form_at(url, selector):
+                page = BeautifulSoup(http('get', url).text, 'html.parser')
+                form = page.select_one(selector)
+                self.assertIsNotNone(form)
+                return form['action'], {n['name']: n.get('value', '') for n in form.select('input[name]')
+                                        if not n.has_attr('disabled') and n.get('type') != 'checkbox'}
+            token = BeautifulSoup(http('get', '/auth/login').text, 'html.parser').select_one('input[name=csrf_token]')['value']
+            self.assertEqual(http('post', '/auth/login', data={'email': 'learning-admin@test.invalid',
+                             'password': 'test-password', 'csrf_token': token}).status_code, 302)
+            root = f'/admin/sources/{fixture.source_id}/crawl-config'
+            action, fields = form_at(root + '/policies', 'form[data-policy-save]')
+            self.assertEqual(http('post', action, data={**fields, 'allowed_hosts': 'news.test.invalid', 'quality_kind': 'news'}).status_code, 302)
+            candidate = http('post', root, data={'csrf_token': token, 'recipe': json.dumps(fixture.recipe.to_dict())})
+            action, fields = form_at(candidate.location, 'form[data-preview]')
+            preview = http('post', action, data={**fields, 'retain_evidence': '1'})
+            action, fields = form_at(preview.location, 'form[data-learning-start]')
+            cookie, barrier = client.get_cookie('session').value, Barrier(2)
+            def start():
+                with self.app.app_context():
+                    browser = self.app.test_client()
+                    browser.set_cookie('session', cookie)
+                    barrier.wait(timeout=10)
+                    response = browser.post(action, data=fields)
+                    return response.status_code, response.location
+            with patch('celery.app.base.Celery.send_task') as dispatched:
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    results = list(pool.map(lambda _: start(), range(2)))
+            self.assertEqual(dispatched.call_count, 1)
+            message = dispatched.call_args.kwargs['args']
+            self.assertEqual(dispatched.call_args.kwargs['queue'], 'crawl_learn')
+            self.assertEqual(results[0], results[1])
+            self.assertEqual(results[0][0], 302)
+            detail = results[0][1]
+            def reply(**kwargs):
+                cancel, data = form_at(detail, 'form[data-learning-cancel]')
+                self.assertEqual(http('post', cancel, data=data).status_code, 302)
+                return SimpleNamespace(choices=[SimpleNamespace(finish_reason='stop',
+                    message=SimpleNamespace(content=json.dumps(fixture.recipe.to_dict())))],
+                    usage=SimpleNamespace(prompt_tokens=100, completion_tokens=50))
+            with patch('litellm.completion', side_effect=reply) as provider, patch('app.llm.client.redis_client', None), patch('app.llm.circuit_breaker.redis_client', None):
+                learn.run(*message)
+                learn.run(*message)
+                self.assertEqual(provider.call_count, 1)
+            page = BeautifulSoup(http('get', detail).text, 'html.parser')
+            self.assertEqual(page.select_one('[data-learning-state]').get_text(strip=True), 'cancelled')
+            self.assertEqual(page.select_one('[data-learning-spent]').get_text(strip=True), '0.002000')
+            self.assertEqual(page.select_one('[data-learning-history]').get_text(strip=True), 'tracked')
+            self.assertEqual(page.select_one('[data-history-sessions]').get_text(strip=True), '1')
+            self.assertEqual(page.select_one('[data-history-exposures]').get_text(strip=True), '1')
+            self.assertFalse(page.select('a[data-learning-candidate]'))
+            self.assertEqual(http('get', '/api/v1/news').json['total'], 0)
+            with self.db.engine.begin() as connection:
+                connection.execute(text('UPDATE crawl_learning_history SET exposure_generation=0'))
+            page = BeautifulSoup(http('get', detail).text, 'html.parser')
+            self.assertEqual(page.select_one('[data-learning-history]').get_text(strip=True), 'unavailable')
+            with patch('celery.app.base.Celery.send_task', side_effect=AssertionError('No dispatch with incomplete history')):
+                self.assertEqual(http('post', action, data=fields).status_code, 409)
 
     def test_admin_http_capture_history_survives_pruning_and_atomic_failure(self):
         import json
@@ -495,7 +661,8 @@ class MySQLM0Tests(unittest.TestCase):
         self.db.session.add_all([article, Category(name='Research', slug='research'),
                                  LLMConfig(provider='synthetic', model='test', is_default=True,
                                            tasks=['translate', 'digest', 'summarize', 'ner', 'sentiment', 'classify', 'insight'],
-                                           cost_per_1k_input='0.01', cost_per_1k_output='0.02')])
+                                           cost_per_1k_input='0.01', cost_per_1k_output='0.02',
+                                           billing_input_limit=1024, billing_output_limit=4096)])
         self.db.session.flush()
         article_id = article.id
         self.db.session.commit()
@@ -526,6 +693,49 @@ class MySQLM0Tests(unittest.TestCase):
             content = 'Synthetic enriched text'
         return SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content=content), finish_reason='stop')],
                                usage=SimpleNamespace(prompt_tokens=100, completion_tokens=50))
+
+    def test_mysql_budget_reserves_last_balance_across_concurrent_clients(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Event
+        from app.llm.client import LLMClient
+        self.make_llm_article()
+        entered, release = Event(), Event()
+        calls = []
+        def reply(**kwargs):
+            calls.append(kwargs)
+            if kwargs['messages'][-1]['content'] == 'first':
+                entered.set()
+                self.assertTrue(release.wait(10))
+            return self.llm_reply(**kwargs)
+        def first():
+            with self.app.app_context():
+                return LLMClient().translate('first')
+        with patch.dict(self.app.config, {'LLM_DAILY_BUDGET_USD': 0.10}), patch('litellm.completion', side_effect=reply):
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(first)
+                try:
+                    self.assertTrue(entered.wait(5))
+                    with self.assertRaisesRegex(RuntimeError, 'budget exceeded'):
+                        LLMClient().translate('second')
+                    self.assertEqual(len(calls), 1)
+                finally:
+                    release.set()
+                self.assertEqual(future.result(timeout=5), 'Synthetic enriched text')
+            self.assertEqual(LLMClient().translate('after settlement'), 'Synthetic enriched text')
+
+    def test_mysql_budget_retains_permit_when_usage_commit_fails(self):
+        from app.llm.client import LLMClient
+        self.make_llm_article()
+        with self.db.engine.begin() as conn:
+            conn.execute(text("CREATE TRIGGER budget_fail_usage BEFORE INSERT ON llm_usage_log FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='synthetic budget ledger failure'"))
+        with patch.dict(self.app.config, {'LLM_DAILY_BUDGET_USD': 0.10}), patch('litellm.completion', side_effect=self.llm_reply) as provider:
+            with self.assertRaisesRegex(Exception, 'synthetic budget ledger failure'):
+                LLMClient().translate('first')
+            with self.db.engine.begin() as conn:
+                conn.execute(text('DROP TRIGGER budget_fail_usage'))
+            with self.assertRaisesRegex(RuntimeError, 'budget exceeded'):
+                LLMClient().translate('second')
+            self.assertEqual(provider.call_count, 1)
 
     def test_mysql_llm_independent_ledger_does_not_wait_on_business_parent(self):
         from app.llm.tasks import process_article_llm

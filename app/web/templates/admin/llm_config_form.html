@@ -73,15 +73,30 @@
                 <div class="col-6 mb-3">
                     <label class="form-label">Cost / 1K input tokens ($)</label>
                     <input type="number" class="form-control" name="cost_per_1k_input" step="0.000001"
-                           value="{{ config.cost_per_1k_input if config and config.cost_per_1k_input else '' }}">
+                           value="{{ config.cost_per_1k_input if config and config.cost_per_1k_input is not none else '' }}">
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label">Cost / 1K output tokens ($)</label>
                     <input type="number" class="form-control" name="cost_per_1k_output" step="0.000001"
-                           value="{{ config.cost_per_1k_output if config and config.cost_per_1k_output else '' }}">
+                           value="{{ config.cost_per_1k_output if config and config.cost_per_1k_output is not none else '' }}">
                 </div>
             </div>
 
+            <fieldset class="mb-3 border rounded p-3">
+                <legend class="h6">Reviewed billing ceilings</legend>
+                <p class="small">Paid calls reserve the full token ceilings at the prices above, not a tokenizer estimate.
+                    Verify the supplier's maximum billable input and output (including hidden/reasoning tokens),
+                    endpoint and model. Tiered or extra charges are unsupported. Blank ceilings block paid calls.</p>
+                <label class="form-label">Billable input tokens per request</label>
+                <input class="form-control" type="number" name="billing_input_limit" min="1" max="10000000"
+                       value="{{ config.billing_input_limit if config and config.billing_input_limit is not none else '' }}">
+                <label class="form-label">Billable output tokens per request</label>
+                <input class="form-control" type="number" name="billing_output_limit" min="1" max="10000000"
+                       value="{{ config.billing_output_limit if config and config.billing_output_limit is not none else '' }}">
+                <label class="form-check-label mt-2">
+                    <input type="checkbox" name="billing_reviewed" value="1"> I reviewed these billing terms for this model and endpoint.
+                </label>
+            </fieldset>
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" name="is_default" id="is_default"
                        {{ 'checked' if config and config.is_default }}>

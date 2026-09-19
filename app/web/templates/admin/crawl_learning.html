@@ -1,0 +1,70 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Crawl learning{% endblock %}
+{% block content %}
+<h2>{{ source.name }} — Learning session</h2>
+<p><a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">Crawl config</a></p>
+<p>Recorded learning execution: <strong data-learning-state>{{ learning.state }}</strong> (separate from the current validation result below).</p>
+<p>{{ learning.reason or '' }}</p>
+{% if learning.cooldown_until %}<p>New learning for this source is unavailable until at least <span data-learning-cooldown>{{ learning.cooldown_until.strftime('%Y-%m-%d %H:%M:%S UTC') }}</span>. Cancellation, another capture or redelivery does not reset limits.</p>{% endif %}
+<p>Rounds: <span data-learning-rounds>{{ learning.rounds }} / {{ learning.max_rounds }}</span></p>
+<p>Session limit USD: <span data-learning-limit>{{ '%.6f'|format(learning.cost_limit) }}</span>; Agent daily USD 1.00 (UTC), also subject to total LLM budget.</p>
+<p>Protocol: {{ learning.protocol_version }}; cumulative billable input + output token limit: 20,000 (including fallback).</p>
+<p>Deadline: {{ learning.deadline_at.strftime('%Y-%m-%d %H:%M:%S UTC') }} (checked at execution checkpoints).</p>
+<p>Delivery protocol: <strong data-learning-delivery>{{ delivery_protocol }}</strong>. This is not a broker receipt or execution permission.</p>
+{% if delivery_key %}
+<p>Queued message fingerprint: <code data-learning-dispatch-key>{{ delivery_key }}</code>.</p>
+<p>Next publication eligibility: <span data-learning-dispatch-at>{{ learning.dispatch_due_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</span> (not guaranteed delivery). Publication slots reserve at least 30 seconds from their recorded UTC admission time, including broker or acknowledgement loss. Slow storage/broker calls can outlive this interval; it is not a send-rate guarantee. Queue time consumes the original 180-second deadline.</p>
+{% endif %}
+<p>Settled USD: <span data-learning-spent>{{ '%.6f'|format(spent) }}</span>; held USD: <span data-learning-held>{{ '%.6f'|format(held) }}</span>.</p>
+<p>Controlled learning history: <strong data-learning-history>{{ history.state }}</strong>;
+<span data-history-sessions>{{ history.sessions }}</span> sessions / <span data-history-exposures>{{ history.exposures }}</span> exposure records.</p>
+<p>This covers the controlled learning workflow only, not other crawlers, external model inputs or pretraining. Tracked history is not independent validation.</p>
+{% for attempt in attempts %}
+<section data-learning-attempt><p>Round {{ attempt.number }}: {{ attempt.state }}</p>
+<pre>{{ attempt.feedback|tojson if attempt.feedback else 'No completed extraction feedback' }}</pre>
+{% set documents = exposure_documents[attempt.id] %}
+<p>Conservative model exposure: {{ documents|length if documents else 'unavailable' }} documents; prompt fingerprint <code>{{ attempt.prompt_hash }}</code>.</p>
+{% if documents %}
+<details><summary>Exposure fingerprints (not raw pages)</summary>
+<pre data-exposure-document>{{ documents|tojson(indent=2) }}</pre>
+<p>Exposure integrity: <code data-exposure-hash>{{ attempt.exposure_hash or 'untracked' }}</code></p>
+</details>
+{% endif %}
+{% if attempt.candidate_id %}<a data-learning-candidate href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=attempt.candidate_id) }}">Candidate #{{ attempt.candidate_id }}</a>{% endif %}
+</section>
+{% endfor %}
+{% for reservation in reservations %}<p data-learning-reservation>{{ reservation.id }} — {{ reservation.state }} — {{ reservation.provider }}/{{ reservation.model }}</p>{% endfor %}
+<p><a href="{{ url_for('admin.llm_usage') }}">LLM budget ledger and final reconciliation</a></p>
+{% if validation %}
+<section><h3>Bounded holdout validation</h3>
+<p>Current result: <strong data-validation-status>{{ validation.state }}</strong>; recorded state: {{ validation.recorded_state }}.</p>
+<p>Scope: controlled learning workflow only. This does not prove absence of external or pretraining exposure.</p>
+{% if validation.result %}<pre data-validation-result>{{ validation.result|tojson(indent=2) }}</pre>{% endif %}
+{% if validation.state == 'awaiting_evidence' %}
+<p>First retain a new preview using the <a data-validation-base href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=learning.base_version_id) }}">original base candidate</a>. The system selects its first capture saved after candidate freezing; failed or unavailable selections are not replaced. Requires one HTML list and at least three distinct detail pages. Validation only replays retained evidence, without network or model calls.</p>
+<form method="post" data-validation-start action="{{ url_for('admin.crawl_config.learning.validate', source_id=source.id, identity=learning.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-secondary">Validate frozen candidate</button>
+</form>
+{% endif %}</section>
+{% endif %}
+{% if not validation or validation.state != 'passed' %}<p>Not independently validated.</p>{% endif %}
+<p>Candidates remain unpublished and cannot be published here. No Article writes or article LLM dispatch.</p>
+{% for event in retry_events %}<p data-learning-retry-event>Retry #{{ event.number }}, after round {{ event.after_round }} — admin #{{ event.requested_by_id }} — {{ event.requested_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}: {{ event.note }}</p>{% endfor %}
+{% if learning.state == 'blocked' %}
+<p>Controlled retry: only when no provider reservation has ever existed. No new deadline, budget or round allowance; no uncertain paid work is retried.</p>
+{% if history.state == 'tracked' and not retry_reason %}
+<form method="post" data-learning-retry action="{{ url_for('admin.crawl_config.learning.retry', source_id=source.id, identity=learning.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<input type="hidden" name="after_round" value="{{ learning.rounds }}">
+<label>Reason for retry <input name="note" required maxlength="300"></label>
+<button class="btn btn-secondary">Request safe retry</button></form>
+{% else %}<p data-learning-retry-unavailable>{{ retry_reason or 'History unavailable' }}</p>{% endif %}
+{% endif %}
+{% if learning.state in ['queued', 'running'] %}
+<form method="post" data-learning-cancel action="{{ url_for('admin.crawl_config.learning.cancel', source_id=source.id, identity=learning.id) }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button class="btn btn-warning">Cancel learning</button>
+</form>
+<p>Cancellation does not retract a provider call already admitted or release unknown charges.</p>
+{% endif %}
+{% endblock %}

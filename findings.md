@@ -1,5 +1,90 @@
 # Findings
 
+## M3.2d派发检查（2026-09-19，实施前观察，现已本地修复）
+- learning_tasks.learn只带session ID；内部三轮循环可继续，但无法识别来自旧轮次/人工重试之前的投递。claim未取得attempt时block仅看queued，仍可能影响新决定。现有attempt fence只解决已取得身份的部分窗口。
+- start/retry每次POST都send；recover按created_at选前50 queued/running，无持久重派间隔，未过期running也占扫描位置。新切片保留原预算/180秒，增加派发键和due选择，不宣称完整lease或实机投递证明。
+- 学习admit在history、配置/证据、聚合配额之前检查deadline，最后无复查；需复用上一轮慢外部读取回归方法，不把企业路径的修复当作学习已覆盖。
+- 实施结果：版本化派发键绑定原输入/rounds/retry_count，连续轮次仅经已确认事务返回新键；dispatch_due_at保存派发资格，旧NULL不补授权。已知history损坏仍立即blocked，存储不可读则只按自己的fence收敛。
+- 记录UTC准入时刻最少30秒槽位间隔不等于broker实际发送限速；COMMIT/RPC可以跨窗晚到，重复消息靠消费者fence，不宣称完整lease/硬deadline或exactly-once。
+- 31新增离线，专门31通过，关联阶段169通过；全量1019/20 MySQL skips，570.29秒。223 AST/48模板/head b5d81e6a430f/指定flake8/diff通过；实际服务仍未验证，无提交部署。详见 docs/audits/2026-09-19-m32d-learning-dispatch.md。
+
+## M3.4b企业发现（2026-09-19，本地有限切片完成）
+- 最终988通过/20实际MySQL跳过/548.86秒；64新增离线，218 AST/48模板、head a2f6d9b3107c。运维 docs/ops/startup-analysis.md，审计 docs/audits/2026-09-19-m34b-startup-analysis.md。没有真实服务/提交/部署。
+- 全套首轮122失败是新增Celery实例绑定方法mock恢复后遮蔽类mock；顺序探针证实并改类边界，Admin走真实Task.delay；第二轮986通过仍非最终deadline补强结果。失败日志原样保留。
+- 收尾慢DB读取回归真实复现：准入/应用早期deadline检查不足。现最后读取后再检查；SQL COMMIT/SDK阻塞仍非硬deadline。重派时刻亦向上留整秒裕量，不能小于120秒。
+- JSON null别名与损坏job标签是不同问题：前者合法空值应兼容，后者不能崩掉Admin状态页或显示未验证输入。账本链接按ID查询，避免最近50条以外的条目无法定位。
+- 旧扫描同步LLM且跨所有Grenoble公司挑选，并每轮清零失败计数；已用合成目录真实复现。不能只改delay，须原子新公司/job归属、不可重复付费的认领和来源/公司变更fence。
+- StartupSource不是NewsSource策略档案。本轮仅复用SafeFetcher单host共享预算、旧提取器与严格上限，不声称迁成M2审批/每日recipe或完整解析沙箱。
+- ORM来源/公司输入代次用SQL列+1避免陈旧对象丢递增；旧程序/bulk SQL/整库恢复不由此认证。Job绑定按DB读回日期精度，所有自有时限先整秒化。
+- 主路径绿色；新迁移SQLite真实升级/MySQL离线DDL绿色。初始故障子集31通过/1 fixture定位问题：after_commit弱引用误命中后续dispatch提交，改before_commit标记创建事务后通过，不当作业务缺陷。
+- 测试首轮还纠正了本仓库User/LLMConfig字段及必填CSRF的fixture假设、模型返回契约；应用create首次遗漏prompt的recent_news必填参数通过合成异常trace定位，已补None。无生产异常/真实模型数据进入诊断日志。
+
+## M3.4a运行配置（2026-09-19，本地配置/协议完成）
+- 46新增离线，全套924/19 MySQL skips/481.94秒；209 AST/48模板/静态及Compose merge通过，无DDL/head仍f8b64d2c901e。没有实际mount/prefork/超时/回收/容量证据。
+- 新overlay和scripts/learning_worker.py配置默认不启用；startup拒绝未启用/非RO私有目录/旧schema/任意非学习命令；check不投业务任务，snapshot不当live。运维 docs/ops/learning-worker.md，审计 docs/audits/2026-09-19-m34a-learning-worker.md。
+- 现有_evidence.load只使用root只读fd和文件读，不依赖创建flock文件；写/cleanup才用_locked，所以新worker可以用同卷RO而web保持RW。不等于helper获得OS/文件系统沙箱。
+- 当前旧worker的注册检查只数任务/节点，不能证明crawl_learn被独立消费；新增针对本worker的队列、routing key、exchange、prefork单child、prefetch、回收/timeout协议检查。live控制信息仍需实际服务门禁，snapshot不当live。
+- 单worker1GiB/1CPU/64PIDs是待测初值；soft/hard只保护本队列进程，不撤回远端调用，未知费用仍保留。可选profile和付费开关是两层独立条件。
+- Compose 5.1.0对两处PIDs字段要求一致；补两处64而不是去掉上限。CPU输出类型为数值不固定字符串。CLI仅离线merge，未读取.env或访问daemon。
+
+## M3.2c学习生命周期（2026-09-19，本地）
+- 失败/取消后6小时同源冷却；原capture仍返回原委托，新capture不能绕过。旧终态迁移只从执行时起保守隔离，不伪造历史结束时间。
+- 人工重试仅blocked、原期限/轮次内且整个会话从未有供应商预留；已settled/reconciled/零金额也不重试。保留原身份/金额/暴露/期限/冷却，追加操作者/原因/轮次审计，计数/hash纳入有限历史校验。
+- 真实竞争：旧轮拒绝的commit成功ACK丢失可误停新轮；未取得认领的重复消息SQL失败也可误停在途owner。认领前生成attempt身份、异常处理带fence，分别修复；不声称完整调度代次/付费接管。
+- 模型后、解析前重查当前所有权/权限/历史/期限，解析限于剩余时间；retry加载文件时过deadline拒绝，不能写无效审计污染全局历史。
+- 39新增离线；全套878/19 skips/481.68秒，head f8b64d2c901e；205 AST/48模板/静态检查通过。真实MySQL只同步head，服务/硬杀/容量仍未验证。
+- 专用worker/共享证据、企业发现迁队列等M3余项继续后续；未提交/生产/真实调用/部署。审计 docs/audits/2026-09-19-m32c-learning-lifecycle.md。
+
+## M3.3b限定HTML留出（2026-09-19，本地）
+- 冻结候选及capture水位，同事务保存；系统选择水位后base第一份capture，不让模型/HTTP参数选好样本，不跳过失败样本。旧候选无冻结身份不补造通过。
+- 基于学习前base的独立列表清单核对全部文章，真实M1验证至少三份不同full详情和全部候选模板；base的详情可以坏，不能把它当正文真值。候选自身的分页/多列表也不能因样本没触发分支而误过。
+- 模型暴露和较早验证选样都排除；选样序号/报告覆盖/结果状态hash/操作者/期限绑定防单处丢失和篡改。后来的重复验证不会反过来污染原先通过，但后来的模型暴露会使旧通过stale。
+- 整秒hash不能自行消除DB时间舍入差异；外部DB触发器模拟复现后改为写入前整秒化。没有实际MySQL验证声明。
+- 新增42离线，全套839/19 skip/436.47秒；新head e1c73d9b502a，201 AST/48模板/静态检查通过。无Docker socket/mysqld/Redis，未生产、真实调用、提交部署或子代理。
+- 只有受控工作流的单列表HTML成功路径；不是普遍污染判定/语义事实保证，RSS/分页/多列表、专用worker/完整恢复及其它M3前置仍未完成。见 docs/audits/2026-09-19-m33b-holdout-validation.md。
+
+## M3.3a受控学习历史（2026-09-19，本地前置）
+- 1b逐会话计数无法发现整份旧会话丢失；仅字节hash不能识别部分换包装的相同正文。先改计划，再新增全局序号/控制标记及输入/暴露hash，接入启动/认领/付费/候选落库。
+- 29项离线覆盖历史丢失/回退/损坏、容量、SQL原子性、claim提交后丢ack、准入与响应后的历史失效及迁移。全套797 passed/19 MySQL skipped/296.71秒，head d9b72a6e410c。真实MySQL门禁仅更新，未运行；无Docker socket/mysqld/Redis。
+- 规范化段落正文指纹识别测试中的换URL/HTML包装/大小写/空白复制，不是语义去重或普遍污染判定。原文删除后仍保留模型可能见过的指纹。
+- tracked只覆盖受控学习协议，不证明其他模型任务/外部发送/预训练未见过，也不防DB拥有者伪造或整个库一致回退。旧1b历史不自动认证，无重置入口；每类最多4096元数据检查，满时拒绝新增。
+- 仍无系统留出选样/验证报告；M3、专用worker及真实服务门禁未完成，全部改动未提交/部署。见 docs/audits/2026-09-19-m33a-exposure-history.md。
+
+## M3.1b学习路径（2026-09-19，本地）
+- 真实HTTP从保留证据预览显式启动；同capture唯一会话，source/profile/policy/engine/learning协议重校验。数据库互斥下认领、attempt及暴露hash先提交；外部模型期间不持业务锁。
+- 子预算与全局准入同事务，旧实际费用＋未知预留；0.20/session、1/day Agent与source、20,000累计token、3轮。学习必须显式分配crawl_schema，不继承默认模型且不使用缓存。修复缺身份的公共学习方法可被响应缓存旁路的问题。
+- queued本身保留派发意图，开启时beat有界重派；默认关闭不排recover。running不抢占/重付，过期或未知保守阻断。此次不是完整lease恢复，也不是供应商exactly-once。
+- 训练ready只存candidate/awaiting_validation；暴露指纹不是全系统覆盖，尚不能选独立留出。全局未决学习预留会冻结新认领，吞吐优先级低于避免不确定重付。
+- 当前生产证据卷仅web；本轮未配专用worker/共享证据/容量，不能开启生产。独立留出、冷却/受控重试、真实broker与MySQL、企业发现迁队列仍待办。
+- 收尾实测复现并修复profile identity-map陈旧权限和学习模型重定价旧报价；锁读明确populate_existing，配置/报价变化拒绝。SQLite故障注入不替代真实MySQL行级竞争。
+- 一次全套420秒超时，单测及62项顺序探针无法复现；加逐项输出/30秒faulthandler后全套768 passed/19 MySQL skipped/272.63秒，无超时栈。原超时根因未知，不伪称修复了确定性卡死。
+- 新增39离线+1未跑MySQL，head c4e92f7a610b。无Docker socket/mysqld/Redis，不使用远端/真实模型。审计 docs/audits/2026-09-19-m31b-learning-sessions.md。
+
+## M3.1a全局预留/对账（2026-09-19，本地）
+- 预付额度不能仅tokenizer估算：采用显式审核的供应商全部计费input/output上界+Decimal价格，缺失拒绝；这是可信契约前提，不保证供应商不会违约。旧配置迁移NULL，部署必须先核价，不能静默破坏运行后再声明兼容。
+- DB互斥行在读余额前获锁，预留先commit、HTTP外部调用期间不持锁；usage与结算同事务、原Article不被提交。未知费用/崩溃/准入ack丢失跨日占用；结算ack丢失保留已结算结果，不fallback再付费。
+- 实际usage超上界不等于普通失败：保留越界审计并阻断新付费；旧日志NUMERIC(10,6)容不下的大额记录新ledger，不能让错误处理本身回滚丢证据。人工对账不能重新认证已被usage推翻的原上界，须重审兼容上界。
+- Admin最终对账保存actor/证据引用且不可覆盖，旧usage不变；只在操作者确认执行停止/最终账单时允许释放。旧日志未知费用没有伪补，当前未提供其批量对账。
+- 最终729 passed/18 MySQL专用skip，139子集通过；无本地Docker socket/mysqld/Redis，未SSH/生产/真实LLM或部署。新增2 MySQL待实跑；新head a8d31c5e7902。学习子预算/状态机/独立留出/worker未实现，不是完整M3。
+
+## M3实施准备（2026-09-18）
+- 原设计M3以M2为前置；现有Admin采样台账不覆盖模型输入暴露，不能直接凭tracked认定留出独立。学习自身还缺可靠派发/认领/持久attempt，因此需先确认最小前置范围，不能只加for-loop宣称M3完成。
+- 既有公共LLM验收可复用，但新增Admin启动/状态/取消及候选结果需要一次明确用户行为；不为内部helper另加测试API。
+- 现有预算用例明确允许0.001余额时先花0.002再阻断fallback，是历史软预算行为；硬预算实现必须改为调用前拒绝，不保留超额作为正确性断言。
+- 成本上界需要可信定价/完整输入与输出上界契约；通用SDK token估算、60秒timeout或未知usage不能当供应商账单硬界限。未知费用保留占用并对账，不能立即释放继续调用。
+
+## 遗留工作复核（8bf2563，完成）
+- 最新仓库HEAD是文档提交8bf2563；最新发布记录为应用330d50b/schema f2，673离线测试及16 MySQL/真实broker回收已验证，不能再列作待部署或零测试。
+- M2当前只完成候选/预览/私有证据/策略撤权/采样台账；B2b.2b/c独立验证、规则批准/回滚，以及C认领/outbox、D自动路由/统一调度仍待实现。M3学习硬预算和M4隔离浏览器未实现。
+- 总计划顶部仍称当前22c098c/b6，与最新发布记录冲突；应以最新release记录为基准，旧全项目审查中的缺陷需逐一核对源码后再纳入本轮遗留。
+- 源码确认：crawl_source仍get_crawler→run，新增文章后才直接delay全部未处理文章；无outbox/认领。Beat固定01:00，频率任务另有默认6小时Redis GET/SET门禁，配置14点仍不能实现。
+- 源码确认：15个source模块仍requests/cloudscraper，startup_discovery也直连并同步LLM；prod Redis仍allkeys-lru，缓存/broker未拆。LLM预算仍sum(cost)后调用，无原子预留；断路器Redis I/O无异常降级，半开无单探针控制。
+- 源码核实：邮件退订/偏好href=#，SMTP发送后才写日志且无投递唯一键；deploy.sh仍自动导入tracked dump，backup_mysql.sh仍依赖宿主mysqldump/localhost3306。这不是断言生产既有备份wrapper失效。
+- 数据/页面遗留已核实：news与API的date_to仍<=当天00:00；公司周趋势以各情绪min(date)和MM/DD分桶；普通JSON列的revision/aliases仍原地append；自动企业分析仍全量覆盖。公司地图每家公司重复查分组、高亮全量取回Python排序仍在。
+- 安全/工程遗留：production仍继承dev-secret-key默认值、setup无一次性凭证、无应用登录限流声明；健康明细公开、JSON日志手工拼接；依赖未锁定。当前生产真实secret、反代防护及实时资源情况未读取，不能据代码认定已发生事故。
+- 本轮日期2026-09-18；没有重跑测试或访问生产。最新673/16/broker结果只引用09-11历史发布证据，OOM缓解后长期观察/恢复演练仍缺验收。
+- 完整清单与建议顺序：docs/audits/2026-09-18-remaining-work.md。新报告链接/围栏、15个直连source模块计数、diff检查通过，仅文档改动。
+
 ## Worker资源优化发布（2026-09-10 13:53Z，完成）
 - 配置81135d8已部署，image仍14dc6f1/c9。LLM并发2/fast2，50任务尝试与393216KiB高水位任务后回收；真实Admin→Redis→prefork门禁已加入CI，fresh pool证明RSS触发不混同计数触发。回收不是任务中限制、父进程修复、OOM可靠交付或夜间容量保证。
 - 运维实际命令比较必须把Compose字符串规范成Docker argv；首次直接比较导致误拒并自动恢复旧命令，修门禁后新备份重试成功。工具label负过滤不支持、host测试日志名冲突也独立记录并修复；不能把它们混作产品red。报告 docs/audits/2026-09-10-worker-recycling-release.md。

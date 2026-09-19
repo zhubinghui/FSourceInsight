@@ -2,7 +2,9 @@
 
 M2-A/B1/B2a仅保存候选、preview与回放；不是审批/自动schema路由。默认preview不保留原文。
 
-生产需要原文保留时，在prod（以及使用系统Caddy时的caddy层）之后显式加`docker-compose.evidence.yml`。它只给web挂载外部卷`fsourceinsight_crawl_evidence_data`到`/var/lib/fsource-evidence`，并设置`CRAWL_EVIDENCE_DIR`；worker/worker_fast/beat不需要访问原文。
+生产需要原文保留时，在prod（以及使用系统Caddy时的caddy层）之后显式加`docker-compose.evidence.yml`。该evidence层本身只给web挂载外部卷`fsourceinsight_crawl_evidence_data`到`/var/lib/fsource-evidence`，并设置`CRAWL_EVIDENCE_DIR`；worker/worker_fast/beat不需要访问原文。
+
+后续M3.4a新增**本地可选**`docker-compose.learning.yml`，在上述层之后给可信学习协调worker挂同卷只读；默认不启用，尚未部署或实际验证mount/容量。不是给浏览器或独立解析服务分享原文。见[学习worker门禁](learning-worker.md)。
 
 该卷必须提前受控建立：核对实际web镜像UID、确认新卷为空后，将根目录设为该UID拥有/0700；已有目录先核对数据/所有权，不覆盖、不为通过检查而放宽权限。配置文件不会自动创建external卷。不要将代码目录、static、备份目录或混有其他文件的卷用作证据库，不向nginx/Caddy/浏览器沙箱共享。
 

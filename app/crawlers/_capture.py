@@ -68,14 +68,15 @@ def fingerprint(value):
     return hashlib.sha256(encoded).hexdigest()
 
 
-def history_state(profile):
+def history_state(profile, session=None):
     from sqlalchemy import and_, func
     from app.extensions import db
     from app.models.crawl_schema import CrawlCaptureManifest, CrawlPreviewReport, CrawlSchemaVersion
 
+    session = db.session if session is None else session
     if profile is None:
         return 'unconfigured'
-    count, first, last = (db.session.query(func.count(CrawlCaptureManifest.id), func.min(CrawlCaptureManifest.sequence),
+    count, first, last = (session.query(func.count(CrawlCaptureManifest.id), func.min(CrawlCaptureManifest.sequence),
                                          func.max(CrawlCaptureManifest.sequence))
                           .filter(CrawlCaptureManifest.profile_id == profile.id).one())
     marker = profile.capture_generation
@@ -83,7 +84,7 @@ def history_state(profile):
             or count and (first != 1 or last != marker)):
         return 'unavailable'
     if profile.capture_history_complete:
-        missing = (db.session.query(CrawlPreviewReport.id).join(CrawlSchemaVersion)
+        missing = (session.query(CrawlPreviewReport.id).join(CrawlSchemaVersion)
                    .outerjoin(CrawlCaptureManifest, and_(CrawlCaptureManifest.preview_report_id == CrawlPreviewReport.id,
                               CrawlCaptureManifest.profile_id == profile.id,
                               CrawlCaptureManifest.version_id == CrawlPreviewReport.version_id))

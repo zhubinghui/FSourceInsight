@@ -9,7 +9,7 @@ CATEGORIES = {'semiconductor', 'ai', 'software', 'cloud', 'cybersecurity', 'iot'
 HIGHLIGHTS = {'tech_breakthrough', 'local_research', 'investment', 'local_event'}
 COMPANY_FIELDS = {'overview', 'founders', 'spinoff_source', 'core_tech', 'competitors',
                   'cn_competitor_names', 'business_status', 'recommendation', 'recommendation_reason', 'website'}
-JSON_TASKS = {'ner', 'sentiment', 'classify', 'company_analysis'}
+JSON_TASKS = {'ner', 'sentiment', 'classify', 'company_analysis', 'crawl_schema'}
 
 
 class InvalidLLMResponse(ValueError):
@@ -59,6 +59,12 @@ def validate_response(task, text):
                            parse_constant=lambda _: _require(False))
     except (ValueError, RecursionError) as exc:
         raise InvalidLLMResponse('LLM response is not valid JSON') from exc
+    if task == 'crawl_schema':
+        from app.crawlers.schema import validate_recipe
+        try:
+            return validate_recipe(value).to_dict()
+        except ValueError:
+            raise InvalidLLMResponse('LLM recipe violates the task contract') from None
     if task == 'ner':
         _object(value, {'companies'})
         _list(value['companies'], 100)

@@ -149,7 +149,9 @@ def test_cli_force_failure_preserves_previous_result(db, llm_env, monkeypatch, c
 def test_article_records_actual_fallback_not_configured_primary(db, llm_env):
     from app.models.llm import LLMConfig
     article_id = llm_env.article.id
-    db.session.add(LLMConfig(provider='second', model='backup', tasks=['translate']))
+    db.session.add(LLMConfig(provider='second', model='backup', tasks=['translate'],
+                             cost_per_1k_input='0.01', cost_per_1k_output='0.02',
+                             billing_input_limit=1024, billing_output_limit=4096))
     db.session.commit()
     llm_env.provider.reply = article_reply
     def fail_translation(call):

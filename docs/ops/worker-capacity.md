@@ -2,6 +2,12 @@
 
 ## Configuration
 
+The table and release procedure below describe the existing deployed two-worker
+configuration. M3.4a adds a **local-only optional** learning worker with separate,
+unvalidated resource values; it is not covered by the historical capacity/recycling
+evidence here. See [learning worker operations](learning-worker.md). Do not count its
+Compose settings as an actual memory, mount, timeout or broker gate pass.
+
 Use the production overlay (and the Caddy/private-evidence layers where deployed):
 
 | Service | Concurrency | Container RAM cap | Completed attempts per child | Child RSS threshold |

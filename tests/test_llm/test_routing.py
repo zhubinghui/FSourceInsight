@@ -8,10 +8,12 @@ from app.models.llm import LLMConfig
 def test_explicit_primary_beats_cheaper_fallback_and_priority_orders_primaries(db, llm_env):
     llm_env.config.role = 'fallback'
     llm_env.config.priority = 0
-    primary = LLMConfig(provider='second', model='chosen', tasks=['translate'], cost_per_1k_input='0.1')
+    primary = LLMConfig(provider='second', model='chosen', tasks=['translate'], cost_per_1k_input='0.1',
+                        cost_per_1k_output='0.02', billing_input_limit=1024, billing_output_limit=4096)
     primary.role = 'primary'
     primary.priority = 10
-    expensive = LLMConfig(provider='third', model='later', tasks=['translate'], cost_per_1k_input='0.05')
+    expensive = LLMConfig(provider='third', model='later', tasks=['translate'], cost_per_1k_input='0.05',
+                          cost_per_1k_output='0.02', billing_input_limit=1024, billing_output_limit=4096)
     expensive.role = 'primary'
     expensive.priority = 20
     db.session.add_all([primary, expensive])
@@ -61,6 +63,12 @@ def test_fresh_seed_uses_documented_primary_and_never_overwrites_existing(db, ll
     LLMConfig.query.delete()
     db.session.commit()
     seed()
+    # Seed routing is not an attestation of suppliers' billing caps. These
+    # synthetic transports explicitly declare their known test-only ceilings.
+    for config in LLMConfig.query.all():
+        assert config.billing_input_limit is None and config.billing_output_limit is None
+        config.billing_input_limit, config.billing_output_limit = 1024, 8192
+    db.session.commit()
     llm_env.provider.reply = {'companies': []}
     LLMClient().extract_companies('article')
     assert llm_env.provider.calls[-1]['model'] == 'openai/gpt-5.4-mini'

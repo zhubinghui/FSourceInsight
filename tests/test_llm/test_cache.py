@@ -74,7 +74,9 @@ def test_response_cache_outage_does_not_lose_paid_result(llm_env, monkeypatch):
 
 
 def test_recovered_primary_never_receives_fallback_cached_result(db, llm_env):
-    db.session.add(LLMConfig(provider='second', model='backup', tasks=['translate']))
+    db.session.add(LLMConfig(provider='second', model='backup', tasks=['translate'],
+                             cost_per_1k_input='0.01', cost_per_1k_output='0.02',
+                             billing_input_limit=1024, billing_output_limit=4096))
     db.session.commit()
     def fail_primary(call):
         if call['model'] == 'synthetic/primary':

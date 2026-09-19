@@ -1,0 +1,86 @@
+# OPTIONAL production layer AFTER prod/(caddy)/evidence; Compose >= 2.24.4.
+# Neither this layer nor the profile grants permission for paid learning.
+# Explicitly enable the shared flag only AFTER billing, schema, service and capacity gates.
+services:
+  web:
+    environment:
+      CRAWL_LEARNING_ENABLED: ${CRAWL_LEARNING_ENABLED:-0}
+
+  beat:
+    environment:
+      CRAWL_LEARNING_ENABLED: ${CRAWL_LEARNING_ENABLED:-0}
+
+  worker_learn:
+    profiles: [crawl-learning]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    env_file: .env
+    environment:
+      FLASK_ENV: production
+      CRAWL_LEARNING_ENABLED: ${CRAWL_LEARNING_ENABLED:-0}
+      CRAWL_EVIDENCE_DIR: /var/lib/fsource-evidence
+      PYTHONDONTWRITEBYTECODE: '1'
+      LITELLM_LOCAL_MODEL_COST_MAP: 'True'
+      LOG_FILE: /tmp/crawl-learning.log
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    entrypoint: [python, scripts/learning_worker.py, run]
+    command:
+      - celery
+      - -A
+      - celery_app
+      - worker
+      - -l
+      - info
+      - -Q
+      - crawl_learn
+      - -c
+      - '1'
+      - -n
+      - learn@%h
+      - --pool=prefork
+      - --prefetch-multiplier=1
+      - --max-tasks-per-child=50
+      - --max-memory-per-child=393216
+      - --soft-time-limit=180
+      - --time-limit=195
+    # Read path uses no file creation/cleanup lock. Web remains the sole writer.
+    volumes: !override
+      - type: volume
+        source: crawl_evidence_data
+        target: /var/lib/fsource-evidence
+        read_only: true
+        volume:
+          nocopy: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    init: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    stop_grace_period: 210s
+    restart: 'on-failure:3'
+    healthcheck:
+      test: [CMD, python, scripts/learning_worker.py, check]
+      interval: 60s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+          pids: 64
+
+# Declared here as well so an omitted evidence layer never creates a fresh volume.
+# Web must still use the evidence layer; this declaration does not grant write access.
+volumes:
+  crawl_evidence_data:
+    external: true
+    name: fsourceinsight_crawl_evidence_data

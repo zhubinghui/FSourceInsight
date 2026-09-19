@@ -18,6 +18,7 @@ class Company(db.Model):
     sector = db.Column(db.String(200))
     company_stage = db.Column(db.String(50))  # startup, scale-up, mature, research_institute
     spinoff_origin = db.Column(db.String(200))  # e.g. "CEA-Leti", "Inria", "UGA"
+    analysis_generation = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     ai_analysis = db.Column(db.JSON)  # Structured analysis {overview, founders, core_tech, ...}
     ai_analysis_at = db.Column(db.DateTime)
     ai_revision_history = db.Column(db.JSON)  # [{timestamp, source, trigger, changes: [{field, old, new}]}]

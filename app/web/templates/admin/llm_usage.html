@@ -48,6 +48,42 @@
     </div>
 </div>
 
+<h4>Budget reservations (up to 100, unsettled first)</h4>
+<p>Unsettled across all dates: <strong data-unsettled-count>{{ unsettled_count }}</strong> requests,
+    USD <strong data-unsettled-usd>{{ '%.6f'|format(unsettled_usd) }}</strong> held or reported.</p>
+<p class="small text-muted">Usage totals above are supplier token estimates, not available balance. Unknown or in-flight
+    reservations retain their full ceilings across days. Reconciliation records a final operator-reviewed charge;
+    it does not erase the original usage log. No automatic expiry releases funds.</p>
+<table class="table table-sm">
+    <thead><tr><th>Request / billing day</th><th>State</th><th>Reserved / final USD</th><th>Accounting review</th></tr></thead>
+    <tbody>
+    {% for row in reservations %}
+    <tr data-reservation-state="{{ row.state }}" data-reservation-id="{{ row.id }}">
+        <td><code>{{ row.id }}</code><br>{{ row.task_type }} / {{ row.billing_day }}<br>{{ row.provider }}/{{ row.model }}
+            {% if row.startup_analysis_id %}<br><a href="{{ url_for('admin.startup_sources', analysis_id=row.startup_analysis_id) }}#analysis-{{ row.startup_analysis_id }}">Discovery job {{ row.startup_analysis_id }}</a>{% endif %}
+        </td>
+        <td>{{ row.state }}</td>
+        <td>{{ '%.6f'|format(row.reserved_usd) }} / {{ '%.6f'|format(row.actual_usd) if row.actual_usd is not none else 'unknown' }}</td>
+        <td>
+        {% if row.reconciliation %}
+            {{ row.reconciliation.evidence_note }}<br>Admin #{{ row.reconciliation.actor_id }} / {{ row.reconciliation.created_at }}
+        {% elif row.state in ['reserved', 'unknown', 'overrun'] %}
+            <form method="post" action="{{ url_for('admin.llm_budget.reconcile_reservation', permit=row.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="expected_state" value="{{ row.state }}">
+                <input name="final_cost" type="number" min="0" step="0.000001" required aria-label="Final charge USD">
+                <input name="evidence_note" maxlength="500" required placeholder="Final invoice reference, no credentials" aria-label="Final invoice reference">
+                <label><input type="checkbox" name="confirmed_final" value="1" required> Final supplier bill verified, not estimated</label>
+                <label><input type="checkbox" name="confirmed_stopped" value="1" required> Execution stopped; no further supplier charges pending</label>
+                <button class="btn btn-sm btn-warning">Record final charge</button>
+            </form>
+        {% endif %}
+        </td>
+    </tr>
+    {% else %}<tr><td colspan="4">No reservations yet.</td></tr>{% endfor %}
+    </tbody>
+</table>
+
 <!-- Per-day breakdown -->
 <h4>Daily Breakdown</h4>
 <table class="table table-sm table-striped">

@@ -28,7 +28,7 @@
         <table class="table table-hover mb-0" style="font-size: 0.88rem;">
             <thead>
                 <tr class="text-fs-secondary" style="font-size: 0.82rem;">
-                    <th>Name</th><th>Type</th><th>URL</th><th>Status</th><th>Last Scan</th><th>Found</th><th>Actions</th>
+                    <th>Name</th><th>Type</th><th>URL</th><th>Status</th><th>Last Scan</th><th>Found (bounded)</th><th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -78,6 +78,23 @@
 </div>
 
 <div class="text-fs-muted mt-2" style="font-size: 0.78rem;">
-    <i class="bi bi-info-circle"></i> Auto-scan runs daily at 2:30 AM. Newly discovered startups are automatically added to the Grenoble Ecosystem Map with AI analysis.
+    <i class="bi bi-info-circle"></i> Auto-scan runs daily at 2:30 AM. New companies are added to the ecosystem map; initial analysis is queued separately on the LLM queue, subject to current inputs and reviewed global billing limits.
+    Existing companies are not automatically assigned to a new source or retried by a scan.
 </div>
+<h4 class="mt-4">Initial analysis jobs</h4>
+<p class="text-fs-muted">Most recent 50, or the specific job selected through an accounting link. Queued work is redispatched at bounded intervals; running or terminal work is never automatically paid again. Execution status is historical, not validation or proof of current company data. No homepage fetch occurs in this workflow.</p>
+<table class="table table-sm">
+    <thead><tr><th>Job / company</th><th>Source</th><th>State</th><th>Reason</th><th>Created (UTC)</th></tr></thead>
+    <tbody>
+    {% for job in analysis_jobs %}
+    <tr id="analysis-{{ job.id }}" data-analysis-id="{{ job.id }}">
+        <td><a href="{{ url_for('admin.startup_sources', analysis_id=job.id) }}"><code>{{ job.id }}</code></a><br>{{ analysis_labels[job.id] }}</td>
+        <td>{{ job.source_id if job.source_id is not none else 'Deleted' }}</td>
+        <td>{{ job.state }}</td><td>{{ job.reason or 'Waiting for execution' }}</td>
+        <td>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+    </tr>
+    {% else %}<tr><td colspan="5">No initial analysis jobs.</td></tr>{% endfor %}
+    </tbody>
+</table>
+<p><a href="{{ url_for('admin.llm_usage') }}">Usage and retained reservations</a>. Missing/changed inputs, expired work, storage failures or uncertain charges require review, not a new scan to reset payment or failure history.</p>
 {% endblock %}

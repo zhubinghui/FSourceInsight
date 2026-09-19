@@ -31,7 +31,9 @@ def test_usage_survives_caller_rollback_without_committing_article(db, llm_env, 
 
 
 def test_fallback_attempts_each_config_at_most_once(db, llm_env):
-    db.session.add(LLMConfig(provider='second', model='backup', tasks=['translate']))
+    db.session.add(LLMConfig(provider='second', model='backup', tasks=['translate'],
+                             cost_per_1k_input='0.01', cost_per_1k_output='0.02',
+                             billing_input_limit=1024, billing_output_limit=4096))
     db.session.commit()
     llm_env.provider.error = RuntimeError('all providers failed')
     with pytest.raises(RuntimeError, match='all providers failed'):
@@ -40,15 +42,13 @@ def test_fallback_attempts_each_config_at_most_once(db, llm_env):
     assert LLMUsageLog.query.count() == 2
 
 
-def test_budget_is_rechecked_before_paid_fallback(app, db, llm_env):
-    db.session.add(LLMConfig(provider='second', model='backup', tasks=['ner']))
-    db.session.commit()
+def test_insufficient_daily_balance_is_rejected_before_any_paid_call(app, db, llm_env):
     app.config['LLM_DAILY_BUDGET_USD'] = 0.001
-    llm_env.provider.reply = 'invalid JSON but billable tokens'
+    llm_env.provider.reply = {'companies': []}
     with pytest.raises(RuntimeError, match='budget exceeded'):
         LLMClient().extract_companies('text')
-    assert len(llm_env.provider.calls) == 1
-    assert LLMUsageLog.query.one().cost_usd == Decimal('0.002000')
+    assert llm_env.provider.calls == []
+    assert LLMUsageLog.query.count() == 0
 
 
 def test_ledger_failure_does_not_repeat_provider_call(db, llm_env):
