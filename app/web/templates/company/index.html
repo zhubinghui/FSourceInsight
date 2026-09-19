@@ -76,17 +76,17 @@
 
 {% for group_name, config, companies in grouped %}
 {% if companies %}
-<div class="mb-4">
-    <div class="d-flex align-items-center gap-2 mb-3 pb-2" style="border-bottom: 2px solid {{ config.color }};">
+<details class="ecosystem-group mb-4" {{ 'open' if not config.collapsed }}>
+    <summary class="d-flex align-items-center gap-2 mb-3 pb-2" style="border-bottom: 2px solid {{ config.color }}; cursor: pointer; list-style: none;">
         <div class="d-flex align-items-center justify-content-center"
              style="width: 36px; height: 36px; border-radius: 10px; background: {{ config.color }}; color: #fff;">
             <i class="bi bi-{{ config.icon }}"></i>
         </div>
         <div>
             <h5 class="mb-0" style="font-weight: 700; color: {{ config.color }};">{{ group_name }}</h5>
-            <small class="text-fs-muted">{{ companies | length }} companies</small>
+            <small class="text-fs-muted">{{ companies | length }} {{ config.noun or 'companies' }}{% if config.collapsed %} · click to expand{% endif %}</small>
         </div>
-    </div>
+    </summary>
 
     <div class="row g-3">
         {% for company in companies %}
@@ -133,7 +133,7 @@
         </div>
         {% endfor %}
     </div>
-</div>
+</details>
 {% endif %}
 {% endfor %}
 
