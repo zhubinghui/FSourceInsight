@@ -14,7 +14,13 @@ class Company(db.Model):
     website = db.Column(db.String(500))
     logo_url = db.Column(db.String(500))
     headquarters = db.Column(db.String(200))
-    is_grenoble = db.Column(db.Boolean, nullable=False, default=False)
+    is_grenoble = db.Column(db.Boolean, nullable=False, default=False)  # on the Isère ecosystem map
+    # pending, approved, rejected. Rejected rows are kept so their slug blocks rediscovery.
+    review_status = db.Column(db.String(20), nullable=False, default='approved', server_default='approved')
+    entity_type = db.Column(db.String(30))  # company, corporate, research_education, ecosystem_support
+    postcode = db.Column(db.String(10))
+    city = db.Column(db.String(120))
+    local_site = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())  # HQ elsewhere, site in Isère
     sector = db.Column(db.String(200))
     company_stage = db.Column(db.String(50))  # startup, scale-up, mature, research_institute
     spinoff_origin = db.Column(db.String(200))  # e.g. "CEA-Leti", "Inria", "UGA"
@@ -60,7 +66,7 @@ class Company(db.Model):
         )
         rows = (
             db.session.query(cls, count_subq.label('cnt'))
-            .filter(cls.is_grenoble == True)
+            .filter(cls.is_grenoble == True, cls.review_status == 'approved')
             .order_by(cls.name)
             .all()
         )

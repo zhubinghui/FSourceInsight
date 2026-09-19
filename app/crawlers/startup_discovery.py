@@ -16,6 +16,7 @@ from celery_app import celery
 from app.extensions import db
 from app.models.company import Company
 from app.models.startup_source import StartupSource
+from app.crawlers.directory_facts import fetch_directory_facts
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,10 @@ def _extract_companies_from_page(url: str) -> list[dict]:
             except Exception:
                 break
 
-    # Strategy 3: Text blocks with company names (CEA-Leti pattern)
+    # Strategy 3: Text blocks with company names (CEA-Leti pattern).
+    # Only a fallback: on pages with structured entries, free text is page chrome.
+    if companies:
+        return companies
     noise = {
         'start-ups', 'suivant', 'programme', 'startup', 'contact',
         'direction', 'recherche', 'actualit', 'innover', 'navigation',
@@ -185,13 +189,15 @@ def _extract_directory_links(soup, base_url: str, seen: set, companies: list):
              queue='crawl')
 def scan_startup_sources():
     """Scan all active startup sources and discover new companies."""
-    sources = StartupSource.query.filter_by(is_active=True).all()
+    # Lab pages list news, people and rooms, not companies; never scan them.
+    sources = StartupSource.query.filter_by(is_active=True, source_type='startup').all()
     total_new = 0
 
     for source in sources:
         try:
             discovered = _extract_companies_from_page(source.url)
             new_count = 0
+            facts_budget = 20  # detail fetches per source per scan
 
             for entry in discovered:
                 name = entry['name']
@@ -212,6 +218,13 @@ def scan_startup_sources():
                 if alias_match:
                     continue
 
+                # A directory detail page says where the member is and what it is.
+                facts = {}
+                if 'member-directory/' in (entry.get('website') or '') and facts_budget > 0:
+                    facts_budget -= 1
+                    facts = fetch_directory_facts(entry['website'])
+                postcode = facts.get('postcode')
+
                 # Create new company — type depends on source
                 stage = 'research_institute' if source.source_type == 'research_lab' else 'startup'
                 sector = 'Research Institute' if source.source_type == 'research_lab' else None
@@ -220,10 +233,14 @@ def scan_startup_sources():
                     slug=slug,
                     description=entry.get('description'),
                     website=entry.get('website'),
-                    is_grenoble=True,
+                    is_grenoble=postcode is None or postcode.startswith('38'),
+                    postcode=postcode,
+                    city=facts.get('city'),
+                    entity_type=facts.get('entity_type'),
                     company_stage=stage,
                     sector=sector,
                     is_auto_created=True,
+                    review_status='pending',
                 )
                 db.session.add(company)
                 db.session.flush()
