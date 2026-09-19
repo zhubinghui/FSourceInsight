@@ -1,0 +1,611 @@
+slug,name,action,entity_type,postcode,city,local_site
+gp,@GP,unflag,company,26120,Montelier,1
+dot-dot,#dot:dot,keep,company,38100,Grenoble,
+2is-inbound-intelligence-solutions,2IS (Inbound Intelligence Solutions),unflag,company,74650,Chavanod,1
+3d-oxides,3D-Oxides,unflag,company,01630,Saint-Genis Pouilly,1
+3l-optronics,3L-OPTRONICS,unflag,company,13013,Marseille,1
+4cad-group-astree-software,4CAD Group – Astrée Software,unflag,corporate,44340,Bouguenais,1
+ablatom,Ablatom,unflag,company,69622,Villeurbanne,1
+acae,acaé,unflag,company,67200,Strasbourg,1
+acoudesign,AcouDesign,unflag,company,63100,Clermont-Ferrand,1
+acsiel-alliance-electronique,ACSIEL Alliance Électronique,unflag,ecosystem_support,75009,Paris,1
+actemium-maintenance-dauphine,Actemium Maintenance Dauphiné,keep,company,38130,Échirolles,
+activation,Activation,unflag,company,69680,Chassieu,1
+acute-design,Acute Design,keep,company,38000,Grenoble,
+adentis,Adentis,keep,company,38000,Grenoble,
+adobis-group,Adobis Group,keep,company,38330,Montbonnot-Saint-Martin,
+aedvices,AEDVICES,keep,company,38430,Moirans,
+aem-mu-test,AEM Mu-TEST,unflag,company,42650,Saint-Jean-Bonnefonds,1
+agiga,AGIGA,unflag,company,69400,Villefranche-Sur-Saône,1
+aginov,AGINOV,unflag,company,69100,Villeurbanne,1
+agori,AGORI,keep,company,38170,Seyssinet Pariset,
+aii-automatisme-et-informatique-industrielle,AII – Automatisme et Informatique Industrielle,keep,company,38330,Montbonnot Saint Martin,
+aiotrust,AIoTrust,unflag,company,69100,Villeurbanne,1
+aitenders,AITENDERS,unflag,company,42000,Saint-Étienne,1
+aj-invest-consulting,AJ Invest & Consulting,unflag,company,74290,Veyrier Du Lac,1
+akila-mokhtari,Akila MOKHTARI,reject,,,,
+akram-idani,Akram Idani,reject,,,,
+alberture,Alberture,unflag,company,69700,Givors,1
+algosecure,AlgoSecure,unflag,company,69003,Lyon,1
+alp-valley,Alp Valley,unflag,company,73190,Challes-Les-Eaux,1
+altimet,Altimet,unflag,company,74200,Marin,1
+altyor,Altyor,unflag,company,45590,Saint-Cyr-En-Val,1
+alzheimer,Alzheimer,reject,,,,
+ambition,Ambition,reject,,,,
+amphi-c001-phyllis-nicolson,Amphi C001-Phyllis Nicolson,reject,,,,
+amphi-h,Amphi H,reject,,,,
+andreas-meyer,Andreas Meyer,reject,,,,
+andyamo,Andyamo,keep,company,38000,Grenoble,
+apex-numeris,Apex Numeris,unflag,company,69200,Venissieux,1
+aprex-solutions,APREX Solutions,unflag,company,54000,Nancy,1
+arc-en-ciel-serigraphie,Arc en Ciel Sérigraphie,unflag,company,42630,Régny,1
+ardeje-printing,Ardeje Printing,unflag,company,26000,Valence,1
+arlumen,Arlumen,unflag,company,29280,Plouzane,1
+armtek,Armtek,unflag,company,67100,Strasbourg,1
+arteris,Arteris,keep,,,,1
+arts,Arts,reject,,,,
+arufog,ARUFOG,unflag,ecosystem_support,42000,Saint Etienne,1
+as-early-as-the-1950s,As early as the 1950s,reject,,,,
+aspects-sociaux,Aspects sociaux,reject,,,,
+asteelflash-france,Asteelflash France,keep,corporate,38240,Meylan,
+atelier-du-maker,Atelier du Maker,unflag,company,01120,Thil,1
+atom-xr,Atom XR,unflag,company,13115,Saint-Paul-Lès-Durance,1
+atraltech,Atraltech,keep,corporate,38920,Crolles,
+aubenard-brevets-et-marques,Aubenard Brevets et Marques,unflag,company,69006,Lyon,1
+aueg-alliance-universite-entreprise-de-grenoble,AUEG – Alliance Université Entreprise de Grenoble,keep,ecosystem_support,38240,Meylan,
+ausmosys,AUSMOSYS,unflag,company,13510,Éguilles,1
+auteurs,Auteurs,reject,,,,
+auvalie-innovation,Auvalie Innovation,unflag,company,69009,Lyon,1
+auvergne-rhone-alpes-entreprises,Auvergne-Rhône-Alpes Entreprises,unflag,ecosystem_support,69002,Lyon,1
+avec-325-membres,Avec 325 membres,reject,,,,
+avec-plus-de-450-personnels,Avec plus de 450 personnels,reject,,,,
+awabot,Awabot,unflag,company,69200,Vénissieux,1
+axlr-satt-occitanie-mediterranee,"AxLR, SATT Occitanie Méditerranée",unflag,ecosystem_support,34090,Montpellier,1
+banque-populaire-auvergne-rhone-alpes,Banque Populaire Auvergne-Rhône-Alpes,keep,ecosystem_support,38700,Corenc,
+banyan-eco,Banyan.eco,unflag,company,75015,Paris,1
+basile-pesin,Basile Pesin,reject,,,,
+beatrice-barletti,Beatrice Barletti,reject,,,,
+beealp,BeeAlp,keep,company,38850,Bilieu,
+benkei,BENKEI,unflag,company,69003,Lyon,1
+beyond-conventional-calorimetry,Beyond conventional calorimetry,reject,,,,
+bilayer-graphene,Bilayer graphene,reject,,,,
+biology,Biology,reject,,,,
+bloomd,Bloomd,unflag,company,42240,Unieux,1
+blue-dot-production,Blue Dot Production,keep,company,38000,Grenoble,
+bluecime,Bluecime,keep,company,38000,Grenoble,
+bruno-ferres,Bruno Ferres,reject,,,,
+business-english-with-christina,Business English With Christina,keep,company,38400,Saint-Martin-D'Hères,
+cad,CAD,reject,,,,
+cadfem-france-sas,CADFEM FRANCE SAS,unflag,company,69007,Lyon,1
+caisse-depargne-rhone-alpes,CAISSE D’EPARGNE RHONE ALPES,keep,ecosystem_support,38000,Grenoble,
+calopsys,Calopsys,keep,company,38110,Sainte Blandine,
+capgemini,Capgemini,keep,,,,1
+cardiametrics,CardiaMetrics,keep,company,38240,Meylan,
+carl-berger-levrault,CARL Berger-Levrault,unflag,company,69760,Limonest,1
+cb4tech,CB4Tech,unflag,company,30480,Cendras,1
+cdd,CDD,reject,,,,
+cea-grenoble,CEA Grenoble,keep,research_education,38054,Grenoble,
+cea-leti,CEA-Leti,keep,research_education,,,
+cedrat-technologies,CEDRAT TECHNOLOGIES,keep,company,38240,Meylan,
+centrale-lyon,Centrale Lyon,unflag,research_education,69134,Écully,1
+cgde-2026,CGDE 2026,reject,,,,
+ch-studio,CH Studio,keep,company,38490,Les Abrets En Dauphiné,
+chambre-de-commerce-et-dindustrie-de-grenoble,Chambre de Commerce et d’Industrie de Grenoble,keep,ecosystem_support,38016,Grenoble,
+champollion-avocats,Champollion Avocats,keep,company,38000,Grenoble,
+chassis,CHASSIS,reject,,,,
+chat,Chat,reject,,,,
+chat3d,Chat3D,unflag,company,42100,Saint-Étienne,1
+chemistry,Chemistry,reject,,,,
+christian-balamou,Christian Balamou,reject,,,,
+chu-de-saint-etienne,CHU de Saint-Étienne,unflag,research_education,42270,Saint Priest En Jarez,1
+chu-grenoble-alpes,CHU Grenoble Alpes,keep,research_education,38043,Grenoble,
+cic-lyonnaise-de-banque,CIC Lyonnaise de Banque,keep,ecosystem_support,38000,Grenoble,
+cinedia,CINEDIA,keep,company,38000,Grenoble,
+ciridd,CIRIDD,unflag,ecosystem_support,42000,Saint-Étienne,1
+cisteme,CISTEME,unflag,company,87068,Limoges,1
+cleanpart-france,Cleanpart France,keep,company,38170,Seyssinet-Pariset,
+clp-club-laser-et-procedes,CLP – Club Laser et Procédés,unflag,ecosystem_support,67400,Illkirch,1
+cluster-lumiere,Cluster Lumière,unflag,ecosystem_support,69002,Lyon,1
+cnrs-alpes,CNRS ALPES,keep,research_education,38042,Grenoble,
+codeffekt,Codeffekt,keep,company,38110,La Tour-Du-Pin,
+coffee,COFFEE,reject,,,,
+cognition,Cognition,reject,,,,
+communaute-dagglomeration-du-pays-voironnais,Communauté d’agglomération du Pays Voironnais,keep,ecosystem_support,38511,Voiron,
+communaute-de-communes-le-gresivaudan,Communauté de communes Le Grésivaudan,keep,ecosystem_support,38926,Crolles,
+comsol-france-sas,COMSOL France SAS,keep,company,38000,Grenoble,
+continew,CONTINEW,unflag,company,42300,Roanne,1
+coopventure,CoopVenture,unflag,ecosystem_support,69120,Vaulx-En-Velin,1
+cortus-sas,CORTUS SAS,unflag,company,34130,Mauguio,1
+cristal-innov,Cristal Innov,unflag,research_education,73800,Sainte Helene Du Lac,1
+cross-data,Cross Data,unflag,company,49100,Angers,1
+cs-20156,CS 20156,reject,,,,
+cs-technologies,CS Technologies,unflag,company,69620,Saint-Vérand,1
+d-a-t-e-developpement-et-application-des-techniques-de-lenergie,D.A.T.E (Développement et Application des Techniques de l’Energie),keep,company,38770,La Motte-D'Aveillans,
+dab,DAB,reject,,,,
+data-science-experts-dse,Data Science Experts (DSE),keep,company,38000,Grenoble,
+de-la-start-up-au-grand-groupe,De la start-up au grand groupe,reject,,,,
+defacto-technologies,DeFacto Technologies,keep,company,38000,Grenoble,
+delta-concept,Delta Concept,keep,company,38120,Saint Egreve,
+depuis-19-ans,Depuis 19 ans,reject,,,,
+depuis-dix-ans,Depuis dix ans,reject,,,,
+depuis-plus-de-30-ans,Depuis plus de 30 ans,reject,,,,
+des-insectes-aux-microalgues,Des insectes aux microalgues,reject,,,,
+designers,Designers+,unflag,ecosystem_support,42000,Saint Etienne,1
+digigram,Digigram,keep,company,38330,Montbonnot Saint Martin,
+digital-league,DIGITAL LEAGUE,unflag,ecosystem_support,69002,Lyon,1
+discover-the-video-of-astriis,Discover the video of Astriis,reject,,,,
+dm-engineering,DM Engineering,unflag,company,69330,Meyzieu,1
+dolphin-semiconductor,Dolphin Semiconductor,keep,company,38240,Meylan,
+doors-photonics,DOORS Photonics,keep,company,38000,Grenoble,
+dracula-technologies,DRACULA Technologies,unflag,company,26000,Valence,1
+dsv-le-domaine-skiable-de-valmorel,DSV – LE DOMAINE SKIABLE DE VALMOREL,unflag,company,73260,Valmorel,1
+du-12-au-17-octobre-2026,Du 12 au 17 octobre 2026,reject,,,,
+du-15-au-17-septembre,Du 15 au 17 septembre,reject,,,,
+e-mail,E-mail,reject,,,,
+e-re-c-a-ingenierie-en-electronique-et-informatique-embarquee,E.RE.C.A Ingénierie en électronique et informatique embarquée,unflag,company,69120,Vaulx-En-Velin,1
+e2i-solutions,E2I Solutions,unflag,company,26190,Saint Nazaire En Royans,1
+easii-ic,EASii IC,keep,company,38100,Grenoble,
+ece-ecole-dingenieurs,ECE – Ecole d’Ingénieurs,unflag,research_education,69367,Lyon,1
+ecm-greentech-engineering,ECM Greentech Engineering,keep,company,38800,Le Pont De Claix,
+ecole-des-mines-de-saint-etienne,École des Mines de Saint-Étienne,unflag,research_education,42100,Saint Etienne,1
+ecp-cleaning,ECP Cleaning,unflag,company,34740,Vendargues,1
+ecrin-systems,ECRIN Systems,keep,company,38920,Crolles,
+egis-industrie-et-process,Egis Industrie et Process,keep,company,38400,Saint-Martin-D'Hères,
+elecsyor,Elecsyor,unflag,company,69006,Lyon,1
+elethic,Elethic,keep,company,38120,Saint Egreve,
+elpack-pharel,Elpack Pharel,unflag,company,26000,Valence,1
+emg2,EMG2,unflag,company,91140,Villebon-Sur-Yvette,1
+emotive-muzik,Emotive Muzik,unflag,company,74000,Annecy,1
+emplois,Emplois,reject,,,,
+employed,Employed,reject,,,,
+en-avril-2026,En avril 2026,reject,,,,
+en-core,en-core,unflag,company,73110,La Chapelle-Blanche,1
+enerbee-technology,Enerbee Technology,keep,company,38000,Grenoble,
+energie,Energie,reject,,,,
+engineering,Engineering,reject,,,,
+engo,ENGO,keep,company,38000,Grenoble,
+equalis-consulting,EQUALIS Consulting,keep,company,38800,Champagnier,
+erwan-jahier,Erwan Jahier,reject,,,,
+esrf,ESRF,keep,research_education,,,
+etablissements-pennacchiotti,Etablissements PENNACCHIOTTI,keep,company,38240,Meylan,
+eumetrys,EUMETRYS,unflag,company,81600,Gaillac,1
+euris-sas,Euris SAS,keep,company,38140,Apprieu,
+euronext,EURONEXT,unflag,ecosystem_support,69289,Lyon,1
+europe-wide,Europe-wide,reject,,,,
+evaveo,EVAVEO,unflag,company,69370,Saint-Didier-Au-Mont-D'Or,1
+exanodia,Exanodia,unflag,company,69800,Saint Priest,1
+excelleria,ExcellerIA,unflag,company,34000,Montpellier,1
+expertise-vision,Expertise Vision,unflag,company,74300,Thyez,1
+exyte-france,EXYTE France,unflag,company,69007,Lyon,1
+ey-france-agence-de-lyon,EY France – Agence de Lyon,unflag,corporate,69003,Lyon,1
+faactopi,Faactopi,unflag,company,69100,Villeurbanne,1
+family,FAMILY,reject,,,,
+fasem-school-at-ill,FASEM school at ILL,reject,,,,
+faure-qei,Faure QEI,keep,company,38400,Saint-Martin-D'Hères,
+femmes-et-sciences,Femmes et sciences,reject,,,,
+ferroelectric-memory-company,Ferroelectric Memory Company,keep,company,38000,Grenoble,
+fhelab,FHElab,unflag,company,69003,Lyon,1
+fibercryst,Fibercryst,unflag,company,69150,Decines-Charpieu,1
+ficha,Ficha,keep,company,38000,Grenoble,
+fidle-is-a-free,FIDLE is a free,reject,,,,
+fieldcloud,FIELDCLOUD,keep,company,38700,La Tronche,
+films,Films,reject,,,,
+fleetiz,Fleetiz,unflag,company,69003,Lyon,1
+fluidy,Fluidy,unflag,company,63200,Riom,1
+foliascope,FOLIASCOPE,unflag,company,26500,Bourg-Les-Valence,1
+for-innovation-in-microtechnologies,FOR INNOVATION IN MICROTECHNOLOGIES,reject,,,,
+for-the-first-time,For the first time,reject,,,,
+foreis,FOREIS,unflag,ecosystem_support,75016,Paris,1
+formations,Formations,reject,,,,
+fractali,Fractali,keep,company,38330,Montbonnot-Sant-Martin,
+framatome-sas,Framatome SAS,unflag,corporate,92400,Courbevoie,1
+from-monday-september-07,From Monday September 07,reject,,,,
+from-thursday-april-09,From Thursday April 09,reject,,,,
+from-tuesday-april-07,From Tuesday April 07,reject,,,,
+from-tuesday-april-28,From Tuesday April 28,reject,,,,
+from-tuesday-june-09,From Tuesday June 09,reject,,,,
+from-tuesday-june-23,From Tuesday June 23,reject,,,,
+from-tuesday-june-30,From Tuesday June 30,reject,,,,
+from-wednesday-april-08,From Wednesday April 08,reject,,,,
+from-wednesday-may-06,From Wednesday May 06,reject,,,,
+from-wednesday-november-18,From Wednesday November 18,reject,,,,
+from-wednesday-september-02,From Wednesday September 02,reject,,,,
+full-electronic-system,Full Electronic System,keep,company,38130,Echirolles,
+fyyyre,Fyyyre,unflag,company,01700,Miribel,1
+galeon,Galeon,unflag,company,74940,Annecy,1
+geg-experts,GEG Experts,unflag,company,45100,Orléans,1
+gem-alpine-business-school,GEM Alpine Business School,keep,research_education,38000,Grenoble,
+geolithe-innov,Geolithe Innov,keep,company,38920,Crolles,
+gilles-pernod,Gilles Pernod,reject,,,,
+ginger-burgeap,Ginger BURGEAP,unflag,corporate,69425,Lyon,1
+gleam,Gleam,unflag,company,01430,Saint-Martin-Du-Frêne,1
+go2market,Go2Market,unflag,company,26700,Pierrelatte,1
+golana-computing,Golana Computing,keep,company,38000,Grenoble,
+goodfloow,Goodfloow,unflag,company,44600,Saint-Nazaire,1
+grand-annecy,Grand Annecy,unflag,ecosystem_support,74007,Annecy,1
+grenoble-alpes,GRENOBLE ALPES,reject,,,,
+grenoble-ecole-de-management,Grenoble Ecole de Management,keep,research_education,38000,Grenoble,
+grenoble-inp-entreprise,Grenoble INP Entreprise,keep,ecosystem_support,38016,Grenoble,
+groupe-doliam,Groupe DOLIAM,unflag,corporate,78600,Maisons-Laffitte,1
+hautier-ip,Hautier IP,keep,company,38000,Grenoble,
+hawai-tech,HawAI.tech,keep,company,38000,Grenoble,
+hazes-and-clouds,Hazes and Clouds,reject,,,,
+health,Health,reject,,,,
+heidenhain,HEIDENHAIN,unflag,company,69007,Lyon,1
+hemera,Hemera,keep,company,38240,Meylan,
+hewlett-packard-enterprise,Hewlett Packard Enterprise,keep,,,,1
+hidden-order-in-chaos,Hidden order in chaos,reject,,,,
+hiri,HIRI,unflag,company,69100,Villeurbanne,1
+holoprods,Holoprods,unflag,company,69290,Craponne,1
+horiba-france,HORIBA France,keep,corporate,38330,Montbonnot-Saint-Martin,
+hospices-civils-de-lyon-hcl,Hospices Civils de Lyon – HCL,unflag,research_education,69002,Lyon,1
+how-to-reach-embl-s-six-sites-by-phone,How to reach EMBL's six sites by phone,reject,,,,
+huawei-technologies-france-sasu,Huawei Technologies France SASU,unflag,corporate,92100,Boulogne-Billancourt,1
+hub-transition,HUB TRANSITION,unflag,company,26000,Valence,1
+humanities-and-social-sciences,Humanities and social sciences,reject,,,,
+humans-matter,Humans Matter,unflag,company,69002,Lyon,1
+hummink,Hummink,unflag,company,75003,Paris,1
+hurence-sas,Hurence SAS,keep,company,38660,Lumbin,
+ialab,IALab,unflag,company,69001,Lyon,1
+icid-2026,ICID 2026,reject,,,,
+icosa-tech,ICOSA Tech,unflag,company,42000,Saint-Étienne,1
+id4us,ID4US,keep,company,38400,Saint Martin D'Heres,
+idec-hautes-technologies,IDEC HAUTES TECHNOLOGIES,keep,company,38330,Saint-Ismier,
+ideee,Ideee,unflag,company,42000,Saint Etienne,1
+idemia-starchip,IDEMIA StarChip,unflag,company,13590,Meyreuil,1
+idyllic-technology,Idyllic Technology,unflag,company,26000,Valence,1
+ifotec,IFOTEC,keep,company,38500,Voiron,
+ill,ILL,keep,research_education,,,
+ill-mission,ILL Mission,reject,,,,
+image-recognition,image recognition,reject,,,,
+impulsion38,IMPULSION38,keep,ecosystem_support,38240,Meylan,
+in-1967,In 1967,reject,,,,
+in-extenso-innovation-croissance,In Extenso Innovation Croissance,unflag,corporate,69002,Lyon,1
+in-france,in France,reject,,,,
+in-large-companies,in large companies,reject,,,,
+in-order-to-cancel-this-consent,In order to cancel this consent,reject,,,,
+in-this-episode,In this episode,reject,,,,
+in-motion,In&motion,unflag,company,74960,Annecy,1
+inceptive,Inceptive,keep,company,38000,Grenoble,
+inddigo,Inddigo,unflag,corporate,73000,Chambéry,1
+industrie-4-0,Industrie 4.0,reject,,,,
+ineso-europe,INESO EUROPE,keep,company,38600,Fontaine,
+ineti,INETI,unflag,company,75008,Paris,1
+inficon-sarl,INFICON SARL,unflag,company,91140,Villebon-Sur-Yvette,1
+information-meeting,Information meeting,reject,,,,
+infos,Infos,reject,,,,
+innodura-tb,Innodura TB,unflag,company,69603,Villeurbanne,1
+innova-advanced-technologies,Innova Advanced Technologies,keep,company,38000,Grenoble,
+innovation-makers-alliance,Innovation Makers Alliance,unflag,ecosystem_support,75016,Paris,1
+inouid,INOUID,unflag,company,69130,Ecully,1
+inria,Inria,keep,research_education,,,
+inria-grenoble-rhone-alpes,Inria Grenoble – Rhône-Alpes,unflag,research_education,69603,Villeurbanne,1
+insa-lyon-institut-national-des-sciences-appliquees,INSA Lyon – Institut National des Sciences Appliquées,unflag,research_education,69621,Villeurbanne,1
+insidix,INSIDIX,keep,company,38360,Noyarey,
+institut-lyfe,Institut Lyfe,unflag,research_education,69130,Écully,1
+intelligence-artificielle,Intelligence artificielle,reject,,,,
+interfaces-energie,Interfaces Energie,reject,,,,
+interfacial-tension-effects,Interfacial tension effects,reject,,,,
+internship-agreement,Internship agreement,reject,,,,
+iogs-institut-doptique-graduate-school,IOGS – Institut d’Optique Graduate School,unflag,research_education,42000,Saint Etienne,1
+iotize,IoTize,keep,company,38330,Montbonnot Saint Martin,
+iridescence,Iridescence,unflag,company,75014,Paris,1
+iroc-technologies,Iroc Technologies,keep,company,38025,Grenoble,
+isitec-international,Isitec International,unflag,company,69008,Millery,1
+iten,ITEN,unflag,company,69570,Dardilly,1
+iulia-dragomir,Iulia Dragomir,reject,,,,
+ives,IVèS,keep,company,38330,Montbonnot-Saint-Martin,
+jay-electronique,JAY ELECTRONIQUE,keep,company,38330,Saint Ismier,
+jessica-france,Jessica France,keep,ecosystem_support,38054,Grenoble,
+jonglerie-musicale,Jonglerie musicale,reject,,,,
+journal,Journal,reject,,,,
+june-avocats,JUNE AVOCATS,unflag,company,75002,Paris,1
+kaffeine-technologies,Kaffeine Technologies,unflag,company,01630,Saint-Genis-Pouilly,1
+kairntech,Kairntech,keep,company,38240,Meylan,
+kaizen-solutions,Kaizen Solutions,keep,company,38330,Montbonnot Saint Martin,
+kaori,Kaori,unflag,company,26300,Alixan,1
+karine-altisen,Karine Altisen,reject,,,,
+keplertech-io,keplertech.io,unflag,company,91120,Palaiseau,1
+keysom,Keysom,unflag,company,33670,Blésignac,1
+kibatic,Kibatic,keep,company,38100,Grenoble,
+kpmg-avocats,KPMG Avocats,keep,corporate,38240,Meylan,
+la-revanche-de-la-laine,La revanche de la laine,reject,,,,
+laclaree,Laclarée,unflag,company,69100,Villeurbanne,1
+laurence-nigay,Laurence Nigay,reject,,,,
+law,Law,reject,,,,
+ldlc-vr-studio,LDLC VR Studio,unflag,company,69570,Dardilly,1
+le-19-novembre-2026,Le 19 novembre 2026,reject,,,,
+le-30-juin-2026,Le 30 juin 2026,reject,,,,
+le-9-et-10-septembre-2026,Le 9 et 10 septembre 2026,reject,,,,
+le-campus-numerique-in-the-alps,Le Campus Numérique in the Alps,keep,ecosystem_support,38000,Grenoble,
+le-club-des-entreprises-de-luniversite-savoie-mont-blanc,Le Club des Entreprises de l’Universite Savoie Mont Blanc,unflag,ecosystem_support,73370,Le Bourget-Du-Lac,1
+le-premier-souffle,Le Premier souffle,reject,,,,
+le-projet-adele,Le projet ADELE,reject,,,,
+legal-insight,Legal Insight,unflag,company,73000,Chambery,1
+les-oies-du-cyber,Les Oies du Cyber,unflag,company,69003,Lyon,1
+les-outils-actuels,Les outils actuels,reject,,,,
+leviatan,LEVIATAN,unflag,company,73100,Aix-Les-Bains,1
+leyton,Leyton,unflag,company,69006,Lyon,1
+life-01,LIFE 01,keep,company,38600,Fontaine,
+linking-simple-physical-rules,Linking simple physical rules,reject,,,,
+linxens,Linxens,unflag,company,63000,Clermont-Ferrand,1
+liotys,LIOTYS,unflag,company,69740,Genas,1
+lors-de-la-semaine-du-cerveau-2026,Lors de la semaine du Cerveau 2026,reject,,,,
+ltc-services,LTC Services,keep,company,38000,Grenoble,
+lupise,LUPISE,unflag,company,59710,Avelin,1
+lynred-et-le-carnot-cea-leti,Lynred et le Carnot CEA LETI,reject,,,,
+lyon-place-financiere,Lyon Place Financière,unflag,ecosystem_support,69002,Lyon,1
+maia-medical-technologies,MAIA Medical Technologies,keep,company,38400,Saint-Martin-D'Hères,
+manpower-france,Manpower France,unflag,corporate,69003,Lyon,1
+manutech-usd,Manutech USD,unflag,company,42000,Saint Etienne,1
+marbulb,marbulb,keep,company,38000,Grenoble,
+marie-charlotte-picard,Marie-Charlotte Picard,reject,,,,
+marion-papin,Marion Papin,reject,,,,
+marius-bozga,Marius Bozga,reject,,,,
+martin-gandon,Martin Gandon,reject,,,,
+mathematics,Mathematics,reject,,,,
+mathis-brier,Mathis Brier,reject,,,,
+matvisio,MATVISIO,unflag,company,69001,Lyon,1
+meanwhile,Meanwhile,unflag,company,69100,Villeurbanne,1
+meca-magnetic,MECA MAGNETIC,unflag,company,69003,Lyon,1
+mediane-systeme,Médiane Système,keep,company,38130,Echirolles,
+meerai-io,MEERAI.IO,unflag,company,63000,Clermont-Ferrand,1
+mems,MEMS,reject,,,,
+menta,Menta,unflag,company,06560,Valbonnes,1
+merck-electronics-m-i,Merck Electronics M&I,keep,corporate,38330,Saint-Ismier,
+mesurer-la-ville,Mesurer la ville,reject,,,,
+metropole-de-lyon,Métropole de Lyon,unflag,ecosystem_support,69003,Lyon,1
+mga-technologies,MGA Technologies,unflag,company,,,1
+micelia,Micelia,keep,company,38100,Grenoble,
+mickael-lesurtel,Mickael Lesurtel,reject,,,,
+microlight3d,MICROLIGHT3D,keep,company,38700,La Tronche,
+microtest,MICROTEST,unflag,company,84830,Sérignan Du Comtat,1
+microworld,Microworld,keep,company,38120,Fontanil-Cornillon,
+migrants,Migrants,reject,,,,
+mille47-conseil-coaching,Mille47 Conseil & Coaching,keep,company,38000,Grenoble,
+mimo-detect,MIMO Detect,unflag,company,69200,Vénissieux,1
+mimorian,Mimorian,unflag,company,69300,Caluire Et Cuire,1
+minatec-entreprises,Minatec Entreprises,keep,company,38024,Grenoble,
+mivi,MiVi,keep,company,38320,Brie-Et-Angonnes,
+modeling,Modeling,reject,,,,
+moncreno-france,Moncreno France,unflag,company,73300,Fontcouverte-La-Toussuire,1
+mountain,MountAIn,keep,company,38240,Meylan,
+multivalente,Multivalente,unflag,company,69370,Saint Didier Au Mont D'Or,1
+mxds,MXDS,unflag,company,74000,Annecy,1
+my-digital-buildings,My Digital Buildings,keep,company,38410,Vaulnaveys Le Haut,
+myakiatto,Myakiatto,unflag,company,63000,Clermont-Ferrand,1
+mycronic-saint-egreve,Mycronic Saint-Egrève,keep,company,38120,Saint Egreve,
+napletsys,NAPLETSYS,unflag,company,74490,Saint Jeoire,1
+ncab-group,NCAB Group,unflag,company,45700,Villemandeur,1
+nellow,Nellow,keep,company,38000,Grenoble,
+neovision,Neovision,keep,company,38000,Grenoble,
+nestore-green-technologies,Nestore Green Technologies,unflag,company,42300,Roanne,1
+netman,Netman,unflag,corporate,76190,Valliquerville,1
+new-macroscopic-windows-into-spin-ice,New Macroscopic Windows into Spin Ice,reject,,,,
+newsletter,Newsletter,reject,,,,
+nicomatic,NICOMATIC,unflag,corporate,74890,Bons-En-Chablais,1
+noctix,Noctix,unflag,company,73190,Challes-Les-Eaux,1
+noet-ia,noet-ia,keep,company,38140,Apprieu,
+notre-mission,Notre mission,reject,,,,
+nour-chiboub,Nour Chiboub,reject,,,,
+novilix,Novilix,keep,company,38100,Grenoble,
+nsoc,NSOC,unflag,company,69480,Anse,1
+nt2i,NT2I,unflag,company,42000,Saint-Étienne,1
+numerisat,Numerisat,unflag,company,73370,Le Bourget-Du-Lac,1
+o-techno,O-TECHNO,keep,company,38240,Meylan,
+oberon-sciences,OBERON SCIENCES,keep,company,38190,Villard-Bonnot,
+obo-world,Obo World,unflag,company,74000,Annecy,1
+of-bandits-and-bohr-magnetons,Of bandits and Bohr magnetons,reject,,,,
+olivier-gaudoin,Olivier Gaudoin,reject,,,,
+omundu,Omundu,unflag,company,69003,Lyon,1
+on-10-july,On 10 July,reject,,,,
+on-friday-april-24th,On Friday April 24th,reject,,,,
+on-july-8th,On July 8th,reject,,,,
+on-march-11th,On March 11th,reject,,,,
+on-may-13th,On May 13th,reject,,,,
+on-thursday-may-07th,On Thursday May 07th,reject,,,,
+on-tuesday,On Tuesday,reject,,,,
+on-tuesday-february-17th-2026,On Tuesday February 17th 2026,reject,,,,
+on-wednesday-may-27th,On Wednesday May 27th,reject,,,,
+one-ortho,One Ortho,unflag,company,69230,Saint Genis Laval,1
+onetreck,OneTreck,keep,company,38000,Grenoble,
+onlylyon-invest,ONLYLYON Invest,unflag,ecosystem_support,69002,Lyon,1
+oorion,OOrion,unflag,company,69006,Lyon,1
+opencaps,OpenCaps,unflag,company,69003,Lyon,1
+opening-postdoctoral-position,Opening Postdoctoral Position,reject,,,,
+optimistik,Optimistik,unflag,company,73000,Chambéry,1
+optimiz-network,Optimiz Network,unflag,company,42000,Saint-Etienne,1
+optimization,Optimization,reject,,,,
+opto-france,Opto France,unflag,company,26740,Montboucher Sur Jabron,1
+oriel,Oriel,keep,company,38240,Meylan,
+orioma-sas,ORIOMA SAS,keep,company,38430,Moirans,
+oslandia,Oslandia,unflag,company,69001,Lyon,1
+osmoz-it,Osmoz-IT,unflag,company,74520,Valleiry,1
+oussama-oulkaid,Oussama Oulkaid,reject,,,,
+ovioo,Ovioo,keep,company,38410,Saint Martin D'Uriage,
+oxynode,Oxynode,unflag,company,90000,Belfort,1
+pairfs,PAIRFS,keep,company,38700,Corenc,
+parcoor,Parcoor,unflag,company,69001,Lyon,1
+particles-physics,Particles Physics,reject,,,,
+partout-en-france,Partout en France,reject,,,,
+pays-de-gex-agglo,Pays de Gex Agglo,unflag,ecosystem_support,01170,Gex,1
+pcb-piezotronics,PCB Piezotronics,unflag,company,91190,Saint-Aubin,1
+pepite-link,Pépite.link,keep,company,38240,Meylan,
+petites-fibres,Petites fibres,reject,,,,
+pfeiffer-vacuum-sas,Pfeiffer Vacuum SAS,unflag,corporate,74009,Annecy,1
+phi-design,Phi Design,keep,company,38500,Voiron,
+photonis-infrared-france,Photonis Infrared France,keep,company,38000,Grenoble,
+physics,Physics,reject,,,,
+piirates,Piirates,unflag,company,07130,Saint-Péray,1
+piseo,PISEO,unflag,company,69200,Venissieux,1
+piwio,Piwio,unflag,company,69100,Villeurbanne,1
+pixfield,Pixfield,unflag,company,73190,Challes-Les-Eaux,1
+pixminds,Pixminds,unflag,company,73000,Barberaz,1
+planifia,Planifia,keep,company,38100,Grenoble,
+plasma-therm-europe,Plasma-Therm Europe,keep,company,38190,Bernin,
+plast-3c,Plast-3C,keep,company,38590,Sillans,
+pleiades-instruments,Pleiades Instruments,keep,company,38000,Grenoble,
+podcast-carnot-inside,Podcast Carnot Inside,reject,,,,
+podcast-musique-et-sciences,Podcast Musique et Sciences,reject,,,,
+pollen-metrology,POLLEN Metrology,keep,company,38430,Moirans,
+polytec,Polytec,unflag,company,92320,Chatillon,1
+poma,POMA,keep,corporate,38340,Voreppe,
+position,Position,reject,,,,
+poste-mcf-61-en-automatique,Poste MCF 61 en Automatique,reject,,,,
+pour-l-article-gift,Pour l'article ''GIFT,reject,,,,
+powering-world-class-research-with-tools,Powering world-class research with tools,reject,,,,
+predictive-image,Predictive Image,keep,company,38340,Voreppe,
+presto-engineering,Presto Engineering,keep,company,38000,Grenoble,
+prix,Prix,reject,,,,
+probayes,Probayes,keep,company,38330,Montbonnot,
+professor-lucas-goehring,Professor Lucas Goehring,reject,,,,
+projet-anr-molecui2,Projet ANR MolecUI2,reject,,,,
+prophesee,Prophesee,keep,,,,1
+proposals-can-be-submitted-all-year,Proposals can be submitted all year,reject,,,,
+provisoire,Provisoire,reject,,,,
+proximum-sarl,PROXIMUM SARL,unflag,company,92150,Suresnes,1
+pts,PTS,keep,company,38190,Villard Bonnot,
+publications-du-ljk,Publications du LJK,reject,,,,
+pulsalys,PULSALYS,unflag,ecosystem_support,69625,Villeurbanne,1
+pyxalis,Pyxalis,keep,company,38430,Moirans,
+qleer-ai,Qleer.ai,unflag,company,26300,Alixan,1
+rainmakers-partners,RAINMAKERS & Partners,keep,company,38000,Grenoble,
+reactivip,Reactiv’IP,keep,company,38000,Grenoble,
+reconcept,Reconcept,keep,company,38520,Le Bourg D'Oisans,
+refroidir-sans-gaz,Refroidir sans gaz,reject,,,,
+research,Research,reject,,,,
+research-federation,research federation,reject,,,,
+respirer-ensemble,Respirer ensemble,reject,,,,
+reverto,Reverto,unflag,company,69002,Lyon,1
+rfid-discovery,RFiD Discovery,keep,company,38240,Meylan,
+riber,Riber,unflag,company,95870,Bezons,1
+robot-de-type-icub,Robot de type iCub,reject,,,,
+robust-deep-learning-for-eeg-decoding,Robust Deep Learning for EEG Decoding,reject,,,,
+robustness,Robustness,reject,,,,
+room-to-move,Room to move,reject,,,,
+round-table,Round Table,reject,,,,
+s2p-smart-plastic-products,S2P – Smart Plastic Products,unflag,company,01100,Bellignat,1
+sadly,Sadly,reject,,,,
+safenai,Safenai,unflag,company,75018,Paris,1
+saint-etienne-metropole,Saint-Etienne Métropole,unflag,ecosystem_support,42000,Saint-Etienne,1
+salle-d420,Salle D420,reject,,,,
+salle-de-l-oriel,Salle de l'Oriel,reject,,,,
+salle-e424,Salle E424,reject,,,,
+salle-f418,Salle F418,reject,,,,
+salle-jean-marc-chassery,Salle Jean-Marc Chassery,reject,,,,
+salle-k223,Salle K223,reject,,,,
+scalagent-d-t,ScalAgent D.T.,keep,company,38580,Allevard,
+scalinx,SCALINX,unflag,company,75013,Paris,1
+schneider-electric,Schneider Electric,keep,,,,1
+schneider-electric-industries,Schneider Electric Industries,keep,corporate,38000,Grenoble,
+science,Science,reject,,,,
+scientific-courses,Scientific courses,reject,,,,
+scientifiques,Scientifiques,reject,,,,
+sealsq,SEALSQ,unflag,company,13590,Meyreuil,1
+seccom,Seccom,unflag,company,69530,Brignais,1
+selha-group,Selha Group,unflag,corporate,26000,Valence,1
+sensors,Sensors,reject,,,,
+serenicity,Serenicity,unflag,company,42000,Saint-Étienne,1
+serpentinization-in-jezero-crater,Serpentinization in Jezero crater,reject,,,,
+set-corporation,SET Corporation,unflag,company,74490,Saint-Jeoire,1
+silent-waves,Silent Waves,keep,company,38100,Grenoble,
+since-its-launch,Since its launch,reject,,,,
+sipearl,SiPearl,keep,company,38000,Grenoble,
+sma-rty,Sma-RTy,unflag,company,63178,Aubiere,1
+smart-brain,Smart Brain,unflag,company,63000,Clermont-Ferrand,1
+smile-r-d,SMILE R&D,unflag,company,92600,Asnières-Sur-Seine,1
+smpgd-2026,SMPGD 2026,reject,,,,
+sophie-gnanguy,Sophie Gnanguy,reject,,,,
+specialized-in-industrial-maintenance,Specialized in industrial maintenance,reject,,,,
+speedernet,Speedernet,unflag,company,69009,Lyon,1
+spintec-is-jointly-operated-by-cea,SPINTEC is jointly operated by CEA,reject,,,,
+stages-iut,Stages IUT,reject,,,,
+start-in-france-2025,Start in France 2025,reject,,,,
+steepulse,Steepulse,keep,company,38000,Grenoble,
+stemmer-imaging,STEMMER IMAGING,unflag,company,84120,Pertuis,1
+stmicroelectronics,STMicroelectronics,keep,,,,1
+superwyze,Superwyze,unflag,company,69004,Lyon,1
+surfaces,Surfaces,reject,,,,
+surfaces-technologies,Surfaces Technologies,unflag,company,73800,Saint-Helene Du Lac,1
+swiift-imaging,Swiift Imaging,unflag,company,69100,Villeurbanne,1
+synabricks,Synabricks,unflag,company,63530,Volvic,1
+synegram,Synegram,unflag,company,63100,Clermont-Ferrand,1
+table-ronde,Table ronde,reject,,,,
+taipro-engineering,Taipro Engineering,unflag,company,74440,Taninges,1
+tasda,TASDA,keep,ecosystem_support,38028,Grenoble,
+teamto-technology,TeamTO Technology,unflag,company,75011,Paris,1
+teem-photonics,Teem Photonics,keep,company,38240,Meylan,
+teledyne-e2v,Teledyne e2v,keep,corporate,38120,Saint Egreve,
+textilia,Textil’IA,unflag,company,69009,Lyon,1
+thales-group,Thales Group,unflag,corporate,92098,Paris La Defense,1
+the-first-mag2pol-masterclass,The first Mag2Pol MasterClass,reject,,,,
+the-ill-science-strategy,The ILL Science Strategy,reject,,,,
+the-qa-company,The QA Company,unflag,company,42000,Saint Etienne,1
+thelyos,Thélyos,keep,company,38000,Grenoble,
+this-school-will-focus-on-control,This school will focus on control,reject,,,,
+tiama,TIAMA,unflag,corporate,69230,Saint Genis Laval,1
+tiempo-secure,Tiempo Secure,keep,company,38330,Montbonnot-Saint-Martin,
+tihive,TiHive,keep,company,38000,Grenoble,
+to-hire-a-collaborator,To hire a collaborator,reject,,,,
+topology-in-the-many-body-spectrum,Topology in the many-body spectrum,reject,,,,
+torso-da-livorno,Torso da Livorno,reject,,,,
+torso-da-livourno,Torso da Livourno,reject,,,,
+travailler-au-gipsa-lab,Travailler au GIPSA-Lab,reject,,,,
+travaux-post-fukushima,Travaux post-Fukushima,reject,,,,
+travel-assist,Travel Assist,unflag,company,42000,Saint-Étienne,1
+tsn,TSN,reject,,,,
+ubik,UBIK,keep,company,38320,Eybens,
+ubiqube,UBiqube,keep,company,38130,Echirolles,
+uca-universite-clermont-auvergne,UCA – Université Clermont Auvergne,unflag,research_education,63001,Clermont Ferrand,1
+udimec,UDIMEC,keep,ecosystem_support,38024,Grenoble,
+ui-investissement,UI Investissement,unflag,ecosystem_support,69760,Limonest,1
+ultimately,Ultimately,reject,,,,
+understanding-and-fostering-innovation,Understanding and fostering innovation,reject,,,,
+unitysc,UnitySC,keep,company,38330,Montbonnot-Saint-Martin,
+universite-jean-monnet-saint-etienne,Université Jean Monnet Saint-Etienne,unflag,research_education,42100,Saint Etienne,1
+universite-savoie-mont-blanc-usmb,Université Savoie Mont Blanc (USMB),unflag,research_education,73000,Chambéry,1
+upandgo,UPANDGO,unflag,company,69007,Lyon,1
+user-manual,User manual,reject,,,,
+uxp-corp,UXP Corp,unflag,company,42100,Saint Etienne,1
+vademecom,VADEMECOM,reject,,,,
+valence-romans-agglo,Valence Romans Agglo,unflag,ecosystem_support,26905,Valence,1
+var-group,Var Group,unflag,corporate,13090,Aix-En-Provence,1
+var-industries-s-a-s,Var Industries S.A.S,unflag,company,13090,Aix-En-Provence,1
+vates,VATES,keep,company,38000,Grenoble,
+veintree,Veintree,unflag,company,74250,Fillinges,1
+verbatim-ai,Verbatim AI,keep,company,38850,Charavines,
+viapix-systems,Viapix Systems,unflag,company,78280,Guyancourt,1
+vichar-dta,Vichar – DTA,unflag,company,26200,Montélimar,1
+vir,Vir,reject,,,,
+visiativ-software,Visiativ Software,unflag,corporate,69260,Charbonnières-Les-Bains,1
+vogo,VOGO,keep,company,38190,Bernin,
+vous-organisez-une-manifestation,Vous organisez une manifestation,reject,,,,
+vrtice,vrtice,keep,company,38330,Montbonnot-Saint-Martin,
+vs-technology,VS Technology,keep,company,38000,Grenoble,
+webinar-redtalks,Webinar RedTalks,reject,,,,
+website-accessibility,Website accessibility,reject,,,,
+welcoming-researchers,Welcoming researchers,reject,,,,
+wikit,Wikit,unflag,company,69005,Lyon,1
+with-mailing-tool,With mailing tool,reject,,,,
+with-the-help-of-recently-published-work,With the help of recently published work,reject,,,,
+worldgrid-france,Worldgrid FRANCE,keep,corporate,38027,Grenoble,
+xenocs,Xenocs,keep,company,38000,Grenoble,
+xyalis,XYALIS,keep,company,38000,Grenoble,
+yona-robotics,Yona Robotics,keep,company,38330,Montbonnot Saint Martin,
+zadient-technologies-sas,Zadient Technologies SAS,unflag,company,73800,Sainte-Hélène-Du-Lac,1
+zce,ZCE,keep,company,38000,Grenoble,
+zzzapp,Zzzapp,keep,company,38240,Meylan,
+inovallee,Inovallée,flag,ecosystem_support,,,
+spintec,SPINTEC,flag,research_education,,,
+institut-neel,Institut Néel,flag,research_education,,,
+clinatec,Clinatec,flag,research_education,,,
+fonds-clinatec,Fonds Clinatec,flag,ecosystem_support,,,
+tima,TIMA,flag,research_education,,,
+miai,MIAI,flag,research_education,,,
+verkor,Verkor,flag,company,,,
+hrs,HRS,flag,company,,,
+vencorex,Vencorex,flag,corporate,,,
+renaissance-fusion,Renaissance Fusion,flag,company,,,
+waga-energy,Waga Energy,flag,company,,,
+rossignol,Rossignol,flag,corporate,,,
+metropole-de-grenoble,Métropole de Grenoble,flag,ecosystem_support,,,
