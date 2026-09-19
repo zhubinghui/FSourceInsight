@@ -67,3 +67,5 @@ Admin P0 fixes from `docs/audits/2026-09-19-admin-ux-audit.md` are tracked separ
 4. Disable the 23 `research_lab` sources (now also ignored by code).
 5. Dry-run `scripts/apply_ecosystem_review.py` with the 610-row actions file; apply only after the output matches expectations.
 Rollback: previous images keep working with the expand-only columns (server defaults); do not downgrade the schema.
+
+- 2026-09-19 22:07 UTC: released at `b08fb8d` / `b3d5e8a1c407`; 596 evidence-based corrections applied (map 746 → 315); 14 `flag` rows await owner review. See `docs/audits/2026-09-20-ecosystem-map-release.md`.
