@@ -1,0 +1,41 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Duplicate Companies - Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Likely Duplicates ({{ groups | length }})</h2>
+    <a href="{{ url_for('admin.companies') }}" class="btn btn-fs-ghost btn-sm">Back to Companies</a>
+</div>
+<p class="text-muted">
+    Names that differ only by spacing, case, accents, legal suffix or word order. The first entry is kept;
+    merging moves articles and fills its empty fields from the duplicate. Check before merging: similar names can be different entities.
+</p>
+{% for group in groups %}
+<div class="card mb-2 duplicate-group">
+    <div class="card-body py-2">
+        {% set keeper = group[0] %}
+        {% for company in group %}
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-1">
+            <div>
+                <a class="duplicate-name" href="{{ url_for('admin.edit_company', company_id=company.id) }}">{{ company.name }}</a>
+                <small class="text-muted">{{ company.sector or 'no sector' }}{% if company.is_grenoble %} · map{% endif %}{% if company.is_auto_created %} · auto{% endif %}</small>
+            </div>
+            {% if company.id == keeper.id %}
+            <span class="badge bg-success">keep</span>
+            {% else %}
+            <form method="post" action="{{ url_for('admin.merge_companies') }}"
+                  data-confirm="Merge {{ company.name }} into {{ keeper.name }}? The duplicate is deleted."
+                  onsubmit="return confirm(this.dataset.confirm)">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="target_id" value="{{ keeper.id }}">
+                <input type="hidden" name="source_id" value="{{ company.id }}">
+                <button type="submit" class="btn btn-sm btn-outline-warning">Merge into {{ keeper.name }}</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<p class="text-muted">No likely duplicates found.</p>
+{% endfor %}
+{% endblock %}

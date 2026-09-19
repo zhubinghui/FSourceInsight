@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, abort, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from sqlalchemy import func
 
@@ -148,13 +148,37 @@ def _save_source_from_form(source: NewsSource) -> NewsSource:
 @admin_bp.route('/companies')
 def companies():
     page = request.args.get('page', 1, type=int)
-    companies = Company.query.order_by(Company.name).paginate(
-        page=page, per_page=50, error_out=False
-    )
-    return render_template('admin/companies.html', companies=companies)
+    review = request.args.get('review', '')
+    search = request.args.get('q', '').strip()
+    query = Company.query
+    if review in REVIEW_STATUSES:
+        query = query.filter(Company.review_status == review)
+    if search:
+        query = query.filter(Company.name.like(f'%{search}%'))
+    companies = query.order_by(Company.name).paginate(page=page, per_page=50, error_out=False)
+    filters = {key: value for key, value in (('review', review), ('q', search)) if value}
+    return render_template('admin/companies.html', companies=companies, filters=filters,
+                           pending_count=Company.query.filter_by(review_status='pending').count())
+
+
+@admin_bp.route('/companies/<int:company_id>/review', methods=['POST'])
+def review_company(company_id):
+    company = Company.query.get_or_404(company_id)
+    status = request.form.get('status')
+    if status not in REVIEW_STATUSES:
+        abort(400)
+    company.review_status = status
+    db.session.commit()
+    flash(f'"{company.name}" is now {status}.', 'success')
+    back = request.form.get('review')
+    return redirect(url_for('admin.companies', review=back if back in REVIEW_STATUSES else None))
 
 
 COMPANY_STAGES = ['startup', 'scale-up', 'mature', 'research_institute', '']
+REVIEW_STATUSES = ['pending', 'approved', 'rejected']
+ENTITY_TYPES = ['company', 'corporate', 'research_education', 'ecosystem_support']
+MERGE_FILL_FIELDS = ['description', 'website', 'logo_url', 'headquarters', 'sector', 'company_stage', 'spinoff_origin',
+                     'entity_type', 'postcode', 'city', 'ai_analysis', 'ai_analysis_at']
 
 
 @admin_bp.route('/companies/new', methods=['GET', 'POST'])
@@ -225,13 +249,18 @@ def edit_company(company_id):
         company.sector = request.form.get('sector', '').strip() or None
         company.is_grenoble = request.form.get('is_grenoble') == 'on'
         company.company_stage = request.form.get('company_stage', '').strip() or None
+        if request.form.get('review_status') in REVIEW_STATUSES:
+            company.review_status = request.form['review_status']
+        if request.form.get('entity_type') in ENTITY_TYPES:
+            company.entity_type = request.form['entity_type']
         company.spinoff_origin = request.form.get('spinoff_origin', '').strip() or None
         aliases_raw = request.form.get('aliases', '')
         company.aliases = [a.strip() for a in aliases_raw.split(',') if a.strip()] or None
         db.session.commit()
         flash('Company updated.', 'success')
         return redirect(url_for('admin.companies'))
-    return render_template('admin/company_form.html', company=company, stages=COMPANY_STAGES)
+    return render_template('admin/company_form.html', company=company, stages=COMPANY_STAGES,
+                           review_statuses=REVIEW_STATUSES, entity_types=ENTITY_TYPES)
 
 
 @admin_bp.route('/companies/<int:company_id>/delete', methods=['POST'])
@@ -244,6 +273,13 @@ def delete_company(company_id):
     db.session.commit()
     flash(f'Company "{name}" deleted.', 'success')
     return redirect(url_for('admin.companies'))
+
+
+@admin_bp.route('/companies/duplicates')
+def company_duplicates():
+    from app.company_dedup import duplicate_groups
+    candidates = Company.query.filter(Company.review_status != 'rejected').order_by(Company.id).all()
+    return render_template('admin/company_duplicates.html', groups=duplicate_groups(candidates)[:200])
 
 
 @admin_bp.route('/companies/merge', methods=['GET', 'POST'])
@@ -283,6 +319,13 @@ def merge_companies():
                 if a not in aliases:
                     aliases.append(a)
         target.aliases = aliases
+
+        # Keep what only the duplicate knew; the target's own values always win.
+        for field in MERGE_FILL_FIELDS:
+            if getattr(target, field) in (None, '') and getattr(source_company, field) not in (None, ''):
+                setattr(target, field, getattr(source_company, field))
+        target.is_grenoble = target.is_grenoble or source_company.is_grenoble
+        target.local_site = target.local_site or source_company.local_site
 
         # Delete the source company
         db.session.delete(source_company)
