@@ -58,3 +58,12 @@ Admin P0 fixes from `docs/audits/2026-09-19-admin-ux-audit.md` are tracked separ
 - 2026-09-19: S6b done test-first: `app/company_dedup.py` + `/admin/companies/duplicates` (spacing/case/accent/legal-suffix/word-order variants, rejected rows excluded, keeper = non-auto-created then lowest id, one-step merge through the existing merge route, capped at 200 groups). Checked on the 2,299 exported production names: 15 groups, all plausible (e.g. Thales/Thales Group, Microlight 3D/MICROLIGHT3D); "similar name, different entity" remains a reviewer call.
 - 2026-09-19: S5b done test-first: `app/crawlers/directory_facts.py` parses postcode/city/organisation type from a member-directory detail page and fetches through SafeFetcher only (fails closed, no direct-HTTP fallback, tested through `fetch_network` incl. a private-address refusal). Discovery fetches facts for new entries only (≤20 per source per scan), stores postcode/city/entity type, and sets map membership to "Isère or unknown"; everything stays `pending`. Parser validated offline on 418 saved real Minalogic pages: 386 located (153 in Isère), 384 typed.
   Limits: the listing pages still use the legacy `requests` path (M3.4b migrates that); the detail parser is specific to Minalogic's page wording and returns no facts elsewhere; 15s per detail fetch inside the crawl task, no overall scan deadline.
+
+## Release (authorized by the owner on 2026-09-19: merge to master and deploy; single-user system)
+
+1. Fast-forward `origin/master` from this branch (the main checkout keeps its uncommitted M3 work; its local `master` is left behind on purpose and must be reconciled by the owner).
+2. Wait for CI on master (offline suite + disposable-MySQL tests, which exercise the new migration on real MySQL).
+3. On the VPS: fresh database backup → `git pull` → build images → pause beat, stop workers/web → `flask db upgrade` to `b3d5e8a1c407` → start with the same compose layers as the running stack (prod + caddy + evidence) → health checks.
+4. Disable the 23 `research_lab` sources (now also ignored by code).
+5. Dry-run `scripts/apply_ecosystem_review.py` with the 610-row actions file; apply only after the output matches expectations.
+Rollback: previous images keep working with the expand-only columns (server defaults); do not downgrade the schema.
