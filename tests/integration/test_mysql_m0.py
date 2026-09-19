@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'f2a67b904d31'
+HEAD = 'b3d5e8a1c407'
 PREVIOUS = 'fd3132082a6b'
 
 
