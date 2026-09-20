@@ -1,5 +1,11 @@
 # Findings
 
+## 分批上线观察（2026-09-20）
+- 未获付费暂停授权时，不必阻塞独立Admin修复：e646不含M3迁移/调用改动，与已上线b08的app/llm、config、requirements完全相同。独立批次已经发布e646/b3；M3仍未部署，不能混淆两批测试/权限范围。
+- 相同requirements并不保证重建runtime相同：普通Dockerfile实际从LiteLLM1.101.0升级到1.102.0；版本门禁拦截后，固定原不可变image作基础+完整固定源覆盖/manifest核对，保留原SDK。未来标准重建仍须审核浮动依赖。
+- 真实候选各16 MySQL/48模板/Admin/真实broker、部署后各16复验通过；备份和原配置/数据/私有卷/服务保护完成。详见docs/audits/2026-09-20-admin-safety-release.md，不替代M3的22项或专用learning worker验收。
+- Redis官方镜像会隐式创建/data匿名卷，即使关闭持久化；临时资源清理需检查精确挂载/唯一容器引用，不只清label命名卷，也不使用全局prune。
+
 ## M3.2d派发检查（2026-09-19，实施前观察，现已本地修复）
 - learning_tasks.learn只带session ID；内部三轮循环可继续，但无法识别来自旧轮次/人工重试之前的投递。claim未取得attempt时block仅看queued，仍可能影响新决定。现有attempt fence只解决已取得身份的部分窗口。
 - start/retry每次POST都send；recover按created_at选前50 queued/running，无持久重派间隔，未过期running也占扫描位置。新切片保留原预算/180秒，增加派发键和due选择，不宣称完整lease或实机投递证明。

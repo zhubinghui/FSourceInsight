@@ -21,7 +21,7 @@
 
 ## 与当前代码的关系
 
-`app/llm/client.py`通过LiteLLM传`max_tokens`，没有显式`service_tier`；生产实际镜像SDK版本/转换以及账户Project配置仍需核实。仅知道DB里provider为OpenAI、model为mini/nano，不能证明没有网关、区域或Project级附加费。
+`app/llm/client.py`通过LiteLLM传`max_tokens`，没有显式`service_tier`。[后续独立Admin发布](2026-09-20-admin-safety-release.md)已实际核实并保留生产LiteLLM1.101.0/OpenAI2.54.0（普通重建得到1.102.0，已拒绝）。这只确认版本，具体转换/账户Project配置仍需核实。仅知道DB里provider为OpenAI、model为mini/nano，不能证明没有网关、区域或Project级附加费。
 
 `app/llm/budget.py:quote()`使用管理员审核的完整输入/输出计费上界及每千token单价预留，不使用prompt长度猜测。若**另经审核确认**标准费率/这些模型上界适用于实际端点，按400,000输入、128,000输出保守独立相加，数学预留分别为$0.876000和$0.240000。这只是条件计算，**不是建议直接填入生产或已经审核**。日预算/并发余量也需要复核。
 

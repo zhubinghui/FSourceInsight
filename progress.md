@@ -1,5 +1,15 @@
 # Progress
 
+## 2026-09-20 独立Admin发布：现有AI继续服务
+- 用户询问付费暂停含义并要求其他功能尽快上线；不推定同意停AI。先修订发布计划，独立发布已提交e6469ba，不引入M3账本/旧NULL阻断；M3完整分支保留。
+- 准确CI35510283338：713离线/16真实MySQL/真实broker。只读现网仍b08/b3、主干e646、另一工作树clean，单会话/非阻塞发布锁及临界区身份复核。
+- 准备helper先因.dockerignore注释前提错误退出；修后普通重建使LiteLLM1.101→1.102，被门禁拒绝。更新计划后，从不可变现网image构建源码覆盖层；完整源码hash=e646，运行依赖保持。失败日志/被拒镜像保留。
+- 实际web/worker各16 MySQL通过37.278/37.197s，各48模板/真实Admin行为通过；真实broker100次及RSS450868KiB任务后回收/下一任务正常。
+- 15:58:18Z暂停beat，active/reserved/scheduled/队列/unacked全0，仅TERM温停；新600压缩全备份19930641字节/CRC/trailer/SHA通过。ff b08→e646，无迁移/seed/LLM设置修改。
+- 15:58:51Z web健康，15:59:22Z beat最后恢复，四应用同e646/schema b3。配置/来源hash、业务计数/review、model diff0、私有卷/UID0700及9非目标容器/Caddy保持；未回滚。
+- 实际部署image各16 MySQL复验36.314/37.341s。16:05:54Z精确清理9测试容器、1网络、2卷（含确认独占的Redis匿名卷）及合成凭据；health全ok/四应用restart0、OOM false，MemAvailable4527384KiB。
+- 审计docs/audits/2026-09-20-admin-safety-release.md。没有真实模型/抓取/SMTP验收；不是M3上线或长期容量证明。M3计费审核仍待，现有AI未被停用。
+
 ## 2026-09-19 全部现有内容提交与发布（新授权，进行中）
 - 用户明确要求全部提交并部署；旧开发期禁止提交/SSH/部署不再是当前授权边界，但验收、备份和计费审核不能跳过。
 - 22:06Z清点master@8bf2563，97项变更/暂存空；离线最新1019/20 MySQL skips，head b5。本地Docker无socket，gh可用；未修改生产。
