@@ -110,6 +110,85 @@ class MySQLM0Tests(unittest.TestCase):
             self.assertEqual(conn.execute(text('SELECT version_num FROM alembic_version')).scalars().all(), [HEAD])
             self.assertEqual(compare_metadata(MigrationContext.configure(conn), self.db.metadata), [])
 
+    def test_reviewed_openai_requests_continue_after_the_legacy_upgrade(self):
+        """b3→head→real Admin terms→real SDK/synthetic HTTP; no live provider."""
+        import json
+        import httpx
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models import User
+        from app.llm.client import LLMClient
+
+        self.upgrade('b3d5e8a1c407')
+        with self.db.engine.begin() as conn:
+            conn.execute(text("""INSERT INTO llm_config
+                (id,provider,model,api_key_env_var,is_default,is_active,max_tokens,temperature,
+                 cost_per_1k_input,cost_per_1k_output,tasks,created_at)
+                VALUES (1,'openai','gpt-5.4-mini','SYNTHETIC_OPENAI_KEY',1,1,4096,0.3,
+                        0.0025,0.01,'[\"translate\"]','2026-09-20 00:00:00')"""))
+        self.upgrade()
+        self.db.session.add(User(email='billing@test.invalid', is_admin=True,
+                                 password_hash=generate_password_hash('synthetic-password')))
+        self.db.session.commit()
+        client = self.app.test_client()
+
+        def http(method, path, **kwargs):
+            with self.app.app_context():
+                return getattr(client, method)(path, **kwargs)
+
+        def token(path):
+            return BeautifulSoup(http('get', path).text, 'html.parser').select_one('[name=csrf_token]')['value']
+
+        self.assertEqual(http('post', '/auth/login', data={'email': 'billing@test.invalid',
+            'password': 'synthetic-password', 'csrf_token': token('/auth/login')}).status_code, 302)
+        sent = []
+        expected = {}
+
+        def send(_client, request, **kwargs):
+            self.assertEqual(str(request.url), 'https://api.openai.com/v1/chat/completions')
+            body = json.loads(request.content)
+            self.assertEqual(body['service_tier'], 'default')
+            self.assertEqual(body['max_completion_tokens'], 4096)
+            self.assertNotIn('max_tokens', body)
+            sent.append(body)
+            row = BeautifulSoup(http('get', '/admin/llm-usage').text, 'html.parser').select_one(
+                '[data-reservation-state=reserved]')
+            self.assertIsNotNone(row)
+            self.assertIn(expected['reserved'], row.text)
+            return httpx.Response(200, request=request, json={
+                'id': 'chatcmpl-synthetic', 'object': 'chat.completion', 'created': 1,
+                'model': body['model'], 'service_tier': 'default',
+                'choices': [{'index': 0, 'finish_reason': 'stop',
+                             'message': {'role': 'assistant', 'content': 'Synthetic paid result'}}],
+                'usage': {'prompt_tokens': 100, 'completion_tokens': 50, 'total_tokens': 150,
+                          'completion_tokens_details': {'reasoning_tokens': 40}},
+            })
+
+        with patch('app.llm.client.redis_client', None), patch('app.llm.circuit_breaker.redis_client', None), \
+                patch.dict(os.environ, {'SYNTHETIC_OPENAI_KEY': 'synthetic-not-real'}), patch.object(httpx.Client, 'send', send):
+            with self.assertRaisesRegex(RuntimeError, 'Reviewed billing token ceilings required'):
+                LLMClient().translate('Not yet reviewed')
+            self.assertEqual(sent, [])
+            for model, input_price, output_price, reserved, settled in (
+                    ('gpt-5.4-mini', '0.000750', '0.004500', '0.318432', '0.000300'),
+                    ('gpt-5.4-nano', '0.000200', '0.001250', '0.085120', '0.000083')):
+                expected['reserved'] = reserved
+                path = '/admin/llm-config/1/edit'
+                response = http('post', path, data={
+                    'csrf_token': token(path), 'provider': 'openai', 'model': model,
+                    'api_base_url': 'https://api.openai.com/v1', 'api_key_env_var': 'SYNTHETIC_OPENAI_KEY',
+                    'is_default': 'on', 'role': 'primary', 'priority': '100',
+                    'tasks': ['translate'], 'max_tokens': '4096', 'temperature': '0.3',
+                    'billing_input_limit': '400000', 'billing_output_limit': '4096', 'billing_reviewed': '1',
+                    'cost_per_1k_input': input_price, 'cost_per_1k_output': output_price,
+                })
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(LLMClient().translate('Review enables ' + model), 'Synthetic paid result')
+                rows = BeautifulSoup(http('get', '/admin/llm-usage').text, 'html.parser').select(
+                    '[data-reservation-state=settled]')
+                self.assertTrue(any(model in row.text and settled in row.text for row in rows))
+            self.assertEqual(len(sent), 2)
+
     def test_startup_analysis_has_one_mysql_owner_and_fences_source_aba(self):
         """Actual Admin/scan/tasks, external synthetic HTTP/model/dispatch only."""
         import json

@@ -39,6 +39,9 @@
                 <input type="url" class="form-control" name="api_base_url"
                        value="{{ config.api_base_url if config else '' }}"
                        placeholder="e.g. http://localhost:11434 for Ollama">
+                <div class="form-text">Explicit OpenAI routes at <code>https://api.openai.com/v1</code>
+                    use <code>service_tier=default</code> (standard processing), not the Project's auto/Fast setting.
+                    Custom gateways and other providers keep their own protocol; review their billing separately.</div>
             </div>
         </div>
 

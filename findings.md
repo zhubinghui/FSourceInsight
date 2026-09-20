@@ -1,5 +1,12 @@
 # Findings
 
+## 付费连续性核对（2026-09-20，研究/尚未改生产）
+- 16:28Z只读现网：clean e646/b3，日预算$5；活跃config1 mini（default、ner/classify/insight）和config5 nano（translate/summarize/ner/classify/sentiment/insight），均max_tokens4096/temperature0.3，明确key存在但未输出值。没有端点或HTTP代理环境覆盖；两活跃DB api_base为空，SDK默认全球OpenAI端点。
+- 旧费率仍是mini $0.0025/$0.010、nano $0.00015/$0.0006每千token，与现行官方标准价不同。DeepSeek/Claude关闭，不为发布开启。当前日28条legacy usage，未知费用0，日志合计$0.001578；这些是旧价格估算，不是最终供应商账单，不改写历史或冒称重新核价。
+- 官方模型页再次确认mini/nano 400,000上下文/128,000最大输出，标准每千分别$0.00075/$0.0045及$0.0002/$0.00125。官方Priority页明确省略service_tier可继承Project Fast；固定OpenAI2.54 SDK类型文档明确default=标准价格/性能、max_completion_tokens含隐藏reasoning。
+- 固定LiteLLM1.101 gpt_5_transformation.py把max_tokens映射到max_completion_tokens；仍需真实SDK出站HTTP合成验证。API参考网页提取未包含字段正文，改核实际版本SDK源码，不把无匹配当反证。查找chat/transformation.py不存在，实际GPT5专用文件可读，未改变软件。
+- 来源：https://developers.openai.com/api/docs/models/gpt-5.4-mini 、https://developers.openai.com/api/docs/models/gpt-5.4-nano 、https://developers.openai.com/api/docs/guides/priority-processing；工具材料mua18inu7gf1rh，仅资料不构成自动配置许可。
+
 ## 分批上线观察（2026-09-20）
 - 未获付费暂停授权时，不必阻塞独立Admin修复：e646不含M3迁移/调用改动，与已上线b08的app/llm、config、requirements完全相同。独立批次已经发布e646/b3；M3仍未部署，不能混淆两批测试/权限范围。
 - 相同requirements并不保证重建runtime相同：普通Dockerfile实际从LiteLLM1.101.0升级到1.102.0；版本门禁拦截后，固定原不可变image作基础+完整固定源覆盖/manifest核对，保留原SDK。未来标准重建仍须审核浮动依赖。

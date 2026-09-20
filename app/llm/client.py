@@ -25,6 +25,15 @@ MAX_INPUT_CHARS = {
 DEFAULT_MAX_INPUT_CHARS = 30000
 
 
+def _service_tier(config):
+    # Explicit global OpenAI endpoint opts into standard prices, not Project auto/Fast.
+    # Do not send OpenAI-specific options to custom gateways or other providers.
+    if (config.provider == 'openai' and ('/' not in config.model or config.model.startswith('openai/'))
+            and (config.api_base_url or '').rstrip('/') == 'https://api.openai.com/v1'):
+        return 'default'
+    return None
+
+
 class _ProviderFailure(Exception):
     """A logged provider/contract failure, eligible for bounded fallback."""
     def __init__(self, error):
@@ -65,6 +74,9 @@ class LLMClient:
             'temperature': config.temperature if config.temperature is not None else 0.3,
             'response_format': 'json_object' if task_type in JSON_TASKS else 'text',
         }
+        tier = _service_tier(config)
+        if tier is not None:
+            payload['service_tier'] = tier
         content = json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False)
         return 'llm_cache:v2:' + hashlib.sha256(content.encode()).hexdigest()
 
@@ -102,6 +114,9 @@ class LLMClient:
             kwargs['api_key'] = key
         if config.api_base_url:
             kwargs['api_base'] = config.api_base_url
+        tier = _service_tier(config)
+        if tier is not None:
+            kwargs['service_tier'] = tier
         if task_type in JSON_TASKS:
             kwargs['response_format'] = {'type': 'json_object'}
         permit = spend.reserve(config, task_type, learning_attempt, messages, discovery_job=discovery_job)

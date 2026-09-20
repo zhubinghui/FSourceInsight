@@ -1,5 +1,12 @@
 # Progress
 
+## 2026-09-20 继续M3，明确保留付费功能
+- 用户明确不要暂停付费LLM、剩余功能也需部署；付费暂停从当前方案中移除。先新增连续性计划，再核实际端点/参数/SDK/价格，争取通过具体兼容配置解开门禁；不猜数、不关闭预算/放任无限费用。
+- 起点release5271c84、origin/master e646、两工作树clean；生产上次完成e646/b3，待本轮只读重核。既定LLMClient/Admin/真实任务/Alembic/运维公共seam不变，无子代理。
+- 16:28Z确认生产e646/b3、活跃mini/nano无端点/代理覆盖、max_tokens4096、预算5、日28条/unknown0；旧单价不等于现价。采用显式官方全球端点和default层，保留模型/任务/key/日预算，审计docs/audits/2026-09-20-m3-paid-continuity.md。
+- 固定官方SDK v2.54源码确认default=标准价、max_completion_tokens含reasoning；实际LiteLLM1.101 SDK合成HTTP重现两个模型缺tier，最小修复后通过。随后真实red重现旧auto缓存误命中和UI缺说明，分别补tier键/UI；其他网关兼容四用例直接green。
+- 关联最终161通过/23专用MySQL skip/1773 warnings/32.17s，244 AST/选定E9/F/diff通过。新23号实库门禁覆盖b3→head→真实Admin审核→两个真实SDK/合成HTTP付款。全套本地后台运行，未把skip当实库绿，无生产配置变更。
+
 ## 2026-09-20 独立Admin发布：现有AI继续服务
 - 用户询问付费暂停含义并要求其他功能尽快上线；不推定同意停AI。先修订发布计划，独立发布已提交e6469ba，不引入M3账本/旧NULL阻断；M3完整分支保留。
 - 准确CI35510283338：713离线/16真实MySQL/真实broker。只读现网仍b08/b3、主干e646、另一工作树clean，单会话/非阻塞发布锁及临界区身份复核。
