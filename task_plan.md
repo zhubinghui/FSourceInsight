@@ -1,7 +1,7 @@
 # 全项目审查与动态爬虫 Agent 改造
 
 ## 当前追加：全部现有内容提交与发布（2026-09-19新授权）
-- [in_progress] 用户要求全部提交并部署；先清点97项变更、敏感信息/准确CI与生产只读预检，正常提交推送，补隔离MySQL/候选门禁。执行计划 docs/superpowers/specs/2026-09-19-m3-current-release.md。
+- [in_progress] 用户要求全部提交并部署；已提交推送751ac51，生产只读发现生态新版b08fb8d/b3；正在整合23de19e，唯一候选head c7f21a9d680e、startup-analysis.v2，保留两边业务。首轮CI5个Compose环境失败已复现修正，最终准确CI/22项隔离MySQL/候选门禁仍待完成。执行计划 docs/superpowers/specs/2026-09-19-m3-current-release.md。
 - [pending] 计费上界/真实价格审核或用户明确接受付费暂停模式；不能把旧NULL配置当透明升级。学习默认关闭，不自动授予模型/来源许可。
 - [pending] 门禁通过才备份/受控停止旧调用方/扩展迁移/切换一致镜像/验收与清理。主会话，无子代理；不恢复整库、不动非目标服务、不真实抓取/付费/邮件验收。
 

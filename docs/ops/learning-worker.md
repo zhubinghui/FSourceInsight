@@ -50,7 +50,7 @@ Compose entrypoint为`python scripts/learning_worker.py run`，仅接受Compose�
 启动前只读检查：
 1. 学习标记启用。
 2. 私有目录在checkout之外、非末端symlink、0700且当前UID拥有；实际目录fd的文件系统标记为只读。
-3. DB `alembic_version`与镜像内唯一head一致（当前本地head `b5d81e6a430f`；4a历史里程碑为`f8b64d2c901e`）。这不是完整schema diff或模型/权限批准。
+3. DB `alembic_version`与镜像内唯一head一致（当前候选head `c7f21a9d680e`；4a历史里程碑为`f8b64d2c901e`）。这不是完整schema diff或模型/权限批准。
 
 启动前不迁移、修权限、建卷或派发任务。失败输出固定NOT_READY，不打印路径/SQL/broker异常。启动失败最多重启3次后需人工处理。
 
@@ -76,7 +76,7 @@ python scripts/learning_worker.py check --snapshot PRIVATE_STATUS.json --node le
 
 ## 独立启用/回滚前置
 
-1. 当前所有20项隔离MySQL仍未运行；执行最新schema的空库/迁移/model-diff与真实HTTP会话、重试/取消/ACK/账本故障门禁。
+1. 当前所有22项隔离MySQL在本地仍未运行；执行最新schema的空库/迁移/model-diff与真实HTTP会话、重试/取消/ACK/账本故障门禁。
 2. 在明确可丢弃的隔离环境，使用实际候选镜像/Compose验证：同卷RW→RO可读、worker写被内核拒绝、错UID/权限/缺卷退出、重启保留；不要用生产卷做破坏性验证。
 3. 实际Redis/prefork验证：注册及唯一队列、重复投递、soft/hard、broker/进程失联、未决预留不重付、恢复收敛、readiness失败。当前Redis仍是既有配置，本层不提供新broker持久性或防驱逐保证。
 4. 验证cgroup实际CPU/RAM/PIDs、冷启动/最大允许样本/历史扫描/健康检查/回收的峰值和长时行为。监控parent/child PSS、memory.events/oom_kill、队列延迟及数据库压力；container restart计数不证明child没OOM。

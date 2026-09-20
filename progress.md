@@ -8,6 +8,13 @@
 - 22:07Z发现生产刚发布生态地图b08fb8d/schema b3，origin随后又推进文档23de19e；另一工作树现clean并记录发布完成。本轮没有改生产。M3与b3为并行迁移链，需要明确合并及重验，不能用旧8bf基线覆盖。
 - 只读真实模型：活跃OpenAI gpt-5.4-mini/nano，生产尚无billing上界列；当前UTC日无未知费用日志。不能在缺审核情况下透明切换。先独立release分支提交全部本地工作，整合新主干、准确CI，不强推或触另一工作树。敏感pattern检查98文件/855671 bytes无命中。
 
+### 发布整合进展
+- 751ac51已提交推送release分支；合入23de19e，保留pending/rejected墓碑/lab禁扫/详情事实与M3原子异步job。startup-analysis.v2绑定审核/地理及ORM代次；c7f21a9d680e合并b3/b5，新增2条实际MySQL方向门禁，总22。
+- 合并TDD补真实详情事实/拒绝前后分析fence/1000上限/HTTP不持写锁/不扩host权限；生态测试换外部网络边界而非旧requests/helper mock。初次status字段fixture误用与实际red分开记录。
+- 首轮CI35472655051（751ac51）5失败/1014通过/20skip：Compose2.38.2检查必需.env；官方同版本校验和通过并在临时目录红→绿复现。测试复制公开Compose+空.env，v2全部5通过，真实.env未读/未改。
+- merge-focused-02在300s工具期限中断/35完成/无残余；下一用例独立1通过，根因未知。完整verbose merge-full-01无超时，1059通过/22skip/1个新增CLI捕获fixture失败（640.32s）；改独立真实Flask CLI后最终相关12通过（12.61s）。未把失败或skip当通过。
+- 指定E9/F、相对origin/master的diff检查通过。上游原样CRLF CSV默认cached diff提示尾部空白，证据字节保留，仅另作cr-at-eol检查。生产无切换/暂停/写入，计费审核与实际候选门禁仍阻断。
+
 ## 2026-09-19 M3.2d学习派发可靠性（本地切片完成，M3仍进行中）
 - 用户继续；基线8bf2563、既有累积未提交/未暂存改动保留。Docker socket仍缺，PATH无mysqld/redis-server；临时venv可用。不连服务/生产、不提交或子代理。
 - 核对后先补计划：学习单session ID消息缺轮次/retry fence、重复HTTP/recover无重派间隔；旧未认领异常可能阻断新queued。拟用版本化派发键及单个可空due列，不另造付费额度/历史授权。

@@ -68,17 +68,17 @@ def test_one_source_write_failure_cannot_commit_its_partial_companies_with_next_
     discovery.network.configure(routes={
         base.URL: {'body': '<div data-name="Partial" data-description="Synthetic"></div>'
                           '<div data-name="Broken" data-description="Synthetic"></div>'},
-        other: {'body': '<div data-name="Good Lab" data-description="Synthetic"></div>'},
+        other: {'body': '<div data-name="Good Startup" data-description="Synthetic"></div>'},
     })
     failed_id = base.add_source(discovery)
-    good_id = base.add_source(discovery, url=other, name='Good', source_type='research_lab')
+    good_id = base.add_source(discovery, url=other, name='Good', source_type='startup')
     with db.engine.begin() as conn:
         conn.exec_driver_sql("CREATE TRIGGER fail_second BEFORE INSERT ON startup_analysis_job WHEN json_extract(NEW.inputs, '$.company.name') = 'Broken' BEGIN SELECT RAISE(FAIL, 'PRIVATE_PARTIAL_SQL'); END")
     base.scan(discovery)
     assert len(base.jobs(discovery)) == 1 and len(discovery.sent) == 1
     assert db.session.query(Company).count() == 1
     company = db.session.query(Company).one()
-    assert (company.name, company.company_stage, company.sector) == ('Good Lab', 'research_institute', 'Research Institute')
+    assert (company.name, company.company_stage, company.sector) == ('Good Startup', 'startup', None)
     assert db.session.get(StartupSource, failed_id).last_scanned_at is None
     assert db.session.get(StartupSource, good_id).last_scanned_at is not None
     assert not discovery.calls

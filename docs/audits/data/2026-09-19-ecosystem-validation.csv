@@ -1,0 +1,747 @@
+id,name,slug,sector,stage,articles,created,verified_location,entity_type_proposed,verdict,issues,evidence
+1256,@GP,gp,Uncategorized,startup,0,2026-04-01,26120 MONTELIER,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2000,https://www.minalogic.com/en/member-directory/gp/
+1257,#dot:dot,dot-dot,Semiconductor,startup,0,2026-04-01,38100 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/dotdot/
+1258,2IS (Inbound Intelligence Solutions),2is-inbound-intelligence-solutions,Software / Digital,startup,0,2026-04-01,74650 CHAVANOD,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1989,https://www.minalogic.com/en/member-directory/2is/
+1259,3D-Oxides,3d-oxides,Semiconductor,startup,0,2026-04-01,01630 SAINT-GENIS POUILLY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/3d-oxides/
+3733,3L-OPTRONICS,3l-optronics,Photonics & Sensors,startup,0,2026-04-29,13013 MARSEILLE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/3l-optronics/
+1260,4CAD Group – Astrée Software,4cad-group-astree-software,Software / Digital,startup,0,2026-04-01,44340 BOUGUENAIS,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/4cad-group-astree-software/
+1261,Ablatom,ablatom,Software / Digital,startup,0,2026-04-01,69622 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/ablatom/
+1262,Absolut System,absolut-system,Semiconductor,startup,2,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/absolut-system/
+1263,acaé,acae,Uncategorized,startup,0,2026-04-01,67200 STRASBOURG,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/acae/
+1264,AcouDesign,acoudesign,Materials / Chemistry,startup,1,2026-04-01,63100 CLERMONT-FERRAND,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/acoudesign/
+1265,ACSIEL Alliance Électronique,acsiel-alliance-electronique,Semiconductor,startup,0,2026-04-01,75009 PARIS,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency,https://www.minalogic.com/en/member-directory/acsiel/
+1266,Actemium Maintenance Dauphiné,actemium-maintenance-dauphine,Software / Digital,startup,0,2026-04-01,38130 ÉCHIROLLES,company,KEEP,stage=startup but founded 2012,https://www.minalogic.com/en/member-directory/actemium-maintenance-dauphine/
+3734,Activation,activation,,startup,0,2026-04-29,69680 CHASSIEU,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2003 ; no sector,https://www.minalogic.com/en/member-directory/activation/
+1267,Acute Design,acute-design,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/acute-design/
+1268,Addeus,addeus,Semiconductor,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/addeus/
+3735,Adentis,adentis,,startup,0,2026-04-29,38000 GRENOBLE,company,KEEP,stage=startup but founded 2000 ; no sector,https://www.minalogic.com/en/member-directory/adentis/
+1248,ADMIR,admir,Photonics & Sensors,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+1269,Adobis Group,adobis-group,Software / Digital,startup,0,2026-04-01,38330 MONTBONNOT-SAINT-MARTIN,company,KEEP,,https://www.minalogic.com/en/member-directory/adobis-group-sas/
+1270,AEDVICES,aedvices,Semiconductor,startup,2,2026-04-01,38430 MOIRANS,company,KEEP,stage=startup but founded 2012,https://www.minalogic.com/en/member-directory/aedvices-consulting/
+1271,AEM Mu-TEST,aem-mu-test,Semiconductor,startup,0,2026-04-01,42650 SAINT-JEAN-BONNEFONDS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2010,https://www.minalogic.com/en/member-directory/mutest/
+1272,Aequil Science,aequil-science,Materials / Chemistry,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/aequil-science/
+1273,AFELIM,afelim,Semiconductor,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/afelim/
+1274,AGIGA,agiga,Semiconductor,startup,0,2026-04-01,69400 VILLEFRANCHE-SUR-SAÔNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/agiga/
+1275,AGINOV,aginov,Semiconductor,startup,0,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/aginov/
+1276,Agora Calycé,agora-calyce,Semiconductor,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/agora-calyce/
+1277,AGORI,agori,Semiconductor,startup,0,2026-04-01,38170 SEYSSINET PARISET,company,KEEP,stage=startup but founded 2008 ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/agori/
+1278,AII – Automatisme et Informatique Industrielle,aii-automatisme-et-informatique-industrielle,Software / Digital,startup,0,2026-04-01,38330 MONTBONNOT SAINT MARTIN,company,KEEP,stage=startup but founded 1981,https://www.minalogic.com/en/member-directory/aii-automatisme-informatique-industrielle/
+1279,AIoTrust,aiotrust,Software / Digital,startup,1,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/aiotrust/
+1187,Ais Biotech,ais-biotech,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://ais-biotech.com/
+1280,AITENDERS,aitenders,Software / Digital,startup,0,2026-04-01,42000 SAINT-ÉTIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/aitenders/
+1281,AJ Invest & Consulting,aj-invest-consulting,Uncategorized,startup,0,2026-04-01,74290 VEYRIER DU LAC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/aj-invest-consulting/
+6492,Akila MOKHTARI,akila-mokhtari,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1801,Akram Idani,akram-idani,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1282,Alberture,alberture,,startup,0,2026-04-01,69700 GIVORS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/alberture/
+898,Aledia,aledia,Micro-LED / Displays,scale-up,2,2026-03-31,Grenoble,,KEEP,,
+1283,AlgoSecure,algosecure,AI / Machine Learning,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2008,https://www.minalogic.com/en/member-directory/algosecure/
+13,Allegro DVT,allegro-dvt,Semiconductor IP,mature,0,2026-03-26,Grenoble,,KEEP,,
+1284,Alp Valley,alp-valley,Semiconductor,startup,0,2026-04-01,73190 CHALLES-LES-EAUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: Software,https://www.minalogic.com/en/member-directory/alp-valley/
+1184,Alpioner Therapeutics,alpioner-therapeutics,MedTech / Health,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://alpionertx.com/
+1285,Altimet,altimet,Semiconductor,startup,0,2026-04-01,74200 MARIN,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2004,https://www.minalogic.com/en/member-directory/altimet/
+1209,Altrans Energy,altrans-energy,Energy / CleanTech,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.altransinnov.com
+1286,Altyor,altyor,Semiconductor,startup,0,2026-04-01,45590 SAINT-CYR-EN-VAL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1992 ; sector Semiconductor unsupported by themes: IoT,https://www.minalogic.com/en/member-directory/altyor/
+1783,Alzheimer,alzheimer,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+6608,Ambition,ambition,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1249,AMI,ami,,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; no sector",
+1235,Amiral Technologies,amiral-technologies,AI / Machine Learning,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.amiraltechnologies.com/fr/
+6497,Amphi C001-Phyllis Nicolson,amphi-c001-phyllis-nicolson,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1807,Amphi H,amphi-h,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1287,Anatoscope,anatoscope,MedTech / Health,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/anatoscope/
+7426,Andreas Meyer,andreas-meyer,Research Institute,research_institute,0,2026-09-09,,,DELETE_JUNK,page fragment from research_lab source,
+1288,Andyamo,andyamo,,startup,1,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/andyamo/
+3736,Apex Numeris,apex-numeris,,startup,0,2026-04-29,69200 VENISSIEUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/apex-numeris/
+1191,Aphelio,aphelio,Software / Digital,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://aphelio.fr/
+982,Apix Analytics,apix-analytics,Sensors / Analytics,startup,0,2026-03-31,Grenoble,,KEEP,,
+1289,APREX Solutions,aprex-solutions,Semiconductor,startup,0,2026-04-01,54000 NANCY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: Software,https://www.minalogic.com/en/member-directory/aprex-solutions/
+1290,Araïko,araiko,Semiconductor,startup,0,2026-04-01,,company,REVIEW,"no address on Minalogic page ; sector Semiconductor unsupported by themes: AI, IoT, Software",https://www.minalogic.com/en/member-directory/araiko/
+1291,Arc en Ciel Sérigraphie,arc-en-ciel-serigraphie,Semiconductor,startup,0,2026-04-01,42630 RÉGNY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1981,https://www.minalogic.com/en/member-directory/arc-en-ciel-serigraphie/
+1292,Ardeje Printing,ardeje-printing,Materials / Chemistry,startup,1,2026-04-01,26000 VALENCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1998,https://www.minalogic.com/en/member-directory/ardeje/
+1293,Arlumen,arlumen,Sensors / Photonics,startup,0,2026-04-01,29280 PLOUZANE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/evosens/
+1294,Armtek,armtek,Semiconductor,startup,0,2026-04-01,67100 STRASBOURG,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/armtek/
+990,Arnano,arnano,Nanotechnology,startup,0,2026-03-31,Grenoble,,KEEP,,
+892,Arteris,arteris,Semiconductor IP,mature,0,2026-03-31,San Jose / Grenoble,,KEEP,"HQ outside, local site (keep per decision 2)",
+6610,Arts,arts,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1295,ARUFOG,arufog,Semiconductor,startup,0,2026-04-01,42000 SAINT ETIENNE,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; sector Semiconductor unsupported by themes: Photonics,https://www.minalogic.com/en/member-directory/arufog/
+978,Aryballe,aryballe,Sensors / AI,scale-up,0,2026-03-31,Grenoble,,KEEP,,
+3781,As early as the 1950s,as-early-as-the-1950s,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1840,Aspects sociaux,aspects-sociaux,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1296,Asteelflash France,asteelflash-france,,startup,0,2026-04-01,38240 MEYLAN,corporate,KEEP,stage=startup but Minalogic type=Mid-cap ; no sector,https://www.minalogic.com/en/member-directory/asteelflash-developpement/
+1192,Astriis,astriis,,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; no sector",https://www.astriis.com/
+989,Asygn,asygn,Semiconductor / IC Design,startup,0,2026-03-31,Grenoble,,KEEP,,
+1297,Atelier du Maker,atelier-du-maker,,startup,0,2026-04-01,01120 THIL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/atelier-du-maker/
+1298,Atim Radiocommunications,atim-radiocommunications,IoT / Connected,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/atim-radiocommunications/
+1299,Atom XR,atom-xr,,startup,0,2026-04-01,13115 SAINT-PAUL-LÈS-DURANCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/atom-xr/
+1300,Atraltech,atraltech,,startup,0,2026-04-01,38920 CROLLES,corporate,KEEP,stage=startup but Minalogic type=Mid-cap ; no sector,https://www.minalogic.com/en/member-directory/atraltech/
+1301,Aubenard Brevets et Marques,aubenard-brevets-et-marques,Software / Digital,startup,0,2026-04-01,69006 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/aubenard-brevets-et-marques/
+1302,AUEG – Alliance Université Entreprise de Grenoble,aueg-alliance-universite-entreprise-de-grenoble,Software / Digital,startup,0,2026-04-01,38240 MEYLAN,ecosystem_support,KEEP,stage=startup but Minalogic type=Economic development agency,https://www.minalogic.com/en/member-directory/aueg/
+1303,AUSMOSYS,ausmosys,Semiconductor,startup,0,2026-04-01,13510 ÉGUILLES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/ausmosys/
+6625,Auteurs,auteurs,Research Institute,research_institute,0,2026-08-25,,,DELETE_JUNK,page fragment from research_lab source,
+1304,Auvalie Innovation,auvalie-innovation,Software / Digital,startup,0,2026-04-01,69009 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/auvalie-innovation/
+1305,Auvergne-Rhône-Alpes Entreprises,auvergne-rhone-alpes-entreprises,,startup,1,2026-04-01,69002 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/auvergne-rhone-alpes-entreprises/
+1306,Auxo Dynamics,auxo-dynamics,Software / Digital,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/auxo-dynamics/
+986,Avalun,avalun,MedTech / Diagnostics,startup,0,2026-03-31,Grenoble,,KEEP,,
+1779,Avec 325 membres,avec-325-membres,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1839,Avec plus de 450 personnels,avec-plus-de-450-personnels,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1307,Awabot,awabot,Software / Digital,startup,0,2026-04-01,69200 VÉNISSIEUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/awabot/
+1308,Axandus,axandus,,startup,0,2026-04-01,,ecosystem_support,REVIEW,no address on Minalogic page ; stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/axandus/
+1309,AXL technologies,axl-technologies,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/axl-technologies/
+1310,"AxLR, SATT Occitanie Méditerranée",axlr-satt-occitanie-mediterranee,,startup,0,2026-04-01,34090 MONTPELLIER,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/axlr-satt/
+995,Bag-Era,bag-era,Digital Systems,startup,0,2026-03-31,Grenoble,,KEEP,,
+996,BAIO-DX,baio-dx,MedTech / AI,startup,0,2026-03-31,Grenoble,,KEEP,,
+1311,Banque Populaire Auvergne-Rhône-Alpes,banque-populaire-auvergne-rhone-alpes,Software / Digital,startup,1,2026-04-01,38700 CORENC,ecosystem_support,KEEP,stage=startup but Minalogic type=Bank & Investor,https://www.minalogic.com/en/member-directory/banque-populaire-auvergne-rhone-alpes/
+1312,Banyan.eco,banyan-eco,Software / Digital,startup,0,2026-04-01,75015 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/banyan-eco/
+1804,Basile Pesin,basile-pesin,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1792,Beatrice Barletti,beatrice-barletti,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1313,BeeAlp,beealp,,startup,2,2026-04-01,38850 BILIEU,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/beealp/
+1204,BeFC,befc,Energy / CleanTech,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://befc.fr/
+1314,BENKEI,benkei,Semiconductor,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2013 ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/benkei/
+4960,Beyond conventional calorimetry,beyond-conventional-calorimetry,Research Institute,research_institute,0,2026-06-03,,,DELETE_JUNK,page fragment from research_lab source,
+7736,Bilayer graphene,bilayer-graphene,Research Institute,research_institute,0,2026-09-17,,,DELETE_JUNK,page fragment from research_lab source,
+1819,Biology,biology,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1244,Bladetips Energy,bladetips-energy,Energy / CleanTech,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://bladetipsenergy.com/
+1315,Bloomd,bloomd,,startup,0,2026-04-01,42240 UNIEUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/bloomd/
+1316,Blue Dot Production,blue-dot-production,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/blue-dot-production/
+1317,Bluecime,bluecime,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/blue-cime/
+1197,Bluetwin,bluetwin,,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; no sector",
+2059,Bruno Ferres,bruno-ferres,Research Institute,research_institute,0,2026-04-05,,,DELETE_JUNK,page fragment from research_lab source,
+1318,Business English With Christina,business-english-with-christina,,startup,0,2026-04-01,38400 SAINT-MARTIN-D'HÈRES,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/business-english-with-christina/
+5848,CAD,cad,Research Institute,research_institute,0,2026-07-03,,,DELETE_JUNK,page fragment from research_lab source,
+1319,CADFEM FRANCE SAS,cadfem-france-sas,Software / Digital,startup,0,2026-04-01,69007 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/cadfem-france/
+1195,Caeli Energie,caeli-energie,AI / Machine Learning,startup,2,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.caeli-energie.com
+1320,CAISSE D’EPARGNE RHONE ALPES,caisse-depargne-rhone-alpes,Software / Digital,startup,2,2026-04-01,38000 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Bank & Investor,https://www.minalogic.com/en/member-directory/caisse-depargne-rhone-alpes/
+1321,Calopsys,calopsys,Semiconductor,startup,0,2026-04-01,38110 SAINTE BLANDINE,company,KEEP,"sector Semiconductor unsupported by themes: Cybersecurity, Software",https://www.minalogic.com/en/member-directory/calopsys/
+11,Capgemini,capgemini,IT Services,mature,15,2026-03-26,Paris (Grenoble office),,KEEP,"HQ outside, local site (keep per decision 2)",
+1322,CardiaMetrics,cardiametrics,Software / Digital,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,,https://www.minalogic.com/en/member-directory/cardiametrics/
+1323,CARL Berger-Levrault,carl-berger-levrault,Software / Digital,startup,0,2026-04-01,69760 LIMONEST,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1992,https://www.minalogic.com/en/member-directory/carl-berger-levrault/
+1836,Carnot,carnot,Research Institute,research_institute,4,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+1230,Carroucell,carroucell,Semiconductor,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.carroucell.com/
+1324,CB4Tech,cb4tech,,startup,0,2026-04-01,30480 CENDRAS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/cb4tech/
+1834,CDD,cdd,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1325,CEA Grenoble,cea-grenoble,Semiconductor,startup,1,2026-04-01,38054 GRENOBLE,research_education,KEEP,stage=startup but Minalogic type=Research centre ; duplicate of: CEA-Leti,https://www.minalogic.com/en/member-directory/cea-grenoble/
+5,CEA-Leti,cea-leti,Research Institute,mature,282,2026-03-26,Grenoble,research_education,KEEP,duplicate of: CEA Grenoble,
+1326,CEDRAT TECHNOLOGIES,cedrat-technologies,Semiconductor,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,stage=startup but founded 1977,https://www.minalogic.com/en/member-directory/cedrat-technologies/
+1232,Cell & Soft,cell-soft,MedTech / Health,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.cellandsoft.com/
+1327,Centrale Lyon,centrale-lyon,Energy / CleanTech,startup,0,2026-04-01,69134 ÉCULLY,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/ecole-centrale-de-lyon/
+6145,CGDE 2026,cgde-2026,Research Institute,research_institute,0,2026-07-16,,,DELETE_JUNK,page fragment from research_lab source,
+1328,CH Studio,ch-studio,Semiconductor,startup,0,2026-04-01,38490 LES ABRETS EN DAUPHINÉ,company,KEEP,sector Semiconductor unsupported by themes: Software,https://www.minalogic.com/en/member-directory/ch-studio/
+1329,Chambre de Commerce et d’Industrie de Grenoble,chambre-de-commerce-et-dindustrie-de-grenoble,,startup,0,2026-04-01,38016 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/chambre-de-commerce-et-dindustrie-de-grenoble/
+1330,Champollion Avocats,champollion-avocats,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2013 ; no sector,https://www.minalogic.com/en/member-directory/champollion-avocats/
+5705,CHASSIS,chassis,Research Institute,research_institute,0,2026-06-29,,,DELETE_JUNK,page fragment from research_lab source,
+6606,Chat,chat,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1331,Chat3D,chat3d,Uncategorized,startup,0,2026-04-01,42100 SAINT-ÉTIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/chat3d/
+6616,Chemistry,chemistry,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1797,Christian Balamou,christian-balamou,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+3737,CHU de Saint-Étienne,chu-de-saint-etienne,,startup,1,2026-04-29,42270 SAINT PRIEST EN JAREZ,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment ; no sector,https://www.minalogic.com/en/member-directory/chu-de-saint-etienne/
+1332,CHU Grenoble Alpes,chu-grenoble-alpes,MedTech / Health,startup,6,2026-04-01,38043 GRENOBLE,research_education,KEEP,stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/chu-de-grenoble/
+1333,CIC Lyonnaise de Banque,cic-lyonnaise-de-banque,,startup,0,2026-04-01,38000 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Bank & Investor ; no sector,https://www.minalogic.com/en/member-directory/cic-lyonnaise-de-banque/
+1200,Cilkoa,cilkoa,Materials / Chemistry,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://cilkoa.com/
+1334,CINEDIA,cinedia,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,"stage=startup but founded 2013 ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/cinedia/
+1335,CIRIDD,ciridd,Semiconductor,startup,0,2026-04-01,42000 SAINT-ÉTIENNE,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/ciridd/
+3738,CISTEME,cisteme,Software / Digital,startup,0,2026-04-29,87068 LIMOGES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1995,https://www.minalogic.com/en/member-directory/cisteme/
+1845,ClapMeca,clapmeca,Research Institute,research_institute,0,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+1336,Cleanpart France,cleanpart-france,Semiconductor,startup,0,2026-04-01,38170 SEYSSINET-PARISET,company,KEEP,stage=startup but founded 2002,https://www.minalogic.com/en/member-directory/up-sgi-cleanpart-france/
+1337,CLP – Club Laser et Procédés,clp-club-laser-et-procedes,Sensors / Photonics,startup,0,2026-04-01,67400 ILLKIRCH,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency,https://www.minalogic.com/en/member-directory/clp-club-laser-et-procedes/
+1338,Cluster Lumière,cluster-lumiere,Sensors / Photonics,startup,1,2026-04-01,69002 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Cluster,https://www.minalogic.com/en/member-directory/cluster-lumiere/
+1339,CNRS ALPES,cnrs-alpes,Semiconductor,startup,1,2026-04-01,38042 GRENOBLE,research_education,KEEP,stage=startup but Minalogic type=Research centre,https://www.minalogic.com/en/member-directory/cnrs-alpes/
+1340,Codeffekt,codeffekt,Software / Digital,startup,0,2026-04-01,38110 LA TOUR-DU-PIN,company,KEEP,,https://www.minalogic.com/en/member-directory/codeffekt/
+1782,COFFEE,coffee,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1240,Cognidis,cognidis,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.cognidis.com
+1775,Cognition,cognition,Research Institute,research_institute,1,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1238,Coho,coho,AI / Machine Learning,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.animalinks.fr/
+1341,Communauté d’agglomération du Pays Voironnais,communaute-dagglomeration-du-pays-voironnais,,startup,0,2026-04-01,38511 VOIRON,ecosystem_support,KEEP,stage=startup but Minalogic type=Local authority ; no sector,https://www.minalogic.com/en/member-directory/communaute-dagglomeration-du-pays-voironnais/
+1342,Communauté de communes Le Grésivaudan,communaute-de-communes-le-gresivaudan,,startup,0,2026-04-01,38926 CROLLES,ecosystem_support,KEEP,stage=startup but Minalogic type=Local authority ; no sector,https://www.minalogic.com/en/member-directory/communaute-de-communes-du-gresivaudan/
+1343,COMSOL France SAS,comsol-france-sas,Software / Digital,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2001,https://www.minalogic.com/en/member-directory/comsol-france/
+1344,CONTINEW,continew,Semiconductor,startup,0,2026-04-01,42300 ROANNE,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2008 ; sector Semiconductor unsupported by themes: IoT, Software",https://www.minalogic.com/en/member-directory/continew/
+1345,CoopVenture,coopventure,,startup,0,2026-04-01,69120 VAULX-EN-VELIN,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Bank & Investor ; no sector,https://www.minalogic.com/en/member-directory/coopventure/
+1346,CORTUS SAS,cortus-sas,Semiconductor,startup,0,2026-04-01,34130 MAUGUIO,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2005,https://www.minalogic.com/en/member-directory/cortus/
+1347,Cristal Innov,cristal-innov,Semiconductor,startup,0,2026-04-01,73800 SAINTE HELENE DU LAC,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Technology platform,https://www.minalogic.com/en/member-directory/cristal-innov/
+1348,Cross Data,cross-data,Software / Digital,startup,0,2026-04-01,49100 ANGERS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/cross-data/
+1832,CS 20156,cs-20156,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1349,CS Technologies,cs-technologies,Uncategorized,startup,0,2026-04-01,69620 SAINT-VÉRAND,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/cs-technologies/
+1212,CXrde,cxrde,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://cx-rde.com/
+1350,D.A.T.E (Développement et Application des Techniques de l’Energie),d-a-t-e-developpement-et-application-des-techniques-de-lenergie,Energy / CleanTech,startup,0,2026-04-01,38770 LA MOTTE-D'AVEILLANS,company,KEEP,stage=startup but founded 1978,https://www.minalogic.com/en/member-directory/d-a-t-e-developpement-et-application-des-techniques-de-lenergie/
+6495,DAB,dab,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1351,Data Science Experts (DSE),data-science-experts-dse,AI / Machine Learning,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/data-science-experts-dse/
+5236,De la start-up au grand groupe,de-la-start-up-au-grand-groupe,Research Institute,research_institute,0,2026-06-12,,,DELETE_JUNK,page fragment from research_lab source,
+1352,DeFacto Technologies,defacto-technologies,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 1997,https://www.minalogic.com/en/member-directory/defacto-technologies/
+1353,Delta Concept,delta-concept,,startup,0,2026-04-01,38120 SAINT EGREVE,company,KEEP,stage=startup but founded 2006 ; no sector,https://www.minalogic.com/en/member-directory/delta-concept/
+5898,Depuis 19 ans,depuis-19-ans,Research Institute,research_institute,0,2026-07-05,,,DELETE_JUNK,page fragment from research_lab source,
+7428,Depuis dix ans,depuis-dix-ans,Research Institute,research_institute,0,2026-09-09,,,DELETE_JUNK,page fragment from research_lab source,
+5651,Depuis plus de 30 ans,depuis-plus-de-30-ans,Research Institute,research_institute,0,2026-06-26,,,DELETE_JUNK,page fragment from research_lab source,
+1847,Des insectes aux microalgues,des-insectes-aux-microalgues,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1354,Designers+,designers,,startup,0,2026-04-01,42000 SAINT ETIENNE,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/designers/
+979,Diabeloop,diabeloop,MedTech / AI,scale-up,0,2026-03-31,Grenoble,,KEEP,,
+1234,Diamfab,diamfab,Energy / CleanTech,startup,2,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://diamfab.eu/
+993,Diamsens,diamsens,Sensors / Environment,startup,0,2026-03-31,Grenoble,,KEEP,,
+1355,Digigram,digigram,Software / Digital,startup,0,2026-04-01,38330 MONTBONNOT SAINT MARTIN,company,KEEP,stage=startup but founded 1985,https://www.minalogic.com/en/member-directory/digigram/
+1356,DIGITAL LEAGUE,digital-league,Software / Digital,startup,0,2026-04-01,69002 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Cluster,https://www.minalogic.com/en/member-directory/digital-league/
+1357,DilBloom,dilbloom,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/dilbloom/
+1250,DIRECT ANALYSIS,direct-analysis,Sensors / Photonics,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+6605,Discover the video of Astriis,discover-the-video-of-astriis,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1358,DM Engineering,dm-engineering,Semiconductor,startup,0,2026-04-01,69330 MEYZIEU,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/dm-engineering/
+893,Dolphin Design,dolphin-design,Semiconductor IP,mature,0,2026-03-31,Grenoble,,KEEP,duplicate of: Dolphin Semiconductor,
+1359,Dolphin Semiconductor,dolphin-semiconductor,Semiconductor,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,"stage=startup but founded 1985 ; sector Semiconductor unsupported by themes: IoT, Software ; duplicate of: Dolphin Design",https://www.minalogic.com/en/member-directory/dolphin-semiconductor/
+1360,DOORS Photonics,doors-photonics,Photonics & Sensors,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/doors-photonics/
+1361,DRACULA Technologies,dracula-technologies,IoT / Connected,startup,1,2026-04-01,26000 VALENCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/dracula-technologies/
+1362,DSV – LE DOMAINE SKIABLE DE VALMOREL,dsv-le-domaine-skiable-de-valmorel,Energy / CleanTech,startup,0,2026-04-01,73260 VALMOREL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1976,https://www.minalogic.com/en/member-directory/domaine-skiable-de-valmorel/
+6148,Du 12 au 17 octobre 2026,du-12-au-17-octobre-2026,Research Institute,research_institute,0,2026-07-16,,,DELETE_JUNK,page fragment from research_lab source,
+6600,Du 15 au 17 septembre,du-15-au-17-septembre,Research Institute,research_institute,0,2026-08-13,,,DELETE_JUNK,page fragment from research_lab source,
+1850,E-mail,e-mail,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1363,E.RE.C.A Ingénierie en électronique et informatique embarquée,e-re-c-a-ingenierie-en-electronique-et-informatique-embarquee,IoT / Connected,startup,0,2026-04-01,69120 VAULX-EN-VELIN,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1991,https://www.minalogic.com/en/member-directory/e-re-c-a/
+1364,E2I Solutions,e2i-solutions,Semiconductor,startup,0,2026-04-01,26190 SAINT NAZAIRE EN ROYANS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/e2i-solutions/
+1365,EASii IC,easii-ic,Semiconductor,startup,0,2026-04-01,38100 GRENOBLE,company,KEEP,stage=startup but founded 1992,https://www.minalogic.com/en/member-directory/easii-ic/
+1366,ECE – Ecole d’Ingénieurs,ece-ecole-dingenieurs,Semiconductor,startup,0,2026-04-01,69367 LYON,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/ece-ecole-dingenieurs/
+1251,Eclypia,eclypia,Sensors / Photonics,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+1367,ECM Greentech Engineering,ecm-greentech-engineering,Energy / CleanTech,startup,0,2026-04-01,38800 LE PONT DE CLAIX,company,KEEP,,https://www.minalogic.com/en/member-directory/ecm-greentech-engineering/
+1368,École des Mines de Saint-Étienne,ecole-des-mines-de-saint-etienne,Energy / CleanTech,startup,0,2026-04-01,42100 SAINT ETIENNE,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/mines-saint-etienne/
+1369,ECP Cleaning,ecp-cleaning,Semiconductor,startup,0,2026-04-01,34740 VENDARGUES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1996,https://www.minalogic.com/en/member-directory/ecp-cleaning/
+1370,ECRIN Systems,ecrin-systems,,startup,0,2026-04-01,38920 CROLLES,company,KEEP,stage=startup but founded 1984 ; no sector,https://www.minalogic.com/en/member-directory/ecrin-systems/
+1371,EDF-DTG,edf-dtg,Energy / CleanTech,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/edf-dtg/
+1372,EENUEE,eenuee,Semiconductor,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/eenuee/
+1373,EFFIBLUE,effiblue,Semiconductor,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/effiblue/
+4660,Egis Industrie et Process,egis-industrie-et-process,,startup,0,2026-05-24,38400 SAINT-MARTIN-D'HÈRES,company,KEEP,stage=startup but founded 2009 ; no sector,https://www.minalogic.com/en/member-directory/faure-qei/
+4872,Elecsyor,elecsyor,,startup,0,2026-05-30,69006 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/elecsyor/
+1374,Elethic,elethic,,startup,0,2026-04-01,38120 SAINT EGREVE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/elethic/
+1252,eLichens,elichens,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; duplicate of: Lichens",
+1375,Elpack Pharel,elpack-pharel,,startup,0,2026-04-01,26000 VALENCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1986 ; no sector,https://www.minalogic.com/en/member-directory/elpack-pharel/
+1376,EMG2,emg2,,startup,0,2026-04-01,91140 VILLEBON-SUR-YVETTE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1997 ; no sector,https://www.minalogic.com/en/member-directory/emg2/
+1377,Emotive Muzik,emotive-muzik,,startup,0,2026-04-01,74000 ANNECY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2012 ; no sector,https://www.minalogic.com/en/member-directory/emotive-musik/
+1841,Emplois,emplois,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+6607,Employed,employed,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1846,En avril 2026,en-avril-2026,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1378,en-core,en-core,Semiconductor,startup,0,2026-04-01,73110 LA CHAPELLE-BLANCHE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/en-core/
+1379,Enerbee Technology,enerbee-technology,Sensors / Photonics,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/enerbee-technology/
+6490,Energie,energie,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1818,Engineering,engineering,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+6084,ENGO,engo,,startup,4,2026-07-11,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/engo/
+1201,Entroview,entroview,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://entroview.com/
+1218,Epynext therapeutics,epynext-therapeutics,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.linkedin.com/in/louisfarge/?locale=fr_FR
+1380,EQUALIS Consulting,equalis-consulting,Semiconductor,startup,0,2026-04-01,38800 CHAMPAGNIER,company,KEEP,sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/equalis-consulting/
+2058,Erwan Jahier,erwan-jahier,Research Institute,research_institute,0,2026-04-05,,,DELETE_JUNK,page fragment from research_lab source,
+7,ESRF,esrf,Research Facility,,1,2026-03-26,Grenoble,research_education,KEEP,,
+1381,Etablissements PENNACCHIOTTI,etablissements-pennacchiotti,IoT / Connected,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,stage=startup but founded 1972,https://www.minalogic.com/en/member-directory/pennacchiotti/
+1233,Etisense,etisense,Sensors / Photonics,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.etisense.com/
+1382,EUMETRYS,eumetrys,Semiconductor,startup,0,2026-04-01,81600 GAILLAC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2012,https://www.minalogic.com/en/member-directory/eumetrys/
+1383,Euris SAS,euris-sas,Software / Digital,startup,0,2026-04-01,38140 APPRIEU,company,KEEP,stage=startup but founded 1995,https://www.minalogic.com/en/member-directory/euris-sas/
+1384,EURONEXT,euronext,Semiconductor,startup,3,2026-04-01,69289 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Bank & Investor ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/euronext/
+1785,Europe-wide,europe-wide,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1385,EVAVEO,evaveo,,startup,0,2026-04-01,69370 SAINT-DIDIER-AU-MONT-D'OR,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/evaveo/
+1386,Exanodia,exanodia,,startup,0,2026-04-01,69800 SAINT PRIEST,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/exanodia/
+1387,ExcellerIA,excelleria,IoT / Connected,startup,0,2026-04-01,34000 MONTPELLIER,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/excelleria/
+3840,Expertise Vision,expertise-vision,Sensors / Photonics,startup,0,2026-04-30,74300 THYEZ,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/expertise-vision/
+1388,EXYTE France,exyte-france,Semiconductor,startup,0,2026-04-01,69007 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1994,https://www.minalogic.com/en/member-directory/exyte-france/
+1389,EY France – Agence de Lyon,ey-france-agence-de-lyon,Software / Digital,startup,0,2026-04-01,69003 LYON,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/ey-france-agence-de-lyon/
+1390,Faactopi,faactopi,Software / Digital,startup,2,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/faactopi/
+3760,FAMILY,family,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+4234,FASEM,fasem,Research Institute,research_institute,0,2026-05-13,,,REVIEW,"real name, wrong type; recheck ; duplicate of: FASEM school at ILL",
+4112,FASEM school at ILL,fasem-school-at-ill,Research Institute,research_institute,0,2026-05-10,,research_education,DELETE_JUNK,page fragment from research_lab source ; duplicate of: FASEM,
+1391,Faure QEI,faure-qei,Semiconductor,startup,0,2026-04-01,38400 SAINT-MARTIN-D'HÈRES,company,KEEP,stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/faure-qei/
+5988,Femmes et sciences,femmes-et-sciences,Research Institute,research_institute,0,2026-07-08,,,DELETE_JUNK,page fragment from research_lab source,
+1392,Ferroelectric Memory Company,ferroelectric-memory-company,Materials / Chemistry,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/ferroelectric-memory-company/
+1393,FHElab,fhelab,Software / Digital,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/fhelab/
+1394,Fibercryst,fibercryst,Sensors / Photonics,startup,1,2026-04-01,69150 DECINES-CHARPIEU,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2003,https://www.minalogic.com/en/member-directory/fibercryst/
+1395,Ficha,ficha,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/ficha/
+6603,FIDLE is a free,fidle-is-a-free,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1396,FIELDCLOUD,fieldcloud,Software / Digital,startup,0,2026-04-01,38700 LA TRONCHE,company,KEEP,stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/fieldcloud/
+1815,Films,films,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1397,Fleetiz,fleetiz,Software / Digital,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/fleetiz/
+1848,Floralis,floralis,Research Institute,research_institute,0,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+3739,Fluidy,fluidy,,startup,0,2026-04-29,63200 RIOM,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/fluidy/
+985,Fluoptics,fluoptics,MedTech / Imaging,startup,0,2026-03-31,Grenoble,,KEEP,,
+1398,FOLIASCOPE,foliascope,Sensors / Photonics,startup,0,2026-04-01,26500 BOURG-LES-VALENCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/foliascope/
+3777,FOR INNOVATION IN MICROTECHNOLOGIES,for-innovation-in-microtechnologies,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+6054,For the first time,for-the-first-time,Research Institute,research_institute,0,2026-07-10,,,DELETE_JUNK,page fragment from research_lab source,
+1399,FOREIS,foreis,Semiconductor,startup,0,2026-04-01,75016 PARIS,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Bank & Investor,https://www.minalogic.com/en/member-directory/foreis/
+1811,Formations,formations,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1400,Fractali,fractali,Semiconductor,startup,0,2026-04-01,38330 MONTBONNOT-SANT-MARTIN,company,KEEP,sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/fractali/
+1401,Framatome SAS,framatome-sas,,startup,0,2026-04-01,92400 COURBEVOIE,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation ; no sector,https://www.minalogic.com/en/member-directory/framatome-sas/
+2235,From Monday September 07,from-monday-september-07,Research Institute,research_institute,0,2026-04-10,,,DELETE_JUNK,page fragment from research_lab source,
+1823,From Thursday April 09,from-thursday-april-09,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1821,From Tuesday April 07,from-tuesday-april-07,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1824,From Tuesday April 28,from-tuesday-april-28,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1826,From Tuesday June 09,from-tuesday-june-09,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1827,From Tuesday June 23,from-tuesday-june-23,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1828,From Tuesday June 30,from-tuesday-june-30,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1822,From Wednesday April 08,from-wednesday-april-08,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1825,From Wednesday May 06,from-wednesday-may-06,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+2290,From Wednesday November 18,from-wednesday-november-18,Research Institute,research_institute,0,2026-04-11,,,DELETE_JUNK,page fragment from research_lab source,
+2170,From Wednesday September 02,from-wednesday-september-02,Research Institute,research_institute,0,2026-04-09,,,DELETE_JUNK,page fragment from research_lab source,
+1183,FuelSea,fuelsea,AI / Machine Learning,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.anodine.fr/
+1402,Full Electronic System,full-electronic-system,Software / Digital,startup,0,2026-04-01,38130 ECHIROLLES,company,KEEP,stage=startup but founded 2006,https://www.minalogic.com/en/member-directory/full-electronic-system/
+1213,Funcell,funcell,Materials / Chemistry,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.funcell.eu/
+3740,Fyyyre,fyyyre,,startup,0,2026-04-29,01700 MIRIBEL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/fyyyre/
+1403,Galeon,galeon,Software / Digital,startup,0,2026-04-01,74940 ANNECY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/galeon/
+1205,Gamma Tech,gamma-tech,Energy / CleanTech,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://gammatech.fr/
+1404,GEG Experts,geg-experts,Semiconductor,startup,0,2026-04-01,45100 ORLÉANS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/geg-experts/
+6626,GEM Alpine Business School,gem-alpine-business-school,,startup,0,2026-08-28,38000 GRENOBLE,research_education,KEEP,stage=startup but Minalogic type=Higher education & Research establishment ; no sector ; duplicate of: Grenoble Ecole de Management,https://www.minalogic.com/en/member-directory/grenoble-ecole-de-management/
+1405,Geolithe Innov,geolithe-innov,Materials / Chemistry,startup,0,2026-04-01,38920 CROLLES,company,KEEP,,https://www.minalogic.com/en/member-directory/geolithe-innov/
+1798,Gilles Pernod,gilles-pernod,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1406,Ginger BURGEAP,ginger-burgeap,Software / Digital,startup,0,2026-04-01,69425 LYON,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/ginger-burgeap/
+1407,Gleam,gleam,Semiconductor,startup,0,2026-04-01,01430 SAINT-MARTIN-DU-FRÊNE,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/gleam/
+1408,Go2Market,go2market,,startup,0,2026-04-01,26700 PIERRELATTE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/go-2-market/
+1409,Golana Computing,golana-computing,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/golana-computing/
+1410,Goodfloow,goodfloow,Software / Digital,startup,0,2026-04-01,44600 SAINT-NAZAIRE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/goodfloow/
+1411,Grand Annecy,grand-annecy,Software / Digital,startup,1,2026-04-01,74007 ANNECY,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Local authority,https://www.minalogic.com/en/member-directory/grand-annecy/
+1223,Grapheal,grapheal,MedTech / Health,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.grapheal.com/
+894,GreenWaves Technologies,greenwaves-technologies,AI / IoT Processors,startup,0,2026-03-31,Grenoble,,KEEP,,
+3779,GRENOBLE ALPES,grenoble-alpes,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1412,Grenoble Ecole de Management,grenoble-ecole-de-management,Uncategorized,startup,1,2026-04-01,38000 GRENOBLE,research_education,KEEP,stage=startup but Minalogic type=Higher education & Research establishment ; duplicate of: GEM Alpine Business School,https://www.minalogic.com/en/member-directory/grenoble-ecole-de-management/
+10,Grenoble INP - UGA,grenoble-inp-uga,University,,11,2026-03-26,Grenoble,,KEEP,,
+1413,Grenoble INP Entreprise,grenoble-inp-entreprise,Energy / CleanTech,startup,0,2026-04-01,38016 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Economic development agency,https://www.minalogic.com/en/member-directory/grenoble-inp-entreprise/
+1414,Groupe DOLIAM,groupe-doliam,,startup,0,2026-04-01,78600 MAISONS-LAFFITTE,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap ; no sector,https://www.minalogic.com/en/member-directory/groupe-doliam/
+1415,GYD TECH,gyd-tech,Semiconductor,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/gyd-tech/
+1416,Hautier IP,hautier-ip,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/hautier-ip/
+1417,HawAI.tech,hawai-tech,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/hawai-tech/
+1418,Haya Petcare,haya-petcare,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/haya-petcare/
+7784,Hazes and Clouds,hazes-and-clouds,Research Institute,research_institute,0,2026-09-18,,,DELETE_JUNK,page fragment from research_lab source,
+6614,Health,health,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1419,HEIDENHAIN,heidenhain,Semiconductor,startup,0,2026-04-01,69007 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1978,https://www.minalogic.com/en/member-directory/heidenhain/
+1214,Heliocity,heliocity,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.heliocity.io
+1420,Hemera,hemera,Semiconductor,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/hemera/
+12,Hewlett Packard Enterprise,hewlett-packard-enterprise,Enterprise IT,mature,22,2026-03-26,Houston (Grenoble R&D),,KEEP,"HQ outside, local site (keep per decision 2)",
+4114,Hidden order in chaos,hidden-order-in-chaos,Research Institute,research_institute,0,2026-05-10,,,DELETE_JUNK,page fragment from research_lab source,
+1421,HIRI,hiri,Semiconductor,startup,0,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/hiri/
+1422,Holli,holli,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/holli-sasu-fylia/
+1423,Holoprods,holoprods,Sensors / Photonics,startup,0,2026-04-01,69290 CRAPONNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/holoprods/
+1424,HORIBA France,horiba-france,Semiconductor,startup,0,2026-04-01,38330 MONTBONNOT-SAINT-MARTIN,corporate,KEEP,stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/horiba-france/
+1425,Hospices Civils de Lyon – HCL,hospices-civils-de-lyon-hcl,MedTech / Health,startup,0,2026-04-01,69002 LYON,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/hospices-civils-de-lyon/
+1788,How to reach EMBL's six sites by phone,how-to-reach-embl-s-six-sites-by-phone,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1236,Hprobe,hprobe,Semiconductor,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.hprobe.com/
+1426,Huawei Technologies France SASU,huawei-technologies-france-sasu,Software / Digital,startup,0,2026-04-01,92100 BOULOGNE-BILLANCOURT,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/huawei-technologies-france/
+1427,HUB TRANSITION,hub-transition,Software / Digital,startup,0,2026-04-01,26000 VALENCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/hub-transition/
+6609,Humanities and social sciences,humanities-and-social-sciences,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1428,Humans Matter,humans-matter,,startup,0,2026-04-01,69002 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2000 ; no sector,https://www.minalogic.com/en/member-directory/sbt/
+1429,Hummink,hummink,Semiconductor,startup,0,2026-04-01,75003 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/hummink/
+1193,HUNTX PHARMA,huntx-pharma,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.huntxpharma.com/
+1430,Hurence SAS,hurence-sas,Software / Digital,startup,0,2026-04-01,38660 LUMBIN,company,KEEP,stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/hurence/
+1242,Hymag'in,hymag-in,Energy / CleanTech,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.hymagin.com/
+1431,IALab,ialab,Semiconductor,startup,0,2026-04-01,69001 LYON,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/ialab/
+1202,IC Green,ic-green,AI / Machine Learning,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://icgreen.fr/
+6147,ICID 2026,icid-2026,Research Institute,research_institute,0,2026-07-16,,,DELETE_JUNK,page fragment from research_lab source,
+1432,ICOSA Tech,icosa-tech,,startup,0,2026-04-01,42000 SAINT-ÉTIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/icosa/
+1433,ID4US,id4us,Software / Digital,startup,0,2026-04-01,38400 SAINT MARTIN D'HERES,company,KEEP,,https://www.minalogic.com/en/member-directory/id4us/
+1434,IDEC HAUTES TECHNOLOGIES,idec-hautes-technologies,,startup,0,2026-04-01,38330 SAINT-ISMIER,company,KEEP,stage=startup but founded 2003 ; no sector,https://www.minalogic.com/en/member-directory/idec-hautes-technologies/
+1435,Ideee,ideee,,startup,0,2026-04-01,42000 SAINT ETIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2006 ; no sector,https://www.minalogic.com/en/member-directory/ideee/
+3741,IDEMIA StarChip,idemia-starchip,Semiconductor,startup,0,2026-04-29,13590 MEYREUIL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/idemia-starchip/
+1436,iDiscoVR,idiscovr,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/idiscovr/
+1437,Idyllic Technology,idyllic-technology,,startup,0,2026-04-01,26000 VALENCE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/idyllic-technology/
+1438,iExec,iexec,Software / Digital,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/iexec/
+1439,IFOTEC,ifotec,Sensors / Photonics,startup,0,2026-04-01,38500 VOIRON,company,KEEP,stage=startup but founded 1999,https://www.minalogic.com/en/member-directory/ifotec/
+9,ILL,ill,Research Facility,,2,2026-03-26,Grenoble,research_education,KEEP,,
+3759,ILL Mission,ill-mission,Research Institute,research_institute,0,2026-04-29,,research_education,DELETE_JUNK,page fragment from research_lab source,
+3780,image recognition,image-recognition,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1440,IMPULSION38,impulsion38,,startup,0,2026-04-01,38240 MEYLAN,ecosystem_support,KEEP,stage=startup but Minalogic type=Autre ; no sector,https://www.minalogic.com/en/member-directory/impulsion-38/
+3782,In 1967,in-1967,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1441,In Extenso Innovation Croissance,in-extenso-innovation-croissance,Software / Digital,startup,0,2026-04-01,69002 LYON,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/in-extenso-innovation-croissance/
+3778,in France,in-france,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+6602,in large companies,in-large-companies,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1772,In order to cancel this consent,in-order-to-cancel-this-consent,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+5852,In this episode,in-this-episode,Research Institute,research_institute,0,2026-07-03,,,DELETE_JUNK,page fragment from research_lab source,
+1442,In&motion,in-motion,IoT / Connected,startup,0,2026-04-01,74960 ANNECY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/inmotion/
+1443,Inceptive,inceptive,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/inceptive/
+1444,Inddigo,inddigo,Semiconductor,startup,1,2026-04-01,73000 CHAMBÉRY,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap ; sector Semiconductor unsupported by themes: Software,https://www.minalogic.com/en/member-directory/inddigo/
+1774,Industrie 4.0,industrie-4-0,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1445,INESO EUROPE,ineso-europe,,startup,0,2026-04-01,38600 FONTAINE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/ineso-europe/
+3742,INETI,ineti,,startup,0,2026-04-29,75008 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/ineti/
+1446,INFICON SARL,inficon-sarl,Semiconductor,startup,0,2026-04-01,91140 VILLEBON-SUR-YVETTE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2000,https://www.minalogic.com/en/member-directory/inficon/
+6623,Information meeting,information-meeting,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1813,Infos,infos,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1253,iNGage,ingage,Sensors / Photonics,startup,2,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+994,InjectPower,injectpower,MedTech / Energy,startup,0,2026-03-31,Grenoble,,KEEP,,
+1447,Innodura TB,innodura-tb,,startup,0,2026-04-01,69603 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2012 ; no sector,https://www.minalogic.com/en/member-directory/innodura-tb/
+1199,Innova,innova,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; duplicate of: Innova Advanced Technologies",https://www.innova-advancedtech.com/
+1448,Innova Advanced Technologies,innova-advanced-technologies,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector ; duplicate of: Innova,https://www.minalogic.com/en/member-directory/innova-advanced-technologies/
+1449,Innovation Makers Alliance,innovation-makers-alliance,Software / Digital,startup,0,2026-04-01,75016 PARIS,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency,https://www.minalogic.com/en/member-directory/innovation-makers-alliance/
+1450,INOUID,inouid,,startup,0,2026-04-01,69130 ECULLY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/inouid/
+8,Inria,inria,Research Institute,mature,92,2026-03-26,Grenoble (center),research_education,KEEP,duplicate of: Inria Grenoble – Rhône-Alpes,
+1451,Inria Grenoble – Rhône-Alpes,inria-grenoble-rhone-alpes,Software / Digital,startup,0,2026-04-01,69603 VILLEURBANNE,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Research centre ; duplicate of: Inria,https://www.minalogic.com/en/member-directory/inria-grenoble-rhone-alpes/
+1452,INSA Lyon – Institut National des Sciences Appliquées,insa-lyon-institut-national-des-sciences-appliquees,Research & Ecosystem,startup,0,2026-04-01,69621 VILLEURBANNE,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/insa-lyon-institut-national-des-sciences-aplliquees/
+1453,INSIDIX,insidix,Semiconductor,startup,0,2026-04-01,38360 NOYAREY,company,KEEP,stage=startup but founded 1996,https://www.minalogic.com/en/member-directory/insidix/
+1454,Institut Lyfe,institut-lyfe,Semiconductor,startup,0,2026-04-01,69130 ÉCULLY,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Research centre,https://www.minalogic.com/en/member-directory/centre-de-recherche-de-linstitut-paul-bocuse/
+1800,Intelligence artificielle,intelligence-artificielle,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1844,Interfaces Energie,interfaces-energie,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+2469,Interfacial tension effects,interfacial-tension-effects,Research Institute,research_institute,0,2026-04-15,,,DELETE_JUNK,page fragment from research_lab source,
+6613,Internship agreement,internship-agreement,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1762,INTRUZION,intruzion,Semiconductor,startup,0,2026-04-02,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/intruzion/
+1455,IOGS – Institut d’Optique Graduate School,iogs-institut-doptique-graduate-school,Sensors / Photonics,startup,0,2026-04-01,42000 SAINT ETIENNE,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment,https://www.minalogic.com/en/member-directory/iogs-institut-doptique-graduate-school/
+1456,IoTize,iotize,IoT / Connected,startup,0,2026-04-01,38330 MONTBONNOT SAINT MARTIN,company,KEEP,,https://www.minalogic.com/en/member-directory/iotize/
+1457,Iridescence,iridescence,,startup,0,2026-04-01,75014 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/iridescence/
+1458,Iroc Technologies,iroc-technologies,Semiconductor,startup,0,2026-04-01,38025 GRENOBLE,company,KEEP,stage=startup but founded 2000,https://www.minalogic.com/en/member-directory/iroc-technologies/
+1459,Isitec International,isitec-international,Software / Digital,startup,0,2026-04-01,69008 MILLERY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2002,https://www.minalogic.com/en/member-directory/isitec-international/
+1460,ITEN,iten,IoT / Connected,startup,3,2026-04-01,69570 DARDILLY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/i-ten/
+1802,Iulia Dragomir,iulia-dragomir,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1461,IVèS,ives,MedTech / Health,startup,1,2026-04-01,38330 MONTBONNOT-SAINT-MARTIN,company,KEEP,stage=startup but founded 2006,https://www.minalogic.com/en/member-directory/ives/
+1462,JAY ELECTRONIQUE,jay-electronique,,startup,0,2026-04-01,38330 SAINT ISMIER,company,KEEP,stage=startup but founded 1968 ; no sector,https://www.minalogic.com/en/member-directory/jay-electronique/
+1463,Jessica France,jessica-france,,startup,0,2026-04-01,38054 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/jessica-france/
+1243,Jetcycle,jetcycle,,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; no sector",https://jetcycle.fr
+1808,Jonglerie musicale,jonglerie-musicale,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1837,Journal,journal,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1464,JUNE AVOCATS,june-avocats,,startup,0,2026-04-01,75002 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/june-avocats/
+1465,Kaffeine Technologies,kaffeine-technologies,Semiconductor,startup,0,2026-04-01,01630 SAINT-GENIS-POUILLY,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, IoT, Software",https://www.minalogic.com/en/member-directory/kaffeine-technologies/
+1466,Kairntech,kairntech,Software / Digital,startup,1,2026-04-01,38240 MEYLAN,company,KEEP,,https://www.minalogic.com/en/member-directory/kairntech/
+1467,Kaizen Solutions,kaizen-solutions,Software / Digital,startup,2,2026-04-01,38330 MONTBONNOT SAINT MARTIN,company,KEEP,stage=startup but founded 2013,https://www.minalogic.com/en/member-directory/kaizen-solutions/
+890,Kalray,kalray,Semiconductor / AI Processors,scale-up,5,2026-03-31,Grenoble,,KEEP,,
+1468,Kaori,kaori,Semiconductor,startup,0,2026-04-01,26300 ALIXAN,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/kaori/
+1239,Kapah,kapah,Sensors / Photonics,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://kapah.com/
+1803,Karine Altisen,karine-altisen,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+988,Kentyou,kentyou,IoT / Smart City,startup,0,2026-03-31,Grenoble,,KEEP,,
+1469,keplertech.io,keplertech-io,Semiconductor,startup,0,2026-04-01,91120 PALAISEAU,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/keplertech-io/
+1470,Keysom,keysom,Semiconductor,startup,0,2026-04-01,33670 BLÉSIGNAC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/keysom/
+1237,Kheoos,kheoos,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://kheoos.com/fr/
+1471,Kibatic,kibatic,Software / Digital,startup,0,2026-04-01,38100 GRENOBLE,company,KEEP,stage=startup but founded 2000,https://www.minalogic.com/en/member-directory/kibatic/
+1211,Kitosphère,kitosphere,Materials / Chemistry,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.kitosphere.com/
+3743,KPMG Avocats,kpmg-avocats,,startup,0,2026-04-29,38240 MEYLAN,corporate,KEEP,stage=startup but Minalogic type=Large corporation ; no sector,https://www.minalogic.com/en/member-directory/kpmg-avocats/
+2544,La revanche de la laine,la-revanche-de-la-laine,Research Institute,research_institute,0,2026-04-16,,,DELETE_JUNK,page fragment from research_lab source,
+1472,Laclarée,laclaree,Sensors / Photonics,startup,0,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/laclaree/
+895,Lancey Energy Storage,lancey-energy-storage,Energy / CleanTech,startup,0,2026-03-31,Grenoble,,KEEP,duplicate of: Lancey Storage Energy,
+1245,Lancey Storage Energy,lancey-storage-energy,Energy / CleanTech,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; duplicate of: Lancey Energy Storage",https://www.lancey.fr/fr/
+1849,Laurence Nigay,laurence-nigay,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+6611,Law,law,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1473,LDLC VR Studio,ldlc-vr-studio,,startup,0,2026-04-01,69570 DARDILLY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/ldlc-vr-studio/
+5899,Le 19 novembre 2026,le-19-novembre-2026,Research Institute,research_institute,0,2026-07-05,,,DELETE_JUNK,page fragment from research_lab source,
+5652,Le 30 juin 2026,le-30-juin-2026,Research Institute,research_institute,0,2026-06-26,,,DELETE_JUNK,page fragment from research_lab source,
+6146,Le 9 et 10 septembre 2026,le-9-et-10-septembre-2026,Research Institute,research_institute,0,2026-07-16,,,DELETE_JUNK,page fragment from research_lab source,
+1474,Le Campus Numérique in the Alps,le-campus-numerique-in-the-alps,Software / Digital,startup,0,2026-04-01,38000 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Autre,https://www.minalogic.com/en/member-directory/le-campus-numerique-in-the-alps/
+1475,Le Club des Entreprises de l’Universite Savoie Mont Blanc,le-club-des-entreprises-de-luniversite-savoie-mont-blanc,Software / Digital,startup,0,2026-04-01,73370 LE BOURGET-DU-LAC,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency,https://www.minalogic.com/en/member-directory/le-club-des-entreprises-de-luniversite-savoie-mont-blanc/
+1476,Le French POC,le-french-poc,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/le-french-poc/
+1791,Le Premier souffle,le-premier-souffle,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+2640,Le projet ADELE,le-projet-adele,Research Institute,research_institute,0,2026-04-17,,,DELETE_JUNK,page fragment from research_lab source,
+1216,Left Angle,left-angle,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.left-angle.com/
+1477,Legal Insight,legal-insight,IoT / Connected,startup,0,2026-04-01,73000 CHAMBERY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/legal-insight/
+1478,Les Oies du Cyber,les-oies-du-cyber,Software / Digital,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/les-oies-du-cyber/
+7430,Les outils actuels,les-outils-actuels,Research Institute,research_institute,0,2026-09-09,,,DELETE_JUNK,page fragment from research_lab source,
+1479,LEVIATAN,leviatan,,startup,0,2026-04-01,73100 AIX-LES-BAINS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/leviatan/
+1480,Leyton,leyton,Semiconductor,startup,0,2026-04-01,69006 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1997,https://www.minalogic.com/en/member-directory/leyton/
+1206,Lichens,lichens,IoT / Connected,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; duplicate of: eLichens",https://www.en.lichens.io/
+1481,LIFE 01,life-01,,startup,0,2026-04-01,38600 FONTAINE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/life-01/
+3765,Linking simple physical rules,linking-simple-physical-rules,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+899,Linksium,linksium,Tech Transfer / Incubator,mature,7,2026-03-31,Grenoble,,KEEP,,
+1482,Linxens,linxens,IoT / Connected,startup,0,2026-04-01,63000 CLERMONT-FERRAND,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1988,https://www.minalogic.com/en/member-directory/linxens/
+1483,LIOTYS,liotys,IoT / Connected,startup,0,2026-04-01,69740 GENAS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/liotys/
+1776,Lors de la semaine du Cerveau 2026,lors-de-la-semaine-du-cerveau-2026,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1208,Losonnante,losonnante,,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; no sector",https://losonnante.fr/
+1484,LTC Services,ltc-services,Software / Digital,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/ltc-services/
+1247,LumenInside,lumeninside,Semiconductor,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://lumeninside.fr/
+1485,LUPISE,lupise,,startup,0,2026-04-01,59710 AVELIN,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/lupise/
+4,Lynred,lynred,Infrared Detectors,mature,18,2026-03-26,Grenoble,,KEEP,,
+5650,Lynred et le Carnot CEA LETI,lynred-et-le-carnot-cea-leti,Research Institute,research_institute,0,2026-06-26,,research_education,DELETE_JUNK,page fragment from research_lab source,
+1486,Lyon Place Financière,lyon-place-financiere,Software / Digital,startup,0,2026-04-01,69002 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Cluster,https://www.minalogic.com/en/member-directory/lyon-place-financiere/
+992,Mag4Health,mag4health,MedTech / Imaging,startup,0,2026-03-31,Grenoble,,KEEP,,
+1228,Magia Diagnostics,magia-diagnostics,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://magia-diagnostics.com/
+1186,Magnetfab,magnetfab,Semiconductor,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.magnetfab.com/
+1226,Magreesource,magreesource,Sensors / Photonics,startup,2,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.magreesource.org/
+1487,MAIA Medical Technologies,maia-medical-technologies,MedTech / Health,startup,0,2026-04-01,38400 SAINT-MARTIN-D'HÈRES,company,KEEP,,https://www.minalogic.com/en/member-directory/maia-medical-technologies/
+1488,Manpower France,manpower-france,Energy / CleanTech,startup,0,2026-04-01,69003 LYON,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/manpower-recrutement/
+1489,Manutech USD,manutech-usd,Semiconductor,startup,1,2026-04-01,42000 SAINT ETIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2012,https://www.minalogic.com/en/member-directory/manutech-usd/
+4873,marbulb,marbulb,,startup,0,2026-05-30,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/marbulb/
+1796,Marie-Charlotte Picard,marie-charlotte-picard,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1784,Marion Papin,marion-papin,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1944,Marius Bozga,marius-bozga,Research Institute,research_institute,0,2026-04-03,,,DELETE_JUNK,page fragment from research_lab source,
+5850,Martin Gandon,martin-gandon,Research Institute,research_institute,0,2026-07-03,,,DELETE_JUNK,page fragment from research_lab source,
+6617,Mathematics,mathematics,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1795,Mathis Brier,mathis-brier,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1490,MATVISIO,matvisio,Software / Digital,startup,0,2026-04-01,69001 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/matvisio-2/
+1491,Meanwhile,meanwhile,Semiconductor,startup,0,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/meanwhile/
+1492,MECA MAGNETIC,meca-magnetic,Materials & Chemistry,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1963,https://www.minalogic.com/en/member-directory/meca-magnetic/
+1493,Médiane Système,mediane-systeme,Semiconductor,startup,0,2026-04-01,38130 ECHIROLLES,company,KEEP,stage=startup but founded 1989,https://www.minalogic.com/en/member-directory/mediane-systeme/
+1494,MEERAI.IO,meerai-io,Software / Digital,startup,0,2026-04-01,63000 CLERMONT-FERRAND,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/meerai-io/
+1764,MEMS,mems,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1495,Menta,menta,Semiconductor,startup,1,2026-04-01,06560 VALBONNES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2007,https://www.minalogic.com/en/member-directory/menta/
+4874,Merck Electronics M&I,merck-electronics-m-i,Semiconductor,startup,0,2026-05-30,38330 SAINT-ISMIER,corporate,KEEP,stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/merck-2/
+7715,Mesurer la ville,mesurer-la-ville,Research Institute,research_institute,0,2026-09-16,,,DELETE_JUNK,page fragment from research_lab source,
+1496,Métropole de Lyon,metropole-de-lyon,,startup,7,2026-04-01,69003 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Local authority ; no sector,https://www.minalogic.com/en/member-directory/metropole-de-lyon/
+1497,MGA Technologies,mga-technologies,Semiconductor,startup,0,2026-04-01,69380,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1980,https://www.minalogic.com/en/member-directory/mga-technologies/
+1498,Micelia,micelia,Semiconductor,startup,0,2026-04-01,38100 GRENOBLE,company,KEEP,"sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/micelia/
+1793,Mickael Lesurtel,mickael-lesurtel,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1220,Microlight 3D,microlight-3d,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.microlight.fr/
+1499,MICROLIGHT3D,microlight3d,,startup,0,2026-04-01,38700 LA TRONCHE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/microlight3d/
+897,Microoled,microoled,Micro-displays / AR,scale-up,0,2026-03-31,Grenoble,,KEEP,,
+1500,MICROTEST,microtest,Semiconductor,startup,0,2026-04-01,84830 SÉRIGNAN DU COMTAT,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1994,https://www.minalogic.com/en/member-directory/microtest/
+1501,Microworld,microworld,Semiconductor,startup,0,2026-04-01,38120 FONTANIL-CORNILLON,company,KEEP,stage=startup but founded 1991,https://www.minalogic.com/en/member-directory/microworld/
+6612,Migrants,migrants,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1502,Mille47 Conseil & Coaching,mille47-conseil-coaching,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/mille47-conseil-coaching/
+1503,MIMO Detect,mimo-detect,Sensors / Photonics,startup,0,2026-04-01,69200 VÉNISSIEUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/mimo-detect-2/
+4875,Mimorian,mimorian,,startup,0,2026-05-30,69300 CALUIRE ET CUIRE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/mimorian/
+6,Minalogic,minalogic,Tech Cluster,mature,15,2026-03-26,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com
+1504,Minatec Entreprises,minatec-entreprises,Research & Ecosystem,startup,0,2026-04-01,38024 GRENOBLE,company,KEEP,stage=startup but founded 2003,https://www.minalogic.com/en/member-directory/minatec-entreprises/
+1781,MIPSE,mipse,Research Institute,research_institute,0,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+1254,mirSense,mirsense,Sensors / Photonics,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+1505,MiVi,mivi,Semiconductor,startup,0,2026-04-01,38320 BRIE-ET-ANGONNES,company,KEEP,"sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/mivi/
+1765,Modeling,modeling,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1227,Moiz,moiz,Semiconductor,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://moiz-eh.com/
+4876,Moncreno France,moncreno-france,,startup,0,2026-05-30,73300 FONTCOUVERTE-LA-TOUSSUIRE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/moncreno-france/
+1229,Morehisto,morehisto,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.morehisto.ai/
+1506,MountAIn,mountain,AI / Machine Learning,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,,https://www.minalogic.com/en/member-directory/mountain/
+1507,Multivalente,multivalente,Semiconductor,startup,0,2026-04-01,69370 SAINT DIDIER AU MONT D'OR,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2001 ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/multivalente/
+1508,MXDS,mxds,Semiconductor,startup,0,2026-04-01,74000 ANNECY,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/mxds/
+1509,My Digital Buildings,my-digital-buildings,Software / Digital,startup,2,2026-04-01,38410 VAULNAVEYS LE HAUT,company,KEEP,,https://www.minalogic.com/en/member-directory/my-digital-buildings/
+1510,Myakiatto,myakiatto,,startup,0,2026-04-01,63000 CLERMONT-FERRAND,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/myakiatto/
+1511,Mycronic Saint-Egrève,mycronic-saint-egreve,Semiconductor,startup,0,2026-04-01,38120 SAINT EGREVE,company,KEEP,stage=startup but founded 2004,https://www.minalogic.com/en/member-directory/mycronic/
+1210,Mysmartmove,mysmartmove,Software / Digital,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://mysmartmove.fr/
+1512,Nanoworks,nanoworks,Materials / Chemistry,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/nanoworks/
+1513,NAPLETSYS,napletsys,Semiconductor,startup,0,2026-04-01,74490 SAINT JEOIRE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/napletsys/
+1255,nawu diagnostics,nawu-diagnostics,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+1514,NCAB Group,ncab-group,Semiconductor,startup,0,2026-04-01,45700 VILLEMANDEUR,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/ncab-group/
+1515,Nellow,nellow,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/nellow/
+1516,Neovision,neovision,Sensors / Photonics,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/neovision/
+1517,Nestore Green Technologies,nestore-green-technologies,Energy / CleanTech,startup,0,2026-04-01,42300 ROANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/nestore-green-technologies/
+6085,Netman,netman,,startup,0,2026-07-11,76190 VALLIQUERVILLE,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation ; no sector,https://www.minalogic.com/en/member-directory/netman/
+4959,New Macroscopic Windows into Spin Ice,new-macroscopic-windows-into-spin-ice,Research Institute,research_institute,0,2026-06-03,,,DELETE_JUNK,page fragment from research_lab source,
+3767,Newsletter,newsletter,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1518,NICOMATIC,nicomatic,,startup,1,2026-04-01,74890 BONS-EN-CHABLAIS,corporate,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap, Mid-cap ; no sector",https://www.minalogic.com/en/member-directory/nicomatic/
+1519,Noctix,noctix,,startup,0,2026-04-01,73190 CHALLES-LES-EAUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/noctix/
+1520,noet-ia,noet-ia,Software / Digital,startup,0,2026-04-01,38140 APPRIEU,company,KEEP,,https://www.minalogic.com/en/member-directory/noet-ia/
+1820,Notre mission,notre-mission,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1794,Nour Chiboub,nour-chiboub,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+3744,Novilix,novilix,,startup,0,2026-04-29,38100 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/novilix/
+3745,NSOC,nsoc,,startup,0,2026-04-29,69480 ANSE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/nsoc/
+1521,NT2I,nt2i,,startup,0,2026-04-01,42000 SAINT-ÉTIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2007 ; no sector,https://www.minalogic.com/en/member-directory/nt2i/
+1522,Numerisat,numerisat,Semiconductor,startup,0,2026-04-01,73370 LE BOURGET-DU-LAC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: IoT,https://www.minalogic.com/en/member-directory/numerisat/
+1181,NVEIL,nveil,Software / Digital,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.nveil.com/
+1523,O-TECHNO,o-techno,Semiconductor,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,"sector Semiconductor unsupported by themes: AI, Photonics",https://www.minalogic.com/en/member-directory/o-techno/
+1524,OBERON SCIENCES,oberon-sciences,Semiconductor,startup,0,2026-04-01,38190 VILLARD-BONNOT,company,KEEP,,https://www.minalogic.com/en/member-directory/oberon-sciences/
+1525,Obo World,obo-world,,startup,0,2026-04-01,74000 ANNECY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/obo-world/
+1221,Odonatech,odonatech,AI / Machine Learning,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.odonatech.com/
+7550,Of bandits and Bohr magnetons,of-bandits-and-bohr-magnetons,Research Institute,research_institute,0,2026-09-11,,,DELETE_JUNK,page fragment from research_lab source,
+6115,Olivier Gaudoin,olivier-gaudoin,Research Institute,research_institute,0,2026-07-14,,,DELETE_JUNK,page fragment from research_lab source,
+1526,Omundu,omundu,Semiconductor,startup,1,2026-04-01,69003 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI,https://www.minalogic.com/en/member-directory/omundu/
+6622,On 10 July,on-10-july,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+2401,On Friday April 24th,on-friday-april-24th,Research Institute,research_institute,0,2026-04-14,,,DELETE_JUNK,page fragment from research_lab source,
+5777,On July 8th,on-july-8th,Research Institute,research_institute,0,2026-07-01,,,DELETE_JUNK,page fragment from research_lab source,
+1769,On March 11th,on-march-11th,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+3689,On May 13th,on-may-13th,Research Institute,research_institute,0,2026-04-28,,,DELETE_JUNK,page fragment from research_lab source,
+2400,On Thursday May 07th,on-thursday-may-07th,Research Institute,research_institute,0,2026-04-14,,,DELETE_JUNK,page fragment from research_lab source,
+1768,On Tuesday,on-tuesday,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1770,On Tuesday February 17th 2026,on-tuesday-february-17th-2026,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+2289,On Wednesday May 27th,on-wednesday-may-27th,Research Institute,research_institute,0,2026-04-11,,,DELETE_JUNK,page fragment from research_lab source,
+1527,One Ortho,one-ortho,MedTech / Health,startup,0,2026-04-01,69230 SAINT GENIS LAVAL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2013,https://www.minalogic.com/en/member-directory/one-ortho/
+1528,OneTreck,onetreck,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/onetreck/
+1529,ONLYLYON Invest,onlylyon-invest,,startup,0,2026-04-01,69002 LYON,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/invest-in-lyon-aderly/
+1530,OOrion,oorion,,startup,0,2026-04-01,69006 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/oorion/
+1531,OpenCaps,opencaps,Semiconductor,startup,0,2026-04-01,69003 LYON,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2002 ; sector Semiconductor unsupported by themes: AI, IoT, N/A, Software",https://www.minalogic.com/en/member-directory/opencaps/
+6345,Opening Postdoctoral Position,opening-postdoctoral-position,Research Institute,research_institute,0,2026-07-25,,,DELETE_JUNK,page fragment from research_lab source,
+1532,Optimistik,optimistik,Semiconductor,startup,0,2026-04-01,73000 CHAMBÉRY,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, AI, Software",https://www.minalogic.com/en/member-directory/optimistik/
+1533,Optimiz Network,optimiz-network,,startup,0,2026-04-01,42000 SAINT-ETIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/optimiz-network/
+1812,Optimization,optimization,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1534,Opto France,opto-france,,startup,0,2026-04-01,26740 MONTBOUCHER SUR JABRON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2008 ; no sector,https://www.minalogic.com/en/member-directory/opto-france/
+1535,OrdiEtik by Tech Care Informatique,ordietik-by-tech-care-informatique,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/ordietik-by-tech-care-informatique/
+1536,Oriel,oriel,Semiconductor,startup,1,2026-04-01,38240 MEYLAN,company,KEEP,"sector Semiconductor unsupported by themes: N/A, N/A",https://www.minalogic.com/en/member-directory/oriel/
+1194,Orioma,orioma,Semiconductor,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; duplicate of: ORIOMA SAS",https://www.orioma.com/
+1537,ORIOMA SAS,orioma-sas,,startup,0,2026-04-01,38430 MOIRANS,company,KEEP,no sector ; duplicate of: Orioma,https://www.minalogic.com/en/member-directory/orioma-sas/
+1538,Oslandia,oslandia,Software / Digital,startup,0,2026-04-01,69001 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/oslandia/
+1539,Osmoz-IT,osmoz-it,,startup,0,2026-04-01,74520 VALLEIRY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/osmoz-it/
+1945,Oussama Oulkaid,oussama-oulkaid,Research Institute,research_institute,0,2026-04-03,,,DELETE_JUNK,page fragment from research_lab source,
+6086,Ovioo,ovioo,Sensors / Photonics,startup,0,2026-07-11,38410 SAINT MARTIN D'URIAGE,company,KEEP,,https://www.minalogic.com/en/member-directory/ovioo/
+1540,Oxynode,oxynode,Semiconductor,startup,0,2026-04-01,90000 BELFORT,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: IoT,https://www.minalogic.com/en/member-directory/oxynode/
+1541,PAIRFS,pairfs,Semiconductor,startup,0,2026-04-01,38700 CORENC,company,KEEP,sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/pairfs/
+1542,Parcoor,parcoor,Semiconductor,startup,0,2026-04-01,69001 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/parcoor/
+6618,Particles Physics,particles-physics,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+6494,Partout en France,partout-en-france,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1543,Pays de Gex Agglo,pays-de-gex-agglo,,startup,0,2026-04-01,01170 GEX,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Local authority ; no sector,https://www.minalogic.com/en/member-directory/pays-de-gex-agglo/
+1544,PCB Piezotronics,pcb-piezotronics,Sensors / Photonics,startup,0,2026-04-01,91190 SAINT-AUBIN,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2000,https://www.minalogic.com/en/member-directory/pcb-piezotronics/
+1231,Peektoria,peektoria,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.peektoria.com/
+1196,Pelican Health,pelican-health,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.pelican-health.com/
+1545,Pépite.link,pepite-link,,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/pepite-link/
+1546,Perception4D,perception4d,Sensors / Photonics,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/perception4d/
+1830,Petites fibres,petites-fibres,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1547,Pfeiffer Vacuum SAS,pfeiffer-vacuum-sas,Semiconductor,startup,0,2026-04-01,74009 ANNECY,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/pfeiffer-vacuum/
+1548,Phi Design,phi-design,,startup,0,2026-04-01,38500 VOIRON,company,KEEP,stage=startup but founded 1989 ; no sector,https://www.minalogic.com/en/member-directory/phi-design/
+1188,Phonix Health,phonix-health,MedTech / Health,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.phonixhealth.com/
+1549,Photonis Infrared France,photonis-infrared-france,Sensors / Photonics,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2010,https://www.minalogic.com/en/member-directory/device-alab/
+6619,Physics,physics,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1550,Piirates,piirates,Semiconductor,startup,0,2026-04-01,07130 SAINT-PÉRAY,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: Cybersecurity,https://www.minalogic.com/en/member-directory/piirates/
+1551,PISEO,piseo,Semiconductor,startup,0,2026-04-01,69200 VENISSIEUX,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2011,https://www.minalogic.com/en/member-directory/piseo/
+1552,Piwio,piwio,Software / Digital,startup,0,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/piwio/
+1553,Pixfield,pixfield,Semiconductor,startup,0,2026-04-01,73190 CHALLES-LES-EAUX,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Photonics, Software",https://www.minalogic.com/en/member-directory/pixfield/
+1554,Pixminds,pixminds,Semiconductor,startup,0,2026-04-01,73000 BARBERAZ,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1999,https://www.minalogic.com/en/member-directory/pixminds/
+896,Pixyl,pixyl,MedTech / AI,startup,0,2026-03-31,Grenoble,,KEEP,,
+1555,Planifia,planifia,IoT / Connected,startup,0,2026-04-01,38100 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/planifia/
+1556,Plasma-Therm Europe,plasma-therm-europe,Semiconductor,startup,0,2026-04-01,38190 BERNIN,company,KEEP,stage=startup but founded 2004,https://www.minalogic.com/en/member-directory/corial/
+1557,Plast-3C,plast-3c,Materials / Chemistry,startup,0,2026-04-01,38590 SILLANS,company,KEEP,,https://www.minalogic.com/en/member-directory/plast-3c/
+1558,Pleiades Instruments,pleiades-instruments,Sensors / Photonics,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2009,https://www.minalogic.com/en/member-directory/pleiades-instruments/
+4519,Podcast Carnot Inside,podcast-carnot-inside,Research Institute,research_institute,0,2026-05-21,,,DELETE_JUNK,page fragment from research_lab source,
+6496,Podcast Musique et Sciences,podcast-musique-et-sciences,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1559,POLLEN Metrology,pollen-metrology,Semiconductor,startup,0,2026-04-01,38430 MOIRANS,company,KEEP,,https://www.minalogic.com/en/member-directory/pollen-metrology/
+1560,Polytec,polytec,,startup,0,2026-04-01,92320 CHATILLON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1983 ; no sector,https://www.minalogic.com/en/member-directory/polytec/
+1561,POMA,poma,Semiconductor,startup,2,2026-04-01,38340 VOREPPE,corporate,KEEP,stage=startup but Minalogic type=Mid-cap ; sector Semiconductor unsupported by themes: Software,https://www.minalogic.com/en/member-directory/poma/
+1562,PONANT Technologies,ponant-technologies,Semiconductor,startup,1,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/ponant-technologies/
+6346,Position,position,Research Institute,research_institute,0,2026-07-25,,,DELETE_JUNK,page fragment from research_lab source,
+1777,Poste MCF 61 en Automatique,poste-mcf-61-en-automatique,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+4232,Pour l'article ''GIFT,pour-l-article-gift,Research Institute,research_institute,0,2026-05-13,,,DELETE_JUNK,page fragment from research_lab source,
+1787,Powering world-class research with tools,powering-world-class-research-with-tools,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1563,Predictive Image,predictive-image,,startup,0,2026-04-01,38340 VOREPPE,company,KEEP,stage=startup but founded 2010 ; no sector,https://www.minalogic.com/en/member-directory/predictive-image/
+1564,Presto Engineering,presto-engineering,Semiconductor,startup,1,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2006,https://www.minalogic.com/en/member-directory/presto-engineering/
+981,Primo1D,primo1d,IoT / RFID,startup,0,2026-03-31,Grenoble,,KEEP,,
+6493,Prix,prix,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+1565,Probayes,probayes,AI / Machine Learning,startup,2,2026-04-01,38330 MONTBONNOT,company,KEEP,stage=startup but founded 2003,https://www.minalogic.com/en/member-directory/probayes/
+5235,Professor Lucas Goehring,professor-lucas-goehring,Research Institute,research_institute,0,2026-06-12,,,DELETE_JUNK,page fragment from research_lab source,
+1767,Projet ANR MolecUI2,projet-anr-molecui2,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+891,Prophesee,prophesee,Neuromorphic Vision,scale-up,6,2026-03-31,Paris / Grenoble,,KEEP,"HQ outside, local site (keep per decision 2)",
+3762,Proposals can be submitted all year,proposals-can-be-submitted-all-year,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+2117,Provisoire,provisoire,Research Institute,research_institute,0,2026-04-08,,,DELETE_JUNK,page fragment from research_lab source,
+1566,PROXIMUM SARL,proximum-sarl,Semiconductor,startup,0,2026-04-01,92150 SURESNES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1999,https://www.minalogic.com/en/member-directory/proximum/
+1567,PTS,pts,Semiconductor,startup,0,2026-04-01,38190 VILLARD BONNOT,company,KEEP,stage=startup but founded 1944,https://www.minalogic.com/en/member-directory/pts/
+1810,Publications du LJK,publications-du-ljk,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1568,PULSALYS,pulsalys,,startup,0,2026-04-01,69625 VILLEURBANNE,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Economic development agency ; no sector,https://www.minalogic.com/en/member-directory/pulsalys/
+1569,Pyxalis,pyxalis,Semiconductor,startup,1,2026-04-01,38430 MOIRANS,company,KEEP,stage=startup but founded 2010,https://www.minalogic.com/en/member-directory/pyxalis/
+1570,QIOVA,qiova,Semiconductor,startup,1,2026-04-01,,company,REVIEW,no address on Minalogic page ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/qiova/
+1571,Qleer.ai,qleer-ai,AI / Machine Learning,startup,0,2026-04-01,26300 ALIXAN,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/qleer-ai/
+977,Quobly,quobly,Quantum Computing,startup,18,2026-03-31,Grenoble,,KEEP,,
+1572,Radiall,radiall,,startup,1,2026-04-01,69002 VOREPPE,corporate,REVIEW,postcode/city mismatch ; stage=startup but Minalogic type=Mid-cap ; no sector,https://www.minalogic.com/en/member-directory/radiall/
+1573,RAINMAKERS & Partners,rainmakers-partners,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/rainmakers-partners/
+1207,React Therapeutics,react-therapeutics,MedTech / Health,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://react-therapeutics.com/
+1574,Reactiv’IP,reactivip,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2013 ; no sector,https://www.minalogic.com/en/member-directory/reactivip/
+1198,Reckonect,reckonect,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://reckonect.com/mechanisms-of-action
+3746,Reconcept,reconcept,Semiconductor,startup,0,2026-04-29,38520 LE BOURG D'OISANS,company,KEEP,"sector Semiconductor unsupported by themes: AI, Cybersecurity, IoT, Photonics, Robotics, Softw",https://www.minalogic.com/en/member-directory/reconcept/
+1829,Refroidir sans gaz,refroidir-sans-gaz,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+987,Remedee Labs,remedee-labs,MedTech / Wearables,startup,0,2026-03-31,Grenoble,,KEEP,,
+4115,Research,research,Research Institute,research_institute,0,2026-05-10,,,DELETE_JUNK,page fragment from research_lab source,
+3783,research federation,research-federation,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1831,Respirer ensemble,respirer-ensemble,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1575,Reverto,reverto,,startup,0,2026-04-01,69002 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/reverto/
+1576,RFiD Discovery,rfid-discovery,IoT / Connected,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,,https://www.minalogic.com/en/member-directory/apitrak/
+1225,Rhizomex,rhizomex,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.rhizomex.com/
+1577,Riber,riber,Semiconductor,startup,0,2026-04-01,95870 BEZONS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1964,https://www.minalogic.com/en/member-directory/riber/
+6491,Robot de type iCub,robot-de-type-icub,Research Institute,research_institute,0,2026-08-04,,,DELETE_JUNK,page fragment from research_lab source,
+5255,Robust Deep Learning for EEG Decoding,robust-deep-learning-for-eeg-decoding,Research Institute,research_institute,0,2026-06-13,,,DELETE_JUNK,page fragment from research_lab source,
+1763,Robustness,robustness,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+3763,Room to move,room-to-move,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1241,Rosi,rosi,,startup,2,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified ; no sector",https://www.rosi-solar.com/
+4111,Round Table,round-table,Research Institute,research_institute,0,2026-05-10,,,DELETE_JUNK,page fragment from research_lab source,
+1578,S2P – Smart Plastic Products,s2p-smart-plastic-products,IoT / Connected,startup,0,2026-04-01,01100 BELLIGNAT,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/s2p-smart-plastic-products/
+1843,Sadly,sadly,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+3747,Safenai,safenai,,startup,0,2026-04-29,75018 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/safenai/
+1579,Saint-Etienne Métropole,saint-etienne-metropole,,startup,0,2026-04-01,42000 SAINT-ETIENNE,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Local authority ; no sector,https://www.minalogic.com/en/member-directory/saint-etienne-metropole/
+4235,Salle D420,salle-d420,Research Institute,research_institute,0,2026-05-13,,,DELETE_JUNK,page fragment from research_lab source,
+1809,Salle de l'Oriel,salle-de-l-oriel,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+2402,Salle E424,salle-e424,Research Institute,research_institute,0,2026-04-14,,,DELETE_JUNK,page fragment from research_lab source,
+5649,Salle F418,salle-f418,Research Institute,research_institute,0,2026-06-26,,,DELETE_JUNK,page fragment from research_lab source,
+7239,Salle Jean-Marc Chassery,salle-jean-marc-chassery,Research Institute,research_institute,0,2026-09-04,,,DELETE_JUNK,page fragment from research_lab source,
+1838,Salle K223,salle-k223,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1182,Saxol,saxol,MedTech / Health,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://saxol.eu/
+1580,ScalAgent D.T.,scalagent-d-t,Software / Digital,startup,0,2026-04-01,38580 ALLEVARD,company,KEEP,stage=startup but founded 2001,https://www.minalogic.com/en/member-directory/scalagent-distributed-technologies/
+1581,SCALINX,scalinx,Software / Digital,startup,1,2026-04-01,75013 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/scalinx/
+2,Schneider Electric,schneider-electric,Energy Management / IoT,mature,10,2026-03-26,Rueil-Malmaison / Grenoble,,KEEP,"HQ outside, local site (keep per decision 2) ; duplicate of: Schneider Electric Industries",
+1582,Schneider Electric Industries,schneider-electric-industries,IoT / Connected,startup,0,2026-04-01,38000 GRENOBLE,corporate,KEEP,stage=startup but Minalogic type=Large corporation ; duplicate of: Schneider Electric,https://www.minalogic.com/en/member-directory/schneider-electric-industries/
+1814,Science,science,Research Institute,research_institute,1,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1786,Scientific courses,scientific-courses,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1780,Scientifiques,scientifiques,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+980,Scintil Photonics,scintil-photonics,Photonics / Semiconductor,startup,0,2026-03-31,Grenoble,,KEEP,,
+1583,SEALSQ,sealsq,Semiconductor,startup,3,2026-04-01,13590 MEYREUIL,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/sealsq/
+1584,Seccom,seccom,Semiconductor,startup,0,2026-04-01,69530 BRIGNAIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1989,https://www.minalogic.com/en/member-directory/seccom/
+1222,Seever,seever,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://gramtech.fr/
+1585,Selha Group,selha-group,Semiconductor,startup,0,2026-04-01,26000 VALENCE,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/selha-group/
+5849,Sensors,sensors,Research Institute,research_institute,0,2026-07-03,,,DELETE_JUNK,page fragment from research_lab source,
+1586,SENSSIGHT,senssight,Sensors / Photonics,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page,https://www.minalogic.com/en/member-directory/senssight/
+1587,Serenicity,serenicity,,startup,0,2026-04-01,42000 SAINT-ÉTIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/serenicity/
+7785,Serpentinization in Jezero crater,serpentinization-in-jezero-crater,Research Institute,research_institute,0,2026-09-18,,,DELETE_JUNK,page fragment from research_lab source,
+1588,SET Corporation,set-corporation,Semiconductor,startup,1,2026-04-01,74490 SAINT-JEOIRE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1975,https://www.minalogic.com/en/member-directory/set-corporation/
+1589,Silent Waves,silent-waves,Semiconductor,startup,0,2026-04-01,38100 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/silent-waves/
+6604,Since its launch,since-its-launch,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1590,SiPearl,sipearl,Semiconductor,startup,5,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/sipearl/
+1591,SKALES,skales,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/skales/
+1592,Sma-RTy,sma-rty,,startup,0,2026-04-01,63178 AUBIERE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/sma-rty/
+1593,Smart Brain,smart-brain,,startup,0,2026-04-01,63000 CLERMONT-FERRAND,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/smart-brain/
+1224,Smarter Data Labs,smarter-data-labs,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.smarterplan.io/
+1789,SmartPatch,smartpatch,Research Institute,research_institute,0,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+1594,SMILE R&D,smile-r-d,Uncategorized,startup,0,2026-04-01,92600 ASNIÈRES-SUR-SEINE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/smile-rd/
+1806,SMPGD 2026,smpgd-2026,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1595,SocialDream,socialdream,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/social-dream/
+3,Soitec,soitec,Semiconductor Materials,mature,34,2026-03-26,Bernin (Grenoble),,KEEP,,
+1799,Sophie Gnanguy,sophie-gnanguy,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1645,Specialized in industrial maintenance,specialized-in-industrial-maintenance,,startup,0,2026-04-01,,,DELETE_JUNK,scraping junk ; no sector,
+1596,Speedernet,speedernet,Semiconductor,startup,0,2026-04-01,69009 LYON,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1999 ; sector Semiconductor unsupported by themes: AI, AI, Software",https://www.minalogic.com/en/member-directory/speedernet/
+1771,SPINTEC is jointly operated by CEA,spintec-is-jointly-operated-by-cea,Research Institute,research_institute,0,2026-04-02,,research_education,DELETE_JUNK,page fragment from research_lab source,
+1203,Spooqs,spooqs,AI / Machine Learning,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://spooqs.com/
+1835,Stages IUT,stages-iut,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+3784,Start in France 2025,start-in-france-2025,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1597,Steepulse,steepulse,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,"sector Semiconductor unsupported by themes: AI, IoT, Software",https://www.minalogic.com/en/member-directory/steepulse/
+984,SteerLight,steerlight,LiDAR / Automotive,startup,0,2026-03-31,Grenoble,,KEEP,,
+1598,STEMMER IMAGING,stemmer-imaging,Software / Digital,startup,0,2026-04-01,84120 PERTUIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2002,https://www.minalogic.com/en/member-directory/stemmer-imaging/
+1,STMicroelectronics,stmicroelectronics,Semiconductor,mature,98,2026-03-26,Geneva / Crolles,,KEEP,"HQ outside, local site (keep per decision 2)",
+1599,Studios Bouquet,studios-bouquet,,startup,0,2026-04-01,,company,REVIEW,no address on Minalogic page ; no sector,https://www.minalogic.com/en/member-directory/studios-bouquet/
+1600,Superwyze,superwyze,Semiconductor,startup,0,2026-04-01,69004 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/superwyze/
+1833,Surfaces,surfaces,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source ; duplicate of: Surfaces Technologies,
+1601,Surfaces Technologies,surfaces-technologies,,startup,0,2026-04-01,73800 SAINT-HELENE DU LAC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 1998 ; no sector ; duplicate of: Surfaces,https://www.minalogic.com/en/member-directory/surfaces-technologies/
+1602,Swiift Imaging,swiift-imaging,,startup,0,2026-04-01,69100 VILLEURBANNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/swiift-imaging/
+3748,Synabricks,synabricks,,startup,0,2026-04-29,63530 VOLVIC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/synabricks/
+1603,Synegram,synegram,Semiconductor,startup,0,2026-04-01,63100 CLERMONT-FERRAND,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/synegram/
+4233,Table ronde,table-ronde,Research Institute,research_institute,0,2026-05-13,,,DELETE_JUNK,page fragment from research_lab source,
+1604,Taipro Engineering,taipro-engineering,,startup,0,2026-04-01,74440 TANINGES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2009 ; no sector,https://www.minalogic.com/en/member-directory/taipro-engineering/
+1605,TASDA,tasda,Semiconductor,startup,0,2026-04-01,38028 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Cluster ; sector Semiconductor unsupported by themes: Software,https://www.minalogic.com/en/member-directory/tasda/
+3749,TeamTO Technology,teamto-technology,,startup,0,2026-04-29,75011 PARIS,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/teamto-technology/
+1773,Tech&Fest,tech-fest,Research Institute,research_institute,0,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+3758,TECHTERA,techtera,Research Institute,research_institute,0,2026-04-29,,,REVIEW,"real name, wrong type; recheck",
+1606,Teem Photonics,teem-photonics,Sensors / Photonics,startup,1,2026-04-01,38240 MEYLAN,company,KEEP,stage=startup but founded 1994,https://www.minalogic.com/en/member-directory/teem-photonics/
+1607,Teledyne e2v,teledyne-e2v,Sensors / Photonics,startup,0,2026-04-01,38120 SAINT EGREVE,corporate,KEEP,stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/teledyne-e2v/
+1608,Textil’IA,textilia,AI / Machine Learning,startup,0,2026-04-01,69009 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/textilia/
+1609,Thales Group,thales-group,AI / Machine Learning,startup,0,2026-04-01,92098 PARIS LA DEFENSE,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/thales-group/
+6624,The Conversation,the-conversation,Research Institute,research_institute,0,2026-08-15,,,REVIEW,"real name, wrong type; recheck",
+1217,The Element,the-element,MedTech / Health,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",
+4113,The first Mag2Pol MasterClass,the-first-mag2pol-masterclass,Research Institute,research_institute,0,2026-05-10,,,DELETE_JUNK,page fragment from research_lab source,
+3764,The ILL Science Strategy,the-ill-science-strategy,Research Institute,research_institute,0,2026-04-29,,research_education,DELETE_JUNK,page fragment from research_lab source,
+1610,The QA Company,the-qa-company,,startup,0,2026-04-01,42000 SAINT ETIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/the-qa-company/
+1611,Thélyos,thelyos,,startup,1,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/thelyos/
+1189,THEYEQ,theyeq,AI / Machine Learning,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.theyeq.com/
+4518,This school will focus on control,this-school-will-focus-on-control,Research Institute,research_institute,0,2026-05-21,,,DELETE_JUNK,page fragment from research_lab source,
+1612,TIAMA,tiama,Semiconductor,startup,0,2026-04-01,69230 SAINT GENIS LAVAL,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/tiama/
+1613,Tiempo Secure,tiempo-secure,Semiconductor,startup,0,2026-04-01,38330 MONTBONNOT-SAINT-MARTIN,company,KEEP,stage=startup but founded 2007,https://www.minalogic.com/en/member-directory/tiempo/
+1614,TiHive,tihive,Materials / Chemistry,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/tihive/
+1790,TIMC,timc,Research Institute,research_institute,1,2026-04-02,,,REVIEW,"real name, wrong type; recheck",
+6621,To hire a collaborator,to-hire-a-collaborator,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+7427,Topology in the many-body spectrum,topology-in-the-many-body-spectrum,Research Institute,research_institute,0,2026-09-09,,,DELETE_JUNK,page fragment from research_lab source,
+1215,Topplan,topplan,Software / Digital,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.topplan.fr/
+6601,Torso da Livorno,torso-da-livorno,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source ; duplicate of: Torso da Livourno,
+7240,Torso da Livourno,torso-da-livourno,Research Institute,research_institute,0,2026-09-04,,,DELETE_JUNK,page fragment from research_lab source ; duplicate of: Torso da Livorno,
+1778,Travailler au GIPSA-Lab,travailler-au-gipsa-lab,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1817,Travaux post-Fukushima,travaux-post-fukushima,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1615,Travel Assist,travel-assist,,startup,0,2026-04-01,42000 SAINT-ÉTIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/travel-assist/
+1816,TSN,tsn,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1616,UBIK,ubik,,startup,0,2026-04-01,38320 EYBENS,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/ubik/
+1617,UBiqube,ubiqube,Software / Digital,startup,0,2026-04-01,38130 ECHIROLLES,company,KEEP,,https://www.minalogic.com/en/member-directory/ubiqube/
+1618,UCA – Université Clermont Auvergne,uca-universite-clermont-auvergne,,startup,0,2026-04-01,63001 CLERMONT FERRAND,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment ; no sector,https://www.minalogic.com/en/member-directory/universite-clermont-auvergne/
+1619,UDIMEC,udimec,Semiconductor,startup,0,2026-04-01,38024 GRENOBLE,ecosystem_support,KEEP,stage=startup but Minalogic type=Economic development agency ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/udimec/
+1620,UI Investissement,ui-investissement,,startup,0,2026-04-01,69760 LIMONEST,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Bank & Investor ; no sector,https://www.minalogic.com/en/member-directory/kreaxi/
+1842,Ultimately,ultimately,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+6615,Understanding and fostering innovation,understanding-and-fostering-innovation,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1621,UnitySC,unitysc,Semiconductor,startup,0,2026-04-01,38330 MONTBONNOT-SAINT-MARTIN,company,KEEP,stage=startup but founded 2004,https://www.minalogic.com/en/member-directory/unitysc/
+1622,Université Jean Monnet Saint-Etienne,universite-jean-monnet-saint-etienne,,startup,0,2026-04-01,42100 SAINT ETIENNE,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment ; no sector,https://www.minalogic.com/en/member-directory/universite-jean-monnet-saint-etienne/
+1623,Université Savoie Mont Blanc (USMB),universite-savoie-mont-blanc-usmb,,startup,0,2026-04-01,73000 CHAMBÉRY,research_education,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Higher education & Research establishment ; no sector,https://www.minalogic.com/en/member-directory/universite-savoie-mont-blanc/
+1624,UPANDGO,upandgo,,startup,0,2026-04-01,69007 LYON,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but founded 2005 ; no sector,https://www.minalogic.com/en/member-directory/upandgo/
+3761,User manual,user-manual,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1625,UXP Corp,uxp-corp,,startup,0,2026-04-01,42100 SAINT ETIENNE,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/courbon-software/
+7429,VADEMECOM,vademecom,Research Institute,research_institute,0,2026-09-09,,,DELETE_JUNK,page fragment from research_lab source,
+1626,Valence Romans Agglo,valence-romans-agglo,,startup,0,2026-04-01,26905 VALENCE,ecosystem_support,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Local authority ; no sector,https://www.minalogic.com/en/member-directory/valence-romans-agglo/
+1627,Var Group,var-group,Semiconductor,startup,0,2026-04-01,13090 AIX-EN-PROVENCE,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/var-group/
+1628,Var Industries S.A.S,var-industries-s-a-s,Semiconductor,startup,0,2026-04-01,13090 AIX-EN-PROVENCE,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Cybersecurity, IoT",https://www.minalogic.com/en/member-directory/cadlog/
+1629,VATES,vates,Semiconductor,startup,1,2026-04-01,38000 GRENOBLE,company,KEEP,"stage=startup but founded 2012 ; sector Semiconductor unsupported by themes: IoT, Software",https://www.minalogic.com/en/member-directory/vates/
+1630,Veintree,veintree,,startup,0,2026-04-01,74250 FILLINGES,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; no sector,https://www.minalogic.com/en/member-directory/veintree/
+6087,Verbatim AI,verbatim-ai,AI / Machine Learning,startup,0,2026-07-11,38850 CHARAVINES,company,KEEP,,https://www.minalogic.com/en/member-directory/verbatim-ai/
+1631,Viapix Systems,viapix-systems,Semiconductor,startup,0,2026-04-01,78280 GUYANCOURT,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/viapix-systems/
+1632,Vichar – DTA,vichar-dta,Semiconductor,startup,0,2026-04-01,26200 MONTÉLIMAR,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: N/A,https://www.minalogic.com/en/member-directory/vichar-dta/
+7425,Vir,vir,Research Institute,research_institute,0,2026-09-09,,,DELETE_JUNK,page fragment from research_lab source,
+1633,Visiativ Software,visiativ-software,Software / Digital,startup,0,2026-04-01,69260 CHARBONNIÈRES-LES-BAINS,corporate,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging) ; stage=startup but Minalogic type=Mid-cap,https://www.minalogic.com/en/member-directory/visiativ/
+1634,VOGO,vogo,Semiconductor,startup,0,2026-04-01,38190 BERNIN,company,KEEP,stage=startup but founded 2013,https://www.minalogic.com/en/member-directory/vogo/
+1805,Vous organisez une manifestation,vous-organisez-une-manifestation,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+1635,vrtice,vrtice,Semiconductor,startup,0,2026-04-01,38330 MONTBONNOT-SAINT-MARTIN,company,KEEP,"sector Semiconductor unsupported by themes: Photonics, Photonics, Software",https://www.minalogic.com/en/member-directory/vrtice/
+1636,VS Technology,vs-technology,,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/vs-technology/
+1246,Vulkam,vulkam,Materials & Chemistry,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.vulkam.com/
+1185,WattPill,wattpill,Sensors / Photonics,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.wattpill.com/
+5851,Webinar RedTalks,webinar-redtalks,Research Institute,research_institute,0,2026-07-03,,,DELETE_JUNK,page fragment from research_lab source,
+1766,Website accessibility,website-accessibility,Research Institute,research_institute,0,2026-04-02,,,DELETE_JUNK,page fragment from research_lab source,
+6620,Welcoming researchers,welcoming-researchers,Research Institute,research_institute,0,2026-08-15,,,DELETE_JUNK,page fragment from research_lab source,
+1637,Wikit,wikit,Semiconductor,startup,1,2026-04-01,69005 LYON,company,UNFLAG_ISERE,"registered address outside Isère (check for local site before unflagging) ; sector Semiconductor unsupported by themes: AI, Software",https://www.minalogic.com/en/member-directory/wikit/
+983,Wise Integration,wise-integration,Power Electronics,startup,0,2026-03-31,Grenoble,,KEEP,,
+1646,With mailing tool,with-mailing-tool,Software / Digital,startup,0,2026-04-01,,,DELETE_JUNK,scraping junk,
+3766,With the help of recently published work,with-the-help-of-recently-published-work,Research Institute,research_institute,0,2026-04-29,,,DELETE_JUNK,page fragment from research_lab source,
+1638,Worldgrid FRANCE,worldgrid-france,Semiconductor,startup,0,2026-04-01,38027 GRENOBLE,corporate,KEEP,stage=startup but Minalogic type=Large corporation,https://www.minalogic.com/en/member-directory/atos-worldgrid/
+991,Wormsensing,wormsensing,Sensors / Vibration,startup,0,2026-03-31,Grenoble,,KEEP,,
+1219,Xdigit,xdigit,Energy / CleanTech,startup,0,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://www.xdigit.fr/fr/homefr
+1639,Xenocs,xenocs,MedTech / Health,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 2000,https://www.minalogic.com/en/member-directory/xenocs/
+1190,Xpdeep,xpdeep,AI / Machine Learning,startup,1,2026-04-01,,,KEEP_UNVERIFIED,"Linksium/CEA origin, location not externally verified",https://xpdeep.com/en/
+1640,XYALIS,xyalis,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,stage=startup but founded 1998,https://www.minalogic.com/en/member-directory/xyalis/
+1641,Yona Robotics,yona-robotics,Embodied AI & Roboticsgrid,startup,1,2026-04-01,38330 MONTBONNOT SAINT MARTIN,company,KEEP,,https://www.minalogic.com/en/member-directory/yona-robotics/
+1642,Zadient Technologies SAS,zadient-technologies-sas,Semiconductor,startup,0,2026-04-01,73800 SAINTE-HÉLÈNE-DU-LAC,company,UNFLAG_ISERE,registered address outside Isère (check for local site before unflagging),https://www.minalogic.com/en/member-directory/zadient-technologies-sas/
+1643,ZCE,zce,Semiconductor,startup,0,2026-04-01,38000 GRENOBLE,company,KEEP,,https://www.minalogic.com/en/member-directory/zce/
+1644,Zzzapp,zzzapp,,startup,0,2026-04-01,38240 MEYLAN,company,KEEP,no sector,https://www.minalogic.com/en/member-directory/zzzapp/

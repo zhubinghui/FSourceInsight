@@ -1,10 +1,11 @@
 # 企业发现初始分析：持久LLM队列
 
-状态：**M3.4b仅本地实现，未提交/部署，不是实际服务或完整M3验收。**
+状态：**M3已提交发布分支，正在整合/验收，尚未部署，不是实际服务或完整M3验收。** 当前发布计划见[提交与发布门禁](../superpowers/specs/2026-09-19-m3-current-release.md)。
 
 ## 业务边界
 
 - `StartupSource` 是企业目录配置，不是 `NewsSource` 或M2持久采集策略。仍沿用Admin配置的启用目录；`CRAWL_LEARNING_ENABLED`只控制学习、不关闭此普通企业工作流。没有新建recipe审批、新闻发布或浏览器路径。
+- 只扫描启用的`startup`目录，不扫描`research_lab`；结构化目录优先，纯文本仅作fallback。新公司为`pending`，需要Admin审核才进入地图；rejected墓碑阻止同slug再建。
 - 扫描只创建本次真正新增的Company，并在**同一独立事务**创建一个 `StartupAnalysisJob`。已有slug/别名匹配不补造来源关联，也不重置失败次数；某来源写失败不能把它的半成品和下一个来源一起提交。
 - 保留原企业地图业务；公司AI分析变为异步初始分析。不存在新的Article写入、文章LLM派发或规则激活。总部缺失仍作为N/A发给模型，不再凭目录归属填“Grenoble”。目录提取/模型输出不证明实体或新闻事实为真。
 - 初始分析只使用冻结的名称、行业、总部、短描述、spin-off、阶段。**不抓公司主页，不发送目录原始HTML，不访问学习私有证据卷**。
@@ -23,6 +24,7 @@ Admin Scan All Now / daily startup-discovery
 ```
 
 - 目录读取共用每来源 `SafeFetcher`：仅配置URL的host，30秒/6请求，单响应/传输512KiB、总响应/传输2MiB；遵守现有IP、TLS、robots、重定向门禁，拒绝后无直连fallback。
+- 目录详情事实在业务写事务外准备：只对本次最多20个新slug/alias候选、同配置host的member-directory链接取postcode/city/entity type；每详情有独立15秒SafeFetcher边界，不属于列表30秒共享预算，不证明整个扫描的总时限。写事务重查来源代次和去重；非Isère邮编不自动标为Grenoble。结果仍pending，不构成真实性/发布批准。
 - SharePoint只处理一个排序后分页参数及最多4个附加页；目录最多4个附加页，两种路径共享取数预算。分页停止/失败可能只保留之前已取得的页面，**不是完整目录覆盖证明**。
 - 每轮最多50来源，按旧扫描时间/ID排序；每源提取结果最多1000项、创建最多20家公司。完整别名扫描最多4096个SQL非NULL行（JSON null兼容为空；也计入扫描上限），超限不采样式认证去重。大量永久失败来源仍可能影响后续来源调度；没有统一due调度或每源任务fan-out。
 - 仍使用旧BeautifulSoup目录启发式，不是M1质量门禁或受监督解析/OS沙箱。取数上限不覆盖DB、解析和整轮全部来源的总耗时。
@@ -35,7 +37,7 @@ Admin Scan All Now / daily startup-discovery
 
 状态为 `queued / running / succeeded / blocked / stale`。
 
-- source URL/type/启用状态的ORM改变原子递增来源代次；公司模型输入/人工分析等ORM改变递增公司代次。连改回原值的ABA也不复用旧输入。
+- `startup-analysis.v2`同时绑定审核状态、entity type、postcode/city/local site；旧v1任务不自动重签。source URL/type/启用状态的ORM改变原子递增来源代次；公司模型输入/人工分析及上述审核字段的ORM改变递增公司代次。连改回原值的ABA也不复用旧输入。
 - job冻结来源/公司ID、输入、代次、协议/提示/契约版本、创建/到期时间及hash。正常统计更新不撤权；禁用/删除来源、公司变更或已有人写入分析，使当前执行不能继续付费/覆盖。
 - 认领身份在COMMIT前生成；异常关闭也核对身份，不因重复消息或丢失ACK中止另一执行者。已认领/终态不因新扫描或消息重投重新付款。
 - 准入及最终应用在锁定读取后再次检查期限；随后SQL写入/COMMIT及SDK仍可能阻塞。这些是**检查点，不是HTTP/DB硬deadline、完整lease或远端取消机制**。
@@ -54,12 +56,12 @@ Admin Scan All Now / daily startup-discovery
 
 ## 数据、兼容与未完成验收
 
-Migration `a2f6d9b3107c`，父 `f8b64d2c901e`：一张job表、Company/StartupSource两个默认0代次、reservation可空关联和索引。旧公司、失败计数、目录启用状态、未知费用原样保留，不生成旧job、不授权付费。业务行删除使FK置NULL，job原始输入与费用保留；job本身无删除API。降级拒绝删除记录。
+当前唯一head为`c7f21a9d680e`（合并生态b3与M3 b5，merge本身不改数据）。以下是job表原始Migration `a2f6d9b3107c`，父 `f8b64d2c901e`：一张job表、Company/StartupSource两个默认0代次、reservation可空关联和索引。旧公司、失败计数、目录启用状态、未知费用原样保留，不生成旧job、不授权付费。业务行删除使FK置NULL，job原始输入与费用保留；job本身无删除API。降级拒绝删除记录。
 
 Job保留有界输入元数据和hash，而不是原始目录快照。**24小时是排队有效期，不是物理删除期限。** 不自动清理这些审计；名称/描述/公司网站等仍可能敏感，不公开存储副本或日志。hash不是签名，无法证明模型真正接收/未留存，也不抵御一致篡改/整库回滚。该流程未补齐所有模型暴露历史，不能扩大已有学习holdout的独立性声明。
 
 现有LLM worker消费新增任务；没有增加这个队列的CPU/RAM容量或新的task级软硬限制。它不使用专用learning worker。仍需实际MySQL迁移/行锁/精度/FK、Redis/broker/ACK、prefork软硬杀/重启、积压与全局预算竞争/容量门禁；SQLite/时间和COMMIT故障模拟不能代替。
 
-部署未授权。未来先审核计费上界、备份、验证实际候选，并协调停下全部旧付费调用方/旧扫描器再迁移和切换。旧程序及bulk SQL不递增这里的ORM代次，也可能再次同步扫描全表/重置失败；保留新表并不使旧代码回滚安全。原Admin扫描消息本身不是durable outbox，只有新公司/job提交后才具有这里的持久意图。
+用户已授权提交部署，但门禁未满足，生产保持原版。上线先审核计费上界、备份、验证实际候选，并协调停下全部旧付费调用方/旧扫描器再迁移和切换。旧程序及bulk SQL不递增这里的ORM代次，也可能再次同步扫描全表/重置失败；保留新表并不使旧代码回滚安全。原Admin扫描消息本身不是durable outbox，只有新公司/job提交后才具有这里的持久意图。
 
 相关：[M3计划](../superpowers/plans/2026-09-18-m3-bounded-learning.md)、[本轮审计](../audits/2026-09-19-m34b-startup-analysis.md)、[学习worker](learning-worker.md)、[worker容量](worker-capacity.md)。

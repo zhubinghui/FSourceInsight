@@ -67,6 +67,27 @@
                             {% endfor %}
                         </select>
                     </div>
+                    {% if company %}
+                    <div class="mb-3">
+                        <label class="form-label">Entity Type</label>
+                        <select name="entity_type" class="form-select">
+                            <option value="">—</option>
+                            {% for type in entity_types %}
+                            <option value="{{ type }}" {{ 'selected' if company.entity_type == type }}>{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Schools, labs and support organisations get their own map groups.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Review Status</label>
+                        <select name="review_status" class="form-select">
+                            {% for status in review_statuses %}
+                            <option value="{{ status }}" {{ 'selected' if company.review_status == status }}>{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Only approved entries appear on the map. Rejected entries stay hidden and are not rediscovered.</div>
+                    </div>
+                    {% endif %}
                     <div class="mb-3">
                         <label class="form-label">Spin-off Origin</label>
                         <input type="text" class="form-control" name="spinoff_origin"

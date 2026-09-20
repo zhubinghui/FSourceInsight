@@ -20,11 +20,12 @@ from app.llm import budget, prompts
 from app.llm.contracts import CONTRACT_VERSION
 from app.crawlers._fetch_policy import hostname, Rejected
 
-PROTOCOL = 'startup-analysis.v1'
+PROTOCOL = 'startup-analysis.v2'
 logger = logging.getLogger(__name__)
 FIELDS = ('name', 'sector', 'headquarters', 'description', 'spinoff_origin', 'company_stage')
 COMPANY_FIELDS = FIELDS + ('slug', 'aliases', 'website', 'is_grenoble', 'is_auto_created',
-                           'ai_analysis', 'ai_analysis_at', 'ai_revision_history')
+                           'ai_analysis', 'ai_analysis_at', 'ai_revision_history',
+                           'review_status', 'entity_type', 'postcode', 'city', 'local_site')
 
 
 def digest(data):

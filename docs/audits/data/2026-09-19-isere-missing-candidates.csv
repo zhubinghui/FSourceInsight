@@ -1,0 +1,32 @@
+id,name,articles,entity_type_proposed,note,confidence
+942,Inovallée,58,ecosystem_support,Meylan technopole,high
+1665,SPINTEC,29,research_education,"CEA/CNRS/UGA lab, Grenoble",high
+484,Université Grenoble Alpes,25,research_education,dup: University of Grenoble Alpes; alias UGA currently on Grenoble INP,high
+1726,Institut Néel,18,research_education,CNRS Grenoble,high
+1668,IRIG,11,research_education,CEA Grenoble; dup: CEA-Irig,high
+878,Clinatec,7,research_education,CEA Grenoble; related: Fonds Clinatec,high
+1727,Fonds Clinatec,12,ecosystem_support,Grenoble,high
+2461,TIMA,4,research_education,Grenoble lab,high
+4674,MIAI,2,research_education,Grenoble AI institute,high
+1747,CHU de Grenoble,3,research_education,dup of CHU Grenoble Alpes / Grenoble University Hospital,high
+4512,Minatec,3,ecosystem_support,Grenoble campus; dup: Maison Minatec,high
+1911,FAMES,7,research_education,CEA-Leti pilot line; dup: FAMES Pilot Line,high
+485,Verkor,9,company,"Grenoble HQ, battery",high
+3825,HRS,9,company,"Champagnier / Champ-sur-Drac, hydrogen stations",high
+471,Vencorex,10,corporate,Le Pont-de-Claix chemical platform,high
+869,Renaissance Fusion,2,company,Fontaine,high
+885,Waga Energy,2,company,Eybens,high
+4248,Mantle8,5,company,"Grenoble, natural hydrogen",medium
+1052,Stellaria,5,company,"CEA/Schneider spin-off, Grenoble",medium
+971,Tarmac,10,ecosystem_support,"Inovallée incubator, Meylan",medium
+4268,Y-Spot Partners,6,ecosystem_support,"CEA open-innovation, Grenoble",medium
+3661,Symbio,2,corporate,Isère origin (Fontaine); HQ now Saint-Fons — check,low
+998,Rossignol,4,corporate,Saint-Jean-de-Moirans,high
+958,Grenoble Alpes Métropole,3,ecosystem_support,dup: Métropole de Grenoble,high
+856,Métropole de Grenoble,15,ecosystem_support,public body,high
+939,CCI de Grenoble,2,ecosystem_support,dup of Chambre de Commerce et d’Industrie de Grenoble,high
+2553,Grenoble.IA,2,ecosystem_support,check,low
+142,Atos,9,corporate,Bull/Eviden site in Échirolles; local site,medium
+1657,Bull,13,corporate,Échirolles site; part of Atos/Eviden,medium
+,Air Liquide Advanced Technologies,not in export(<2 articles),corporate,Sassenage,high
+3729,SERMA Technologies,11,corporate,Grenoble site (HQ Pessac),medium

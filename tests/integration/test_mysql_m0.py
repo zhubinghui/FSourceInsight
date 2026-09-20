@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'b5d81e6a430f'
+HEAD = 'c7f21a9d680e'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -73,6 +73,38 @@ class MySQLM0Tests(unittest.TestCase):
         self.db.session.remove()
         result = self.app.test_cli_runner().invoke(args=['db', 'upgrade', revision])
         self.assertEqual(result.exit_code, 0, result.output)
+
+    def test_merge_from_deployed_ecosystem_preserves_review_decisions(self):
+        self.upgrade('b3d5e8a1c407')
+        with self.db.engine.begin() as conn:
+            conn.execute(text("INSERT INTO company (name,slug,is_grenoble,review_status,postcode,city,entity_type,local_site) VALUES ('Rejected synthetic','rejected-synthetic',0,'rejected','69001','Lyon','company',0)"))
+        self.upgrade()
+        with self.db.engine.connect() as conn:
+            row = conn.execute(text('SELECT review_status,postcode,city,entity_type,local_site,analysis_generation FROM company')).one()
+            self.assertEqual(tuple(row), ('rejected', '69001', 'Lyon', 'company', 0, 0))
+            self.assertEqual(conn.execute(text('SELECT count(*) FROM startup_analysis_job')).scalar(), 0)
+            self.assertEqual(conn.execute(text('SELECT version_num FROM alembic_version')).scalars().all(), [HEAD])
+            self.assertEqual(compare_metadata(MigrationContext.configure(conn), self.db.metadata), [])
+
+    def test_merge_from_m3_preserves_unknown_funds(self):
+        from datetime import datetime, date
+        from app.models import LLMConfig, LLMReservation
+        self.upgrade('b5d81e6a430f')
+        config = LLMConfig(provider='synthetic', model='migration', tasks=['summarize'])
+        self.db.session.add(config)
+        self.db.session.flush()
+        self.db.session.add(LLMReservation(id='synthetic-old-hold', config_id=config.id,
+            task_type='summarize', billing_day=date(2026, 9, 19), provider='synthetic', model='migration',
+            endpoint_hash='0' * 64, input_limit=1000, output_limit=1000,
+            input_price='0.01', output_price='0.02', reserved_usd='0.030000', state='unknown', created_at=datetime.utcnow()))
+        self.db.session.commit()
+        self.upgrade()
+        with self.db.engine.connect() as conn:
+            row = conn.execute(text('SELECT state,reserved_usd,actual_usd FROM llm_reservation')).one()
+            self.assertEqual((row[0], str(row[1]), row[2]), ('unknown', '0.030000', None))
+            self.assertEqual(conn.execute(text('SELECT billing_input_limit FROM llm_config')).scalar(), None)
+            self.assertEqual(conn.execute(text('SELECT version_num FROM alembic_version')).scalars().all(), [HEAD])
+            self.assertEqual(compare_metadata(MigrationContext.configure(conn), self.db.metadata), [])
 
     def test_startup_analysis_has_one_mysql_owner_and_fences_source_aba(self):
         """Actual Admin/scan/tasks, external synthetic HTTP/model/dispatch only."""

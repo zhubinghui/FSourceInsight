@@ -7,15 +7,33 @@
         <a href="{{ url_for('admin.company_new') }}" class="btn btn-fs-primary btn-sm">
             <i class="bi bi-plus-lg"></i> New Company
         </a>
+        <a href="{{ url_for('admin.company_duplicates') }}" class="btn btn-fs-ghost btn-sm">
+            <i class="bi bi-files"></i> Duplicates
+        </a>
         <a href="{{ url_for('admin.merge_companies') }}" class="btn btn-fs-ghost btn-sm">
             <i class="bi bi-arrow-left-right"></i> Merge
         </a>
     </div>
 </div>
 
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a class="nav-link {{ 'active' if not filters.review }}" href="{{ url_for('admin.companies', q=filters.q) }}">All</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if filters.review == 'pending' }}" href="{{ url_for('admin.companies', review='pending', q=filters.q) }}">Pending ({{ pending_count }})</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if filters.review == 'approved' }}" href="{{ url_for('admin.companies', review='approved', q=filters.q) }}">Approved</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if filters.review == 'rejected' }}" href="{{ url_for('admin.companies', review='rejected', q=filters.q) }}">Rejected</a></li>
+    </ul>
+    <form method="get" class="d-flex gap-2">
+        {% if filters.review %}<input type="hidden" name="review" value="{{ filters.review }}">{% endif %}
+        <input type="search" name="q" class="form-control form-control-sm" placeholder="Search name" value="{{ filters.q or '' }}">
+        <button type="submit" class="btn btn-fs-ghost btn-sm">Search</button>
+    </form>
+</div>
+
+<div class="table-responsive">
 <table class="table table-striped">
     <thead>
-        <tr><th>Name</th><th>Sector</th><th>Grenoble</th><th>Auto</th><th>Articles</th><th>Actions</th></tr>
+        <tr><th>Name</th><th>Sector</th><th>Type</th><th>Review</th><th>Grenoble</th><th>Auto</th><th>Articles</th><th>Actions</th></tr>
     </thead>
     <tbody>
         {% for company in companies.items %}
@@ -27,13 +45,26 @@
                 {% endif %}
             </td>
             <td>{{ company.sector or '-' }}</td>
+            <td>{{ company.entity_type or '-' }}</td>
+            <td><span class="badge {{ {'pending': 'bg-warning text-dark', 'rejected': 'bg-secondary'}.get(company.review_status, 'bg-success') }}">{{ company.review_status }}</span></td>
             <td>{% if company.is_grenoble %}<span class="badge bg-success">Yes</span>{% endif %}</td>
             <td>{% if company.is_auto_created %}<span class="badge bg-warning text-dark">Auto</span>{% endif %}</td>
             <td>{{ company.article_count }}</td>
             <td>
                 <a href="{{ url_for('admin.edit_company', company_id=company.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                {% for status, label, style in [('approved', 'Approve', 'success'), ('rejected', 'Reject', 'secondary')] %}
+                {% if company.review_status != status %}
+                <form method="post" action="{{ url_for('admin.review_company', company_id=company.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="{{ status }}">
+                    <input type="hidden" name="review" value="{{ filters.review or '' }}">
+                    <button type="submit" class="btn btn-sm btn-outline-{{ style }}">{{ label }}</button>
+                </form>
+                {% endif %}
+                {% endfor %}
                 <form method="post" action="{{ url_for('admin.delete_company', company_id=company.id) }}"
-                      style="display:inline" onsubmit="return confirm('Delete {{ company.name }}?')">
+                      style="display:inline" data-confirm="Delete {{ company.name }}?"
+                      onsubmit="return confirm(this.dataset.confirm)">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-outline-danger">Del</button>
                 </form>
@@ -42,6 +73,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 
 {% if companies.pages > 1 %}
 <nav>
@@ -49,7 +81,7 @@
         {% for p in companies.iter_pages() %}
             {% if p %}
             <li class="page-item {% if p == companies.page %}active{% endif %}">
-                <a class="page-link" href="?page={{ p }}">{{ p }}</a>
+                <a class="page-link" href="{{ url_for('admin.companies', page=p, **filters) }}">{{ p }}</a>
             </li>
             {% endif %}
         {% endfor %}

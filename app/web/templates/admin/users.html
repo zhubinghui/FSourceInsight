@@ -52,7 +52,7 @@
                             </a>
                             {% if user.id != current_user.id %}
                             <form method="post" action="{{ url_for('admin.user_delete', user_id=user.id) }}" style="display:inline"
-                                  onsubmit="return confirm('Delete user {{ user.email }}?')">
+                                  data-confirm="Delete user {{ user.email }}?" onsubmit="return confirm(this.dataset.confirm)">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-outline-danger" title="Delete">
                                     <i class="bi bi-trash"></i>

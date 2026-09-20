@@ -53,9 +53,7 @@ def seed():
                 if entry.get('website') and not existing.website:
                     existing.website = entry['website']
                     changed = True
-                if not existing.is_grenoble:
-                    existing.is_grenoble = True
-                    changed = True
+                # Map membership and review state of existing rows belong to the operator.
 
                 if changed:
                     updated += 1

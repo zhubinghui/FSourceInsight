@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from app.extensions import db
 from app.models.company import Company
 from app.models.startup_source import StartupSource
+from app.crawlers.directory_facts import fetch_directory_facts
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +117,10 @@ def _extract_pages(url, fetcher):
             except Exception:
                 break
 
-    # Strategy 3: Text blocks with company names (CEA-Leti pattern)
+    # Strategy 3: Text blocks with company names (CEA-Leti pattern).
+    # Only a fallback: on pages with structured entries, free text is page chrome.
+    if companies:
+        return companies[:1000]
     noise = {
         'start-ups', 'suivant', 'programme', 'startup', 'contact',
         'direction', 'recherche', 'actualit', 'innover', 'navigation',
@@ -195,38 +199,54 @@ def scan_startup_sources():
     """Read bounded directories; atomically save NEW companies and LLM intents."""
     from app.llm import budget, startup_analysis as jobs
     with Session(db.engine) as session:
-        sources = list(session.scalars(select(StartupSource).where(StartupSource.is_active.is_(True))
+        # Lab pages are not company directories, even if an old flag is active.
+        sources = list(session.scalars(select(StartupSource).where(StartupSource.is_active.is_(True),
+                                       StartupSource.source_type == 'startup')
                                        .order_by(StartupSource.last_scanned_at, StartupSource.id).limit(50)))
     total_new = 0
     for captured in sources:
         try:
             expected = jobs.source_input(captured)
             discovered = _extract_companies_from_page(captured.url)
+            # Preparation is read-only; directory HTTP must never hold the
+            # accounting mutex or flushed Company/job write locks.
+            with Session(db.engine) as session:
+                known = _known_aliases(session)
+                prepared, seen = [], set()
+                for entry in discovered:
+                    name, slug = entry['name'], slugify(entry['name'])
+                    if (not 2 <= len(name) <= 300 or not slug or len(slug) > 300
+                            or name.lower() in known or slug in seen
+                            or session.scalar(select(Company.id).where(Company.slug == slug).limit(1))):
+                        continue
+                    seen.add(slug)
+                    prepared.append((entry, slug, jobs.website(entry.get('website'))))
+                    if len(prepared) == 20:
+                        break
+            enriched = []
+            for entry, slug, website in prepared:
+                facts = {}
+                if (website and 'member-directory/' in urlsplit(website).path
+                        and urlsplit(website).hostname == urlsplit(captured.url).hostname):
+                    facts = fetch_directory_facts(website)
+                enriched.append((entry, slug, website, facts))
             pending = []
             with budget.transaction() as session:
                 source = session.scalar(select(StartupSource).where(StartupSource.id == captured.id)
                                         .with_for_update().execution_options(populate_existing=True))
                 if (source is None or jobs.source_input(source) != expected or not source.is_active
-                        or source.source_type not in ('startup', 'research_lab')):
+                        or source.source_type != 'startup'):
                     raise ValueError('Discovery source changed')
-                aliases = list(session.scalars(select(Company.aliases).where(Company.aliases.is_not(None)).limit(4097)))
-                if len(aliases) > 4096 or any(row is not None and not isinstance(row, list) for row in aliases):
-                    raise ValueError('Discovery alias inventory unavailable')
-                # SQL NULL and JSON null both mean no aliases, not a bad inventory.
-                known = {alias.lower() for row in aliases if row is not None
-                         for alias in row if isinstance(alias, str)}
-                for entry in discovered:
+                known = _known_aliases(session)
+                for entry, slug, website, facts in enriched:
                     name = entry['name']
-                    slug = slugify(name)
-                    if not 2 <= len(name) <= 300 or not slug or len(slug) > 300 or name.lower() in known:
+                    if name.lower() in known or session.scalar(select(Company.id).where(Company.slug == slug).limit(1)):
                         continue
-                    if session.scalar(select(Company.id).where(Company.slug == slug).limit(1)):
-                        continue
-                    lab = source.source_type == 'research_lab'
+                    postcode = facts.get('postcode')
                     company = Company(name=name, slug=slug, description=entry.get('description'),
-                                      website=jobs.website(entry.get('website')), is_grenoble=True,
-                                      company_stage='research_institute' if lab else 'startup',
-                                      sector='Research Institute' if lab else None, is_auto_created=True)
+                                      website=website, is_grenoble=postcode is None or postcode.startswith('38'),
+                                      postcode=postcode, city=facts.get('city'), entity_type=facts.get('entity_type'),
+                                      company_stage='startup', is_auto_created=True, review_status='pending')
                     session.add(company)
                     pending.append(jobs.create(session, source, company))
                     if len(pending) >= 20:
@@ -241,6 +261,14 @@ def scan_startup_sources():
             # committing its partial companies with the next source's result.
             logger.warning('Startup source %s scan unavailable; transaction outcome may require inspection', captured.id)
     return {'sources_scanned': len(sources), 'new_companies': total_new}
+
+
+def _known_aliases(session):
+    aliases = list(session.scalars(select(Company.aliases).where(Company.aliases.is_not(None)).limit(4097)))
+    if len(aliases) > 4096 or any(row is not None and not isinstance(row, list) for row in aliases):
+        raise ValueError('Discovery alias inventory unavailable')
+    # SQL NULL and JSON null both mean no aliases, not a bad inventory.
+    return {alias.lower() for row in aliases if row is not None for alias in row if isinstance(alias, str)}
 
 
 # Sector inference from AI analysis text

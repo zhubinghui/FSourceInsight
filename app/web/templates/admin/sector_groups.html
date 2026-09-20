@@ -40,7 +40,7 @@
                         <div class="btn-group btn-group-sm">
                             <a href="{{ url_for('admin.sector_group_edit', group_id=g.id) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i></a>
                             <form method="post" action="{{ url_for('admin.sector_group_delete', group_id=g.id) }}" style="display:inline"
-                                  onsubmit="return confirm('Delete {{ g.name }}?')">
+                                  data-confirm="Delete {{ g.name }}?" onsubmit="return confirm(this.dataset.confirm)">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>

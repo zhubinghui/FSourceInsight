@@ -45,5 +45,6 @@ def company_generation(mapper, connection, target):
     if any(inspect(target).attrs[key].history.has_changes() for key in (
             'name', 'slug', 'aliases', 'description', 'website', 'headquarters',
             'is_grenoble', 'sector', 'company_stage', 'spinoff_origin',
-            'is_auto_created', 'ai_analysis', 'ai_analysis_at', 'ai_revision_history')):
+            'is_auto_created', 'ai_analysis', 'ai_analysis_at', 'ai_revision_history',
+            'review_status', 'entity_type', 'postcode', 'city', 'local_site')):
         target.analysis_generation = Company.analysis_generation + 1

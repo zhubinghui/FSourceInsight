@@ -1,4 +1,5 @@
 import json
+import re
 from collections import defaultdict
 from datetime import datetime
 
@@ -15,6 +16,14 @@ company_bp = Blueprint('company', __name__)
 from app.models.sector_group import SectorGroup
 
 
+# Institutions are grouped by what they are, whatever sector text they carry.
+ENTITY_GROUPS = {
+    'research_education': ('Schools & Research', {'icon': 'mortarboard', 'color': '#7C3AED', 'noun': 'institutions'}),
+    'ecosystem_support': ('Ecosystem support', {'icon': 'people', 'color': '#64748B', 'noun': 'organisations',
+                                                'collapsed': True}),
+}
+
+
 def _get_sector_groups():
     """Get sector groups from DB. Falls back to empty dict if table is empty."""
     return SectorGroup.as_dict()
@@ -28,11 +37,15 @@ def _get_sector_group(sector: str) -> str:
     groups = _get_sector_groups()
     if sector in groups:
         return sector
+    # The earliest topic in the sector text wins; keywords match at word starts only.
     sector_lower = sector.lower()
+    best = (len(sector_lower), 'Other')
     for group_name, cfg in groups.items():
-        if any(kw in sector_lower for kw in cfg.get('keywords', [])):
-            return group_name
-    return 'Other'
+        for kw in cfg.get('keywords', []):
+            match = re.search(r'(?<![a-z])' + re.escape(kw.lower()), sector_lower)
+            if match and match.start() < best[0]:
+                best = (match.start(), group_name)
+    return best[1]
 
 
 @company_bp.route('/')
@@ -43,7 +56,7 @@ def index():
     grenoble_only = request.args.get('grenoble') == '1'
     view_mode = request.args.get('view', 'map')  # 'map' or 'list'
 
-    query = Company.query
+    query = Company.query.filter(Company.review_status != 'rejected')
     if search:
         like = f'%{search}%'
         query = query.filter(db.or_(Company.name.like(like), Company.sector.like(like)))
@@ -65,7 +78,8 @@ def index():
         # Group by sector
         grouped = defaultdict(list)
         for c in grenoble_companies:
-            group = _get_sector_group(c.sector)
+            entity_group = ENTITY_GROUPS.get(c.entity_type)
+            group = entity_group[0] if entity_group else _get_sector_group(c.sector)
             grouped[group].append(c)
 
         # Sort groups by DB order, then 'Other' last
@@ -74,8 +88,13 @@ def index():
         for group_name in sector_groups:
             if group_name in grouped:
                 ordered_groups.append((group_name, sector_groups[group_name], grouped[group_name]))
+        schools, support = ENTITY_GROUPS['research_education'], ENTITY_GROUPS['ecosystem_support']
+        if schools[0] in grouped:
+            ordered_groups.append((*schools, grouped[schools[0]]))
         if 'Other' in grouped:
             ordered_groups.append(('Uncategorized', {'icon': 'question-circle', 'color': '#94A3B8'}, grouped['Other']))
+        if support[0] in grouped:
+            ordered_groups.append((*support, grouped[support[0]]))
 
         return render_template(
             'company/index.html',
@@ -113,7 +132,7 @@ def search():
     sector = request.args.get('sector', '').strip()
     grenoble_only = request.args.get('grenoble') == '1'
 
-    query = Company.query
+    query = Company.query.filter(Company.review_status != 'rejected')
     if search:
         like = f'%{search}%'
         query = query.filter(db.or_(Company.name.like(like), Company.sector.like(like)))

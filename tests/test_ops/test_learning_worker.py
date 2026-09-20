@@ -10,10 +10,16 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def compose(caddy=False, enabled='0', profile=True):
+def compose(directory, caddy=False, enabled='0', profile=True):
     docker = shutil.which('docker')
     if not docker:
         pytest.skip('Compose CLI required for offline merge validation')
+    # Compose 2.x still checks required service env_file existence when
+    # interpolating. Never rely on, copy, or resolve the developer's .env.
+    for name in ('docker-compose.yml', 'docker-compose.prod.yml', 'docker-compose.caddy.yml',
+                 'docker-compose.evidence.yml', 'docker-compose.learning.yml'):
+        shutil.copyfile(ROOT / name, directory / name)
+    (directory / '.env').write_text('')
     command = [docker, 'compose', '--env-file', '/dev/null', '-f', 'docker-compose.yml',
                '-f', 'docker-compose.prod.yml']
     if caddy:
@@ -21,7 +27,7 @@ def compose(caddy=False, enabled='0', profile=True):
     command += ['-f', 'docker-compose.evidence.yml', '-f', 'docker-compose.learning.yml']
     if profile:
         command += ['--profile', 'crawl-learning']
-    result = subprocess.run(command + ['config', '--no-env-resolution', '--format', 'json'], cwd=ROOT,
+    result = subprocess.run(command + ['config', '--no-env-resolution', '--format', 'json'], cwd=directory,
         env={'PATH': os.environ['PATH'], 'HOME': os.environ['HOME'], 'CRAWL_LEARNING_ENABLED': enabled},
         capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
@@ -30,8 +36,8 @@ def compose(caddy=False, enabled='0', profile=True):
 
 @pytest.mark.parametrize('caddy', [False, True])
 @pytest.mark.parametrize('enabled', ['0', '1'])
-def test_optional_worker_has_one_private_queue_readonly_evidence_and_bounded_resources(caddy, enabled):
-    data = compose(caddy, enabled)
+def test_optional_worker_has_one_private_queue_readonly_evidence_and_bounded_resources(caddy, enabled, tmp_path):
+    data = compose(tmp_path, caddy, enabled)
     services = data['services']
     worker = services['worker_learn']
     assert worker['profiles'] == ['crawl-learning']
@@ -71,5 +77,5 @@ def test_optional_worker_has_one_private_queue_readonly_evidence_and_bounded_res
     assert worker['environment']['LOG_FILE'].startswith('/tmp/')
 
 
-def test_adding_learning_overlay_without_profile_does_not_start_a_consumer():
-    assert 'worker_learn' not in compose(profile=False)['services']
+def test_adding_learning_overlay_without_profile_does_not_start_a_consumer(tmp_path):
+    assert 'worker_learn' not in compose(tmp_path, profile=False)['services']
