@@ -121,60 +121,46 @@
                 <small>Admin</small>
             </a>
 
-            <div class="sidebar-section">Overview</div>
+            {# One entry per job; the current entry is chosen by endpoint prefix, first match wins. #}
+            {% set endpoint = request.endpoint or '' %}
+            {% set review_queue = endpoint == 'admin.companies' and request.args.get('review') == 'pending' %}
+            {% set navigation = [
+                ('Monitoring', [
+                    ('Dashboard', 'speedometer2', url_for('admin.dashboard'), endpoint == 'admin.dashboard'),
+                    ('Crawl Logs', 'clock-history', url_for('admin.crawl_logs'), endpoint.startswith('admin.crawl_log')),
+                    ('Email Logs', 'envelope', url_for('admin.email_logs'), endpoint.startswith('admin.email')),
+                ]),
+                ('Sources', [
+                    ('News Sources', 'rss', url_for('admin.sources'), endpoint.startswith(('admin.source', 'admin.crawl_config'))),
+                    ('Discovery Sources', 'rocket-takeoff', url_for('admin.startup_sources'), endpoint.startswith('admin.startup_source')),
+                ]),
+                ('Ecosystem', [
+                    ('Companies', 'building', url_for('admin.companies'),
+                     not review_queue and endpoint.startswith(('admin.compan', 'admin.edit_company', 'admin.delete_company', 'admin.merge_companies', 'admin.review_company'))),
+                    ('Review Queue', 'inbox', url_for('admin.companies', review='pending'), review_queue),
+                    ('Sector Groups', 'grid-3x3-gap', url_for('admin.sector_groups'), endpoint.startswith('admin.sector_group')),
+                ]),
+                ('AI / LLM', [
+                    ('Task Routing', 'diagram-3', url_for('admin.llm_routing'), endpoint == 'admin.llm_routing'),
+                    ('Model Config', 'cpu', url_for('admin.llm_config'), endpoint.startswith('admin.llm_config')),
+                    ('Usage & Cost', 'graph-up', url_for('admin.llm_usage'), endpoint == 'admin.llm_usage'),
+                ]),
+                ('System', [
+                    ('Users', 'people', url_for('admin.users'), endpoint.startswith(('admin.user', 'admin.toggle_user'))),
+                    ('Settings', 'sliders', url_for('admin.settings'), endpoint == 'admin.settings'),
+                ]),
+            ] %}
+            {% for section, entries in navigation %}
+            <div class="sidebar-section">{{ section }}</div>
             <ul class="sidebar-nav">
-                <li><a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                {% for label, icon, href, current in entries %}
+                <li><a href="{{ href }}" class="{{ 'active' if current }}">
+                    <i class="bi bi-{{ icon }}"></i> {{ label }}
+                    {% if label == 'Review Queue' %}<span class="badge {{ 'bg-warning text-dark' if admin_pending_reviews else 'bg-secondary' }} ms-1">{{ admin_pending_reviews }}</span>{% endif %}
                 </a></li>
-                <li><a href="{{ url_for('admin.settings') }}" class="{{ 'active' if request.endpoint == 'admin.settings' }}">
-                    <i class="bi bi-sliders"></i> Settings
-                </a></li>
+                {% endfor %}
             </ul>
-
-            <div class="sidebar-section">Content</div>
-            <ul class="sidebar-nav">
-                <li><a href="{{ url_for('admin.sector_groups') }}" class="{{ 'active' if 'sector_group' in (request.endpoint or '') }}">
-                    <i class="bi bi-grid-3x3-gap"></i> Sector Groups
-                </a></li>
-                <li><a href="{{ url_for('admin.startup_sources') }}" class="{{ 'active' if 'startup' in (request.endpoint or '') }}">
-                    <i class="bi bi-rocket-takeoff"></i> Ecosystem Sources
-                </a></li>
-                <li><a href="{{ url_for('admin.sources') }}" class="{{ 'active' if 'source' in (request.endpoint or '') and 'startup' not in (request.endpoint or '') }}">
-                    <i class="bi bi-rss"></i> Sources
-                </a></li>
-                <li><a href="{{ url_for('admin.companies') }}" class="{{ 'active' if 'compan' in (request.endpoint or '') and 'merge' not in (request.endpoint or '') }}">
-                    <i class="bi bi-building"></i> Companies
-                </a></li>
-                <li><a href="{{ url_for('admin.merge_companies') }}" class="{{ 'active' if 'merge' in (request.endpoint or '') }}">
-                    <i class="bi bi-intersect"></i> Merge Companies
-                </a></li>
-                <li><a href="{{ url_for('admin.crawl_logs') }}" class="{{ 'active' if request.endpoint == 'admin.crawl_logs' }}">
-                    <i class="bi bi-clock-history"></i> Crawl Logs
-                </a></li>
-            </ul>
-
-            <div class="sidebar-section">AI / LLM</div>
-            <ul class="sidebar-nav">
-                <li><a href="{{ url_for('admin.llm_routing') }}" class="{{ 'active' if request.endpoint == 'admin.llm_routing' }}">
-                    <i class="bi bi-diagram-3"></i> Task Routing
-                </a></li>
-                <li><a href="{{ url_for('admin.llm_config') }}" class="{{ 'active' if 'llm_config' in (request.endpoint or '') }}">
-                    <i class="bi bi-cpu"></i> Model Config
-                </a></li>
-                <li><a href="{{ url_for('admin.llm_usage') }}" class="{{ 'active' if request.endpoint == 'admin.llm_usage' }}">
-                    <i class="bi bi-graph-up"></i> Usage & Cost
-                </a></li>
-            </ul>
-
-            <div class="sidebar-section">Users & Email</div>
-            <ul class="sidebar-nav">
-                <li><a href="{{ url_for('admin.users') }}" class="{{ 'active' if 'user' in (request.endpoint or '') }}">
-                    <i class="bi bi-people"></i> Users
-                </a></li>
-                <li><a href="{{ url_for('admin.email_logs') }}" class="{{ 'active' if request.endpoint == 'admin.email_logs' }}">
-                    <i class="bi bi-envelope"></i> Email Logs
-                </a></li>
-            </ul>
+            {% endfor %}
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('news.index') }}" class="d-flex align-items-center gap-2 text-decoration-none" style="color: rgba(255,255,255,0.5); font-size: 0.82rem;">

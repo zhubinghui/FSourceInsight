@@ -1,12 +1,12 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Startup Discovery Sources{% endblock %}
+{% block title %}Discovery Sources{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item active">Startup Sources</li>
+<li class="breadcrumb-item active">Discovery Sources</li>
 {% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <h3>Ecosystem Discovery Sources</h3>
+        <h3>Discovery Sources</h3>
         <small class="text-fs-secondary">Startup portfolios, member directories, and research lab pages</small>
     </div>
     <div class="d-flex gap-2">
@@ -38,6 +38,7 @@
                     <td>
                         {% if source.source_type == 'research_lab' %}
                         <span class="badge" style="background: var(--fs-purple); font-size: 0.68rem;">Lab</span>
+                        <span class="badge bg-secondary" style="font-size: 0.68rem;" title="Lab pages list news and people, not companies">not scanned</span>
                         {% else %}
                         <span class="badge badge-investment" style="font-size: 0.68rem;">Startup</span>
                         {% endif %}
