@@ -36,3 +36,18 @@ The 14 `flag` rows (Isère entities missing from the map; locations from general
 - Rollback: `up -d` with the `cl-20260911084734` pin layer; keep the new columns (old code ignores them; server defaults apply).
   Old code would show rejected and pending rows on the map again.
 - M3 merge needs an Alembic merge revision (`b3d5e8a1c407` and `a8d31c5e7902` both follow `f2a67b904d31`).
+
+## Follow-up release: admin safety fixes (2026-09-20 16:25 UTC)
+
+Owner-authorized. Application `e6469ba`, schema unchanged (`b3d5e8a1c407`). Local 713 passed / 16 MySQL skipped; CI 35510283338 succeeded
+(offline suite + 16 disposable-MySQL tests). Same procedure as above, run from an uploaded script file: backup
+`~/fsourceinsight-backups/adm-20260920162531/database.sql.gz` (0600, verified), images `candidate-adm-20260920162531` pinned in
+`candidate.compose.json` there, application services stopped and recreated, `flask db upgrade` was a no-op.
+Post-deploy: health ok locally and publicly, map 329 entries, memory limits and the web-only evidence volume preserved, restarts 0,
+fast worker ready, no tracebacks in the llm worker's first minutes, beat's `daily-crawl-all` is `0 * * * *` (production setting remains
+hour 1 Europe/Paris, so the daily crawl time is unchanged). Rollback: `up -d` with the `eco-20260919220547` pin layer.
+Not done: MySQL tests inside the candidate images, worker queue drain inspection, browser check of the changed admin forms.
+
+## Later cumulative M3 release (2026-09-20 17:39 UTC)
+
+The preceding records and b3 rollback instructions describe those earlier releases only. Production subsequently moved to `83813e2` / `c7f21a9d680e`, retaining ecosystem/Admin behaviour and paid AI with reviewed billing terms. See [the M3 release audit](2026-09-20-m3-paid-release.md) for its own 23-test actual-image gates, drain/backup, current image pin and rollback restrictions. Do not start old unfenced paid callers or restore b3 backups over the new accounting history.

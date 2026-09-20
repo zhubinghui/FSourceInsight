@@ -13,6 +13,7 @@
 - 17:38:55新web健康，17:39:41验收后beat最后恢复，schema/model diff0/原环境argv/UID0 0700卷/非目标容器和Caddy保持；普通AI支持，learning仍off。没有人工真实模型/抓取/SMTP验收。
 - 后验实际web/worker各23通过78.106/76.745s；17:43:47准确清理11容器/1网络/2卷/两合成凭据文件，health全ok/MemAvailable4431788KiB。四应用restart0/OOMfalse/全memory.events0/traceback/error marker0，仅短观察。
 - 发布审计docs/audits/2026-09-20-m3-paid-release.md。一次文档exact-edit因中英文句号不匹配整体拒绝，修正文本后成功，无部分修改；不是产品/部署失败。
+- 文档提交0ecbd20后正常merge cf561，CLAUDE相邻M3/生态说明单块冲突；先更新计划，再保留全部M3边界及上游生态/Admin记录，同时同步当前838/c7、私有pin和历史/当前证据。仅文档，不改已验收应用、不触另一工作树、不重建线上。
 
 ## 2026-09-20 独立Admin发布：现有AI继续服务
 - 用户询问付费暂停含义并要求其他功能尽快上线；不推定同意停AI。先修订发布计划，独立发布已提交e6469ba，不引入M3账本/旧NULL阻断；M3完整分支保留。
