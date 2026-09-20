@@ -5,7 +5,14 @@
 - 起点release5271c84、origin/master e646、两工作树clean；生产上次完成e646/b3，待本轮只读重核。既定LLMClient/Admin/真实任务/Alembic/运维公共seam不变，无子代理。
 - 16:28Z确认生产e646/b3、活跃mini/nano无端点/代理覆盖、max_tokens4096、预算5、日28条/unknown0；旧单价不等于现价。采用显式官方全球端点和default层，保留模型/任务/key/日预算，审计docs/audits/2026-09-20-m3-paid-continuity.md。
 - 固定官方SDK v2.54源码确认default=标准价、max_completion_tokens含reasoning；实际LiteLLM1.101 SDK合成HTTP重现两个模型缺tier，最小修复后通过。随后真实red重现旧auto缓存误命中和UI缺说明，分别补tier键/UI；其他网关兼容四用例直接green。
-- 关联最终161通过/23专用MySQL skip/1773 warnings/32.17s，244 AST/选定E9/F/diff通过。新23号实库门禁覆盖b3→head→真实Admin审核→两个真实SDK/合成HTTP付款。全套本地后台运行，未把skip当实库绿，无生产配置变更。
+- 关联最终161通过/23专用MySQL skip/1773 warnings/32.17s，244 AST/选定E9/F/diff通过。83813e2已提交推送；完整1083/23skip/10825 warnings/606.79s，准确CI35523984792成功（1083/23skip/798.08s、23实库42.057s、真实broker100次/RSS452700KiB）。
+- 两真正M3 image各23 MySQL通过80.377/78.220s、49模板/Admin通过，实际broker100次/RSS452256KiB；另同一terms CLI原子CAS/重复拒绝和snapshot完整旧投影/marker/迁移演练通过。6个原/新image全部104发行包/Python/OS一致。
+- 最终发现主干cf561仅文档，记录另一发布者16:25重发e646。先改计划再核身份；本轮prepare已捕获该次实际四images，运行1.101/2.54且容器一直未变，不误用15:59 pin；保留并将在收尾合并对方文档。
+- helper静态校验发现d9会建一个真实空工作流history marker，不是所有新表0；先改计划、精确校验计数/代次/旧usage绑定，再以隔离CLI演练验证，不改产品迁移/不伪造exposure。17:30只读preflight成功。
+- 17:37:29暂停beat，五队列/active/reserved/scheduled/unacked全0、TERM干净退出，web冻结后broker再检空；新600全备份19930641字节/SHA0fa61fb7…通过，b3→c7、两活跃配置原值CAS更新审定价格/端点/caps，20旧表全旧列投影保留（计划更新列单独核）。无整库恢复/seed/旧新混跑。
+- 17:38:55新web健康，17:39:41验收后beat最后恢复，schema/model diff0/原环境argv/UID0 0700卷/非目标容器和Caddy保持；普通AI支持，learning仍off。没有人工真实模型/抓取/SMTP验收。
+- 后验实际web/worker各23通过78.106/76.745s；17:43:47准确清理11容器/1网络/2卷/两合成凭据文件，health全ok/MemAvailable4431788KiB。四应用restart0/OOMfalse/全memory.events0/traceback/error marker0，仅短观察。
+- 发布审计docs/audits/2026-09-20-m3-paid-release.md。一次文档exact-edit因中英文句号不匹配整体拒绝，修正文本后成功，无部分修改；不是产品/部署失败。
 
 ## 2026-09-20 独立Admin发布：现有AI继续服务
 - 用户询问付费暂停含义并要求其他功能尽快上线；不推定同意停AI。先修订发布计划，独立发布已提交e6469ba，不引入M3账本/旧NULL阻断；M3完整分支保留。

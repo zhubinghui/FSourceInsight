@@ -1,15 +1,18 @@
 # 全项目审查与动态爬虫 Agent 改造
 
 ## 当前继续：付费LLM必须保留，推进剩余部署（2026-09-20）
-- [in_progress] 用户明确不要暂停付费LLM并要求剩余内容上线。先核实际端点/参数/价格与固定SDK合同，必要时公共LLMClient/Admin TDD补齐；不再以暂停模式作为本轮选项，不绕过新预算。计划docs/superpowers/specs/2026-09-20-m3-paid-continuity.md。
-- [pending] 正常付费配置可验证后，完整M3准确CI/实际22项MySQL/服务及配置连续性门禁、新备份/受控迁移切换。学习默认不开启。
+- [complete release] 用户明确不要暂停付费LLM。83813e2/c7于17:39:41Z部署，模型/任务/key/日预算5保留，审核官方标准层/完整计费界后放行普通付费。学习仍不开启，M3整体未完成。审计docs/audits/2026-09-20-m3-paid-release.md。
+- [complete gates] 83813e2正常付费合同/请求TDD，本地1083/23skip，准确CI35523984792、两真实image各23 MySQL/49模板/Admin/真实broker、terms/snapshot运维CLI演练通过，实际SDK及104完整依赖/OS一致。
+- [complete deployment] 新备份/TERM/b3→c7/配置CAS/一致应用/20旧表投影/私有卷/其他服务保护完成，beat最后恢复，无回滚。部署后两image各23再次通过，11测试容器/1网络/2专属卷/凭据已清理，health全ok。cf561仅文档，实际16:25旧images已正确保存；收尾保留并合入该文档，不重建。
 
-## 最新分批发布：不暂停现有AI（2026-09-20）
+## 历史分批发布：不暂停现有AI（2026-09-20）
 - [complete] 用户要求其他功能尽快上线，未授权停用现有AI；独立Admin批次e6469ba/schema b3于15:59:22Z部署。账号防自锁/密码邮箱/既有历史删除保护/采集时间设置上线，LLM代码/配置/runtime不变。
 - [complete] 准确CI713离线/16实际MySQL/真实broker；两实际image各16 MySQL前后复验/48模板及Admin/真实broker通过，备份/受控切换/私有卷/数据保护完成。9测试容器/1网络/2卷及合成凭据已精确清理。
-- [blocked M3] 不是M3发布；完整M3已提交分支，计费审核及自己的实际镜像/迁移门禁仍待。审计docs/audits/2026-09-20-admin-safety-release.md，具体计划docs/superpowers/specs/2026-09-20-admin-safety-release.md。
+- [historical blocker, now resolved above] 该批不是M3发布；当时完整M3已提交分支，计费审核及自己的实际镜像/迁移门禁待补。审计docs/audits/2026-09-20-admin-safety-release.md，具体计划docs/superpowers/specs/2026-09-20-admin-safety-release.md。
 
-## 当前追加：全部现有内容提交与发布（2026-09-19新授权）
+## 历史推进记录：全部现有内容提交与发布（2026-09-19新授权）
+
+以下各阶段保留当时的提交/测试/待部署状态；当前累计代码已经上方83813e2发布，不将历史待验收或可暂停选项当现状。
 - [in_progress] 用户要求全部提交并部署；已提交推送751ac51，生产只读发现生态新版b08fb8d/b3；正在整合23de19e，唯一候选head c7f21a9d680e、startup-analysis.v2，保留两边业务。首轮CI5个Compose环境失败和第二轮MySQL造数遗漏已修正；7f6e9f8的CI35510122656通过1060离线/22实际MySQL/真实broker回收。后续e6469ba Admin安全及M3删除防护已合入1becae8；本地1075/22skip、准确CI35517521638的1075离线/22实际MySQL/真实broker全通过。全部应用内容已推release分支，实际待部署镜像/计费门禁仍待，未推master/未部署；候选审计docs/audits/2026-09-20-m3-release-candidate.md。执行计划 docs/superpowers/specs/2026-09-19-m3-current-release.md。
 - [pending] 计费上界/真实价格审核或用户明确接受付费暂停模式；不能把旧NULL配置当透明升级。学习默认关闭，不自动授予模型/来源许可。
 - [pending] 门禁通过才备份/受控停止旧调用方/扩展迁移/切换一致镜像/验收与清理。主会话，无子代理；不恢复整库、不动非目标服务、不真实抓取/付费/邮件验收。

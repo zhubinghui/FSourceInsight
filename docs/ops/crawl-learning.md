@@ -1,6 +1,6 @@
-# 有界学习：本地实现与启用前置
+# 有界学习：已安装代码与启用前置
 
-**尚未部署，M3未完成。不要直接开启生产学习。** 实现/测试证据见[1b会话审计](../audits/2026-09-19-m31b-learning-sessions.md)、[3a暴露历史前置](../audits/2026-09-19-m33a-exposure-history.md)、[3b限定HTML留出](../audits/2026-09-19-m33b-holdout-validation.md)、[2c生命周期](../audits/2026-09-19-m32c-learning-lifecycle.md)、[4a学习worker配置](../audits/2026-09-19-m34a-learning-worker.md)及[2d派发身份/恢复](../audits/2026-09-19-m32d-learning-dispatch.md)。
+**代码随83813e2/c7安装，但学习开关关闭、专用worker未启动，M3未完成。不要直接开启生产学习。** 普通付费配置采用400000完整输入界，不能满足学习20000累计token约束；不可为启用而猜小上界。当前发布/实际普通worker与23 MySQL证据见[发布审计](../audits/2026-09-20-m3-paid-release.md)，不替代专用学习worker/更广故障容量门禁。 实现/测试证据见[1b会话审计](../audits/2026-09-19-m31b-learning-sessions.md)、[3a暴露历史前置](../audits/2026-09-19-m33a-exposure-history.md)、[3b限定HTML留出](../audits/2026-09-19-m33b-holdout-validation.md)、[2c生命周期](../audits/2026-09-19-m32c-learning-lifecycle.md)、[4a学习worker配置](../audits/2026-09-19-m34a-learning-worker.md)及[2d派发身份/恢复](../audits/2026-09-19-m32d-learning-dispatch.md)。
 
 ## 当前可用行为
 

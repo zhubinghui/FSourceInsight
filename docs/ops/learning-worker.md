@@ -1,6 +1,6 @@
 # 可选学习worker：配置与运行门禁
 
-**本地配置/协议验证完成，尚未部署；M3未完成。不要据此直接启用生产学习。** 实际容器、只读挂载、MySQL/Redis、prefork超时/崩溃及容量仍须独立门禁和部署授权。业务限制见[学习操作说明](crawl-learning.md)。
+**配置/脚本已随83813e2发布，但worker_learn未启动、学习未开启；M3未完成。不要据此直接启用生产学习。** 当前普通worker和23项MySQL发布门禁见[发布审计](../audits/2026-09-20-m3-paid-release.md)，不替代以下专用worker门禁。 实际容器、只读挂载、MySQL/Redis、prefork超时/崩溃及容量仍须独立门禁和部署授权。业务限制见[学习操作说明](crawl-learning.md)。
 
 ## 层与权限
 

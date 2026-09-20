@@ -1,10 +1,13 @@
 # Findings
 
-## 付费连续性核对（2026-09-20，研究/尚未改生产）
+## 付费连续性核对（2026-09-20，现已审核发布）
+- 83813e2/c7于17:39:41Z发布，原5美元预算/普通AI保留；实际SDK出站、1083本地/准确CI、两image各23 MySQL前后及CLI/普通worker验收通过，见docs/audits/2026-09-20-m3-paid-release.md。以下是本次审核输入，不是当前未部署状态。
+- 最后共享master cf561仅文档，但记录16:25另一Admin重发；实际基线应取准备时当前images而非15:59 pin。本批已如此捕获，完整6 image的104发行包/Python/OS一致、临界区身份未变。
+- d9迁移会为真正空的受控工作流创建0-generation/complete1单行marker，不是暴露证据或全系统保证；其余新业务/费用/报告表在激活前为空，20旧表流式旧投影保持。
 - 16:28Z只读现网：clean e646/b3，日预算$5；活跃config1 mini（default、ner/classify/insight）和config5 nano（translate/summarize/ner/classify/sentiment/insight），均max_tokens4096/temperature0.3，明确key存在但未输出值。没有端点或HTTP代理环境覆盖；两活跃DB api_base为空，SDK默认全球OpenAI端点。
 - 旧费率仍是mini $0.0025/$0.010、nano $0.00015/$0.0006每千token，与现行官方标准价不同。DeepSeek/Claude关闭，不为发布开启。当前日28条legacy usage，未知费用0，日志合计$0.001578；这些是旧价格估算，不是最终供应商账单，不改写历史或冒称重新核价。
 - 官方模型页再次确认mini/nano 400,000上下文/128,000最大输出，标准每千分别$0.00075/$0.0045及$0.0002/$0.00125。官方Priority页明确省略service_tier可继承Project Fast；固定OpenAI2.54 SDK类型文档明确default=标准价格/性能、max_completion_tokens含隐藏reasoning。
-- 固定LiteLLM1.101 gpt_5_transformation.py把max_tokens映射到max_completion_tokens；仍需真实SDK出站HTTP合成验证。API参考网页提取未包含字段正文，改核实际版本SDK源码，不把无匹配当反证。查找chat/transformation.py不存在，实际GPT5专用文件可读，未改变软件。
+- 固定LiteLLM1.101 gpt_5_transformation.py把max_tokens映射到max_completion_tokens；后续真实SDK出站HTTP合成已验证两个模型的4096总输出界和default标准层。API参考网页提取未包含字段正文，改核实际版本SDK源码，不把无匹配当反证。查找chat/transformation.py不存在，实际GPT5专用文件可读，未改变软件。
 - 来源：https://developers.openai.com/api/docs/models/gpt-5.4-mini 、https://developers.openai.com/api/docs/models/gpt-5.4-nano 、https://developers.openai.com/api/docs/guides/priority-processing；工具材料mua18inu7gf1rh，仅资料不构成自动配置许可。
 
 ## 分批上线观察（2026-09-20）
