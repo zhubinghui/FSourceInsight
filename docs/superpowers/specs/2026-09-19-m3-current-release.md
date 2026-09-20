@@ -22,8 +22,8 @@
 ## 阶段
 
 1. [complete] 清点/敏感信息与初始静态核对；读取现有CI/发布规程；SSH只读核生产refs/服务/容量/schema/计费配置。
-2. [in_progress] 基础内容已提交推送751ac51；整合生态23de19e并重新提交固定candidate；准确SHA CI（现包括22项MySQL及已有真实broker回收）。提交不代表准许生产切换。
-3. [pending] 当前计费契约/上线模式门禁；新备份、旧image/argv固定；实际候选串行构建，不改变运行服务。
+2. [complete] 基础751ac51与生态/Admin安全增量均合入发布分支；准确应用候选1becae8、CI35517521638全成功（1075离线/22实际MySQL/真实broker回收）。提交不代表准许生产切换，未推master以免并行发布者误采未审核M3。
+3. [blocked] 当前计费契约/上线模式门禁；新备份、旧image/argv固定；实际候选串行构建，不改变运行服务。
 4. [pending] 实际web/worker候选独立MySQL全套、真实broker/基础prefork、模板/Admin/API、私有卷隔离门禁。若要启用学习另须其RO挂载、进程限时/故障与容量验收；本次默认仍关闭，不假报这些门禁通过。
 5. [pending] 门禁全通过后受控停止/迁移b3→c7（以重新核对的实时schema为准）、一致切换应用；验证head/model diff/旧投影/费用/私有卷/worker命令，beat最后恢复。
 6. [pending] 公网只读与实际候选复验、精确清理临时资源、发布审计与收尾提交；报告实际状态/保留风险。阻断时完成可安全完成的提交，保持生产不变并明确阻断项。
@@ -66,4 +66,7 @@
 - e646增量为7文件/221新增：防自锁/密码/历史删除/整点按配置时区爬取；另一工作树当前clean。先提交本轮CI/计费证据，再合入该已提交安全修复，重新验收准确SHA。
 - 语义整合预先明确：上游删除防护只识别usage及crawl_schema作者；M3另有尚无usage的reservation、learning创建/retry/validation申请人和reconciliation actor外键。须通过真实Admin删除行为回归保留这些关联，不能合并后让账本/身份丢失或500；不修改已有记录/DDL，不开放删除审计。
 - Admin新回归实际重现5类记录被删除（SQLite允许孤立关联，MySQL会外键拒绝）；另外两条DELETE外键竞争故障重现私有IntegrityError外抛。补读前检查及IntegrityError rollback/固定提示，不宣称真实并发/数据库故障全覆盖。初次fixture为detached User登录/错误validation selector，第二次为错误base采样；改真实HTTP登录及已确认HTML留出后取得5条业务red，分别保存日志，不弱化断言。
-- Admin/账本/安全/运维关联回归首轮107通过/1失败：新提示替换了上游已测试的usage history措辞；保留原措辞并补充reservations，不改上游断言。扩展既有MySQL用量提交失败门禁，经真实Admin尝试删保留预留配置及对账actor；保留原收费/余额断言，总测试数仍22，不冒称新增独立门禁或已实跑。
+- Admin/账本/安全/运维关联回归首轮107通过/1失败：新提示替换了上游已测试的usage history措辞；保留原措辞并补充reservations，不改上游断言。扩展既有MySQL用量提交失败门禁，经真实Admin尝试删保留预留配置及对账actor；保留原收费/余额断言，总测试数仍22；当时尚未实跑，随后结果见下。
+- 最终应用合并提交1becae8已推release；本地全套1075/22专用skip/10768警告/613.70s；243 AST/49模板，指定文件无新E9/F（保留历史2个F401），工作树应用提交后clean。
+- 准确CI35517521638全成功：1075离线/22skip/789.37s；真实MySQL22/22、40.850s，扩展Admin记录删除保护通过；真实broker100次完成回收、RSS452980KiB完成回收/下一任务正常。完整ci-35517521638.log保留。
+- 形成docs/audits/2026-09-20-m3-release-candidate.md。此后仅文档收尾提交，应用候选仍1becae8。仍缺实际待部署镜像/生产备份/切换验收，计费审核或明确接受新付费LLM暂停未解决；生产无本轮写入/暂停/切换。

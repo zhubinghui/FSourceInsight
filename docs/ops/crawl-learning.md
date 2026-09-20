@@ -71,7 +71,7 @@ blocked页面的“Request safe retry”仅适用于**整个会话从未有任�
 
 ## 真正启用前必须完成
 
-1. 获得独立部署授权及备份；完成当前合并head `c7f21a9d680e` 的真实可丢弃MySQL全部门禁和broker/进程故障门禁。本地22项MySQL均未运行；历史2d的1019通过不是当前服务证据。已授权发布但仍在门禁阶段，见[发布计划](../superpowers/specs/2026-09-19-m3-current-release.md)。
+1. 获得独立部署授权及备份；完成当前合并head `c7f21a9d680e` 的真实可丢弃MySQL全部门禁和broker/进程故障门禁。本地没有可用MySQL服务；应用1becae8的CI35517521638已通过22项真实MySQL及基础broker门禁，但不是实际待部署镜像/学习worker证明。已授权发布但仍在计费和候选门禁阶段，见[发布计划](../superpowers/specs/2026-09-19-m3-current-release.md)。
    2c迁移`f8b64d2c901e`对旧失败/取消会话设置从迁移执行时起六小时保守隔离，不伪造历史失败时间。4b扩展初始企业分析；2d仅添加可空dispatch_due_at/索引，旧NULL不补派发资格。均不改写旧费用/期限、补造retry或重签历史。旧应用不执行新冷却/重试/派发fence，不能混用。
 2. 当前仅单列表HTML/三详情的受控留出路径本地通过；通用RSS/分页/多列表、全系统暴露覆盖仍未完成。不得将局部passed冒充通用验证、审批或整个M3完成。
 3. 专用worker的可选Compose、启动/健康guard已本地实现；**尚未实际build/start或完成服务/容量验收**。初始并发1/prefetch1、1GiB/1CPU/PIDs64等值必须在实际候选镜像验证，不借旧容量记录启用。

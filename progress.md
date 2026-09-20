@@ -21,7 +21,10 @@
 - 7f6e9f8的CI35510122656完整success：1060离线/22专用skip、实际MySQL22通过95.025s、真实broker100次任务回收/RSS450652KiB回收/下一任务正常。watch本机超时后直接查终态确认，完整日志保留；不是实际待部署web/worker镜像证明。
 - 官方mini/nano/SDK/服务层资料整理到docs/audits/2026-09-20-m3-billing-review-inputs.md；Project默认Fast、区域费/网关/实际适配器仍须审核，不擅填生产上界/不默认接受付费暂停。
 - 主干又推进e6469ba Admin安全，已开始合入。新增真实HTTP回归证明M3无usage的预留配置及learning创建/retry/validation/对账actor不能删除；5业务red+2外键竞争red，fixtures的detached登录/错误选样单独记录。
-- 添加M3关联检查，DELETE外键拒绝回滚固定提示；不删除审计、不改DDL。上游usage history文案断言保留；关联108通过876警告39.37s。既有MySQL门禁扩展到真实Admin配置删除/对账actor保护，总数仍22，新版本尚未实跑。
+- 添加M3关联检查，DELETE外键拒绝回滚固定提示；不删除审计、不改DDL。上游usage history文案断言保留；关联108通过876警告39.37s。既有MySQL门禁扩展到真实Admin配置删除/对账actor保护，总数仍22，当时尚未实跑。
+- 最终1becae8已推release分支，包含e6469ba及M3删除fence；本地完整1075/22skip/10768警告/613.70s，243 AST/49模板，静态无新E9/F（历史2条F401保留）。
+- 准确CI35517521638全成功：1075离线789.37s；真实MySQL22/22、40.850s，真实broker完成100任务回收/RSS452980KiB回收/下一任务成功。ci-35517521638.log和本地admin-merge-full-01.log保留。
+- 收尾审计docs/audits/2026-09-20-m3-release-candidate.md；后续仅文档提交，不变更已验证应用。生产无本轮写入/切换，未推master避免并行发布者误采；需要计费审核或用户明确接受暂停新付费LLM，之后才能继续实际镜像/备份/切换门禁。
 
 ## 2026-09-19 M3.2d学习派发可靠性（本地切片完成，M3仍进行中）
 - 用户继续；基线8bf2563、既有累积未提交/未暂存改动保留。Docker socket仍缺，PATH无mysqld/redis-server；临时venv可用。不连服务/生产、不提交或子代理。

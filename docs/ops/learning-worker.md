@@ -76,7 +76,7 @@ python scripts/learning_worker.py check --snapshot PRIVATE_STATUS.json --node le
 
 ## 独立启用/回滚前置
 
-1. 当前所有22项隔离MySQL在本地仍未运行；执行最新schema的空库/迁移/model-diff与真实HTTP会话、重试/取消/ACK/账本故障门禁。
+1. 应用1becae8的CI35517521638已通过当前22项隔离MySQL（本地仍无服务）；实际待部署镜像还需执行最新schema的空库/迁移/model-diff与真实HTTP会话、重试/取消/ACK/账本故障门禁。基础broker回收CI不等于专用learning worker容量/进程故障验收。
 2. 在明确可丢弃的隔离环境，使用实际候选镜像/Compose验证：同卷RW→RO可读、worker写被内核拒绝、错UID/权限/缺卷退出、重启保留；不要用生产卷做破坏性验证。
 3. 实际Redis/prefork验证：注册及唯一队列、重复投递、soft/hard、broker/进程失联、未决预留不重付、恢复收敛、readiness失败。当前Redis仍是既有配置，本层不提供新broker持久性或防驱逐保证。
 4. 验证cgroup实际CPU/RAM/PIDs、冷启动/最大允许样本/历史扫描/健康检查/回收的峰值和长时行为。监控parent/child PSS、memory.events/oom_kill、队列延迟及数据库压力；container restart计数不证明child没OOM。

@@ -1,6 +1,6 @@
 # 企业发现初始分析：持久LLM队列
 
-状态：**M3已提交发布分支，正在整合/验收，尚未部署，不是实际服务或完整M3验收。** 当前发布计划见[提交与发布门禁](../superpowers/specs/2026-09-19-m3-current-release.md)。
+状态：**M3已提交发布分支并整合，应用1becae8的CI通过，尚未部署，不是实际待部署镜像或完整M3验收。** 当前发布计划见[提交与发布门禁](../superpowers/specs/2026-09-19-m3-current-release.md)。
 
 ## 业务边界
 
@@ -60,7 +60,7 @@ Admin Scan All Now / daily startup-discovery
 
 Job保留有界输入元数据和hash，而不是原始目录快照。**24小时是排队有效期，不是物理删除期限。** 不自动清理这些审计；名称/描述/公司网站等仍可能敏感，不公开存储副本或日志。hash不是签名，无法证明模型真正接收/未留存，也不抵御一致篡改/整库回滚。该流程未补齐所有模型暴露历史，不能扩大已有学习holdout的独立性声明。
 
-现有LLM worker消费新增任务；没有增加这个队列的CPU/RAM容量或新的task级软硬限制。它不使用专用learning worker。仍需实际MySQL迁移/行锁/精度/FK、Redis/broker/ACK、prefork软硬杀/重启、积压与全局预算竞争/容量门禁；SQLite/时间和COMMIT故障模拟不能代替。
+现有LLM worker消费新增任务；没有增加这个队列的CPU/RAM容量或新的task级软硬限制。它不使用专用learning worker。CI35517521638已通过当前22项真实MySQL及基础Redis/prefork回收；实际待部署镜像仍需迁移/行锁/精度/FK验收，完整broker/ACK、prefork软硬杀/重启、积压与全局预算竞争/容量门禁仍未齐备；SQLite/时间和COMMIT故障模拟不能代替。
 
 用户已授权提交部署，但门禁未满足，生产保持原版。上线先审核计费上界、备份、验证实际候选，并协调停下全部旧付费调用方/旧扫描器再迁移和切换。旧程序及bulk SQL不递增这里的ORM代次，也可能再次同步扫描全表/重置失败；保留新表并不使旧代码回滚安全。原Admin扫描消息本身不是durable outbox，只有新公司/job提交后才具有这里的持久意图。
 
