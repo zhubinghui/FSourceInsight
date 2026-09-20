@@ -52,3 +52,9 @@
 - 后续相关组合merge-focused-02.log在300s工具期限终止，仅35个完成标记，无faulthandler输出；无残留pytest/helper进程。原因未知，保留日志，先定位顺序并verbose重跑，不跳过测试/放宽断言。收集顺序显示第36项为rejected_entry_is_not_rediscovered，单独1通过/3.43s，不能证明300s中断根因。改以verbose完整回归定位并覆盖最终合并，不加猜测性产品修复。
 - 完整合并回归merge-full-01.log：1059通过/22skip/1失败，640.32s，无超时；唯一失败为新增heads测试捕获输出，capsys仍无法接住Alembic预绑定stdout。改用独立真实Flask CLI子进程（testing app、关闭dotenv、无生产环境）核唯一head/history；不mock迁移，也不改变head断言。修正后的最终相关12通过/111警告/12.61s，日志merge-final-subset.log。
 - git diff --cached --check把合入上游原样CRLF CSV报作尾部空白；这些已发布审计数据保持字节不变，不为格式重写证据。对origin/master的实际新增/改动做diff检查通过；另以cr-at-eol核合入行，不宣称默认全量检查无警告。
+- 合并提交76d0e60（父751ac51、23de19e）已推release分支，工作树clean；准确CI35497160720已启动。此SHA本地完整1060通过/22专用MySQL skip/10601警告/623.89s（merge-full-02.log），240 AST/49模板、指定E9/F及敏感pattern检查通过；不等于实际MySQL/镜像验收。
+- 已明确向用户询问是否接受先暂停新的付费LLM调用上线；尚无回答。默认保持现网，不把“继续”自动解释为接受功能暂停。继续等待准确CI，生产无本轮改动。
+- watch35497160720最后看到离线job成功（13m47s）、MySQL已进入实际unittest；随后本机到GitHub的IPv6链路报no route to host，watch退出1不是CI失败结论。保留ci-35497160720-watch.log，先重新只读获取状态，不重跑/跳过门禁。用户回复“继续”，继续安全准备，不擅自视为接受付费暂停。
+- 重新获取状态确认35497160720最终failure：离线job成功，实际MySQL unittest失败，broker后置门禁未获通过。先保存真实失败细节、按公共迁移/HTTP seam诊断修复；禁止因本地1060绿而继续生产切换。
+- MySQL精确结果21成功/1错误（22项、51.034s）：新增b3升级测试在升级前造数INSERT遗漏is_auto_created等无server default的非空字段。补全is_auto_created、ai_analysis_failures、created_at/updated_at，并增加原失败计数保留断言；不改DDL/不放松review及model-diff断言。首次误查不存在的迁移文件无写入，已通过实际e5初始表/49ca失败计数迁移核对。
+- 09-20本轮继续后，本地Docker socket仍不可用；修正fixture的本地公共迁移子集3通过/22专用skip，不能当MySQL通过。fetch又发现origin/master已从23de19e推进01bc17b；先只读核新增内容/另一工作树状态，保留当前修正，不用过时候选覆盖主干或生产。新增01bc17b仅一行已发布生态审计文档；另工作树有未提交tests/test_web/test_admin_safety.py，本轮不修改/提交该工作树内容，也不据此宣称不存在并行写者。仅整合已提交文档，后续生产切换仍需协调冻结。

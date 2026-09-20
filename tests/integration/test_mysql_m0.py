@@ -77,11 +77,15 @@ class MySQLM0Tests(unittest.TestCase):
     def test_merge_from_deployed_ecosystem_preserves_review_decisions(self):
         self.upgrade('b3d5e8a1c407')
         with self.db.engine.begin() as conn:
-            conn.execute(text("INSERT INTO company (name,slug,is_grenoble,review_status,postcode,city,entity_type,local_site) VALUES ('Rejected synthetic','rejected-synthetic',0,'rejected','69001','Lyon','company',0)"))
+            conn.execute(text("""INSERT INTO company
+                (name,slug,is_grenoble,review_status,postcode,city,entity_type,local_site,
+                 is_auto_created,ai_analysis_failures,created_at,updated_at)
+                VALUES ('Rejected synthetic','rejected-synthetic',0,'rejected','69001','Lyon','company',0,
+                        0,3,'2026-09-19 00:00:00','2026-09-19 00:00:00')"""))
         self.upgrade()
         with self.db.engine.connect() as conn:
-            row = conn.execute(text('SELECT review_status,postcode,city,entity_type,local_site,analysis_generation FROM company')).one()
-            self.assertEqual(tuple(row), ('rejected', '69001', 'Lyon', 'company', 0, 0))
+            row = conn.execute(text('SELECT review_status,postcode,city,entity_type,local_site,analysis_generation,ai_analysis_failures FROM company')).one()
+            self.assertEqual(tuple(row), ('rejected', '69001', 'Lyon', 'company', 0, 0, 3))
             self.assertEqual(conn.execute(text('SELECT count(*) FROM startup_analysis_job')).scalar(), 0)
             self.assertEqual(conn.execute(text('SELECT version_num FROM alembic_version')).scalars().all(), [HEAD])
             self.assertEqual(compare_metadata(MigrationContext.configure(conn), self.db.metadata), [])
