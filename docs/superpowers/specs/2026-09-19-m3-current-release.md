@@ -58,3 +58,10 @@
 - 重新获取状态确认35497160720最终failure：离线job成功，实际MySQL unittest失败，broker后置门禁未获通过。先保存真实失败细节、按公共迁移/HTTP seam诊断修复；禁止因本地1060绿而继续生产切换。
 - MySQL精确结果21成功/1错误（22项、51.034s）：新增b3升级测试在升级前造数INSERT遗漏is_auto_created等无server default的非空字段。补全is_auto_created、ai_analysis_failures、created_at/updated_at，并增加原失败计数保留断言；不改DDL/不放松review及model-diff断言。首次误查不存在的迁移文件无写入，已通过实际e5初始表/49ca失败计数迁移核对。
 - 09-20本轮继续后，本地Docker socket仍不可用；修正fixture的本地公共迁移子集3通过/22专用skip，不能当MySQL通过。fetch又发现origin/master已从23de19e推进01bc17b；先只读核新增内容/另一工作树状态，保留当前修正，不用过时候选覆盖主干或生产。新增01bc17b仅一行已发布生态审计文档；另工作树有未提交tests/test_web/test_admin_safety.py，本轮不修改/提交该工作树内容，也不据此宣称不存在并行写者。仅整合已提交文档，后续生产切换仍需协调冻结。
+- fixture修正提交1002789、合入01bc文档为7f6e9f8，均推release；准确CI35510122656运行。等待期间只由主会话核官方模型计费资料，形成审核输入，不调用供应商模型、不改真实配置，也不把公共目录标称上界直接认作生产账户/网关完整合同。
+- 官方模型/SDK资料已形成docs/audits/2026-09-20-m3-billing-review-inputs.md：标准单价并非账户/网关证明，Project默认Fast与区域10%附加费均影响审核；未写真实配置。
+- watch35510122656命令达到1000s工具期限，未返回CI终态。先保留watch日志并重新读状态/当前步骤；不把工具超时判成测试失败或成功，也不无限重复watch。
+- 重新查询确认35510122656于12:33:34Z已success（watch超时不代表CI卡住）：7f6e9f8离线1060/22skip，真实MySQL22/22（95.025s），真实broker完成100次任务后回收及RSS450652KiB后回收/下一任务成功，WORKER_LIFECYCLE_OK。完整ci-35510122656.log保存；这是CI镜像/服务证据，不是实际待部署web/worker候选或学习worker门禁。
+- 结束查询时共享origin/master又推进e6469ba（Admin安全修复），不能用7f候选覆盖。先只读核增量；生产计费模式与并行发布冻结仍未确认，不切换生产。
+- e646增量为7文件/221新增：防自锁/密码/历史删除/整点按配置时区爬取；另一工作树当前clean。先提交本轮CI/计费证据，再合入该已提交安全修复，重新验收准确SHA。
+- 语义整合预先明确：上游删除防护只识别usage及crawl_schema作者；M3另有尚无usage的reservation、learning创建/retry/validation申请人和reconciliation actor外键。须通过真实Admin删除行为回归保留这些关联，不能合并后让账本/身份丢失或500；不修改已有记录/DDL，不开放删除审计。
