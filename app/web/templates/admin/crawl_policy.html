@@ -20,7 +20,7 @@
     <button class="btn btn-primary my-3" {% if not source.is_active %}disabled{% endif %}>Save new policy version</button>
     {% if not source.is_active %}<p>Enable the source before granting a new policy. Revocation remains available.</p>{% endif %}
 </form>
-<form method="post" data-policy-revoke action="{{ url_for('admin.crawl_config.policy.revoke', source_id=source.id) }}">
+<form method="post" data-policy-revoke onsubmit="return confirm('Revoke preview permission? Existing reports and replays for this source become unusable.')" action="{{ url_for('admin.crawl_config.policy.revoke', source_id=source.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="expected_generation" value="{{ generation }}">
     <input type="hidden" name="expected_source" value="{{ source_hash }}">

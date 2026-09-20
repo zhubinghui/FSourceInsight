@@ -69,9 +69,8 @@ def crawl_all_sources():
     except Exception:
         current_hour = datetime.utcnow().hour
 
-    # Allow ±1 hour tolerance for scheduling drift
-    if abs(current_hour - configured_hour) > 1 and abs(current_hour - configured_hour) < 23:
-        logger.info(f'Skipping daily crawl: current hour {current_hour} ({configured_tz}) != configured {configured_hour}')
+    # Beat offers this task every hour; only the configured local hour runs it.
+    if current_hour != configured_hour:
         return {'skipped': True, 'reason': f'hour mismatch: {current_hour} vs {configured_hour} ({configured_tz})'}
 
     sources = NewsSource.query.filter_by(is_active=True).all()

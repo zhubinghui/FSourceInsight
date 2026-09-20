@@ -17,6 +17,12 @@
 - 76d0e60合并提交已推；本地最终1060通过/22skip/10601警告/623.89s，240 AST/49模板。准确CI35497160720离线成功；真实MySQL21成功/1错误，新增升级fixture缺is_auto_created等非空字段，已补全并额外断言失败计数3保留，未改产品DDL。watch曾网络no-route断开，后重新读真实结论；broker门禁未通过。
 - 09-20用户继续：本地Docker仍缺；修正fixture的迁移子集3通过/22skip，不当实库绿。origin推进01bc17b仅生态发布审计1行；另一工作树有未提交Admin安全测试，本轮不修改/提交它，不默认不存在并行写者。当前普通LLM计费审核/明确暂停授权仍未解决，生产保持不变。
 
+### 09-20后续CI与Admin安全合并
+- 7f6e9f8的CI35510122656完整success：1060离线/22专用skip、实际MySQL22通过95.025s、真实broker100次任务回收/RSS450652KiB回收/下一任务正常。watch本机超时后直接查终态确认，完整日志保留；不是实际待部署web/worker镜像证明。
+- 官方mini/nano/SDK/服务层资料整理到docs/audits/2026-09-20-m3-billing-review-inputs.md；Project默认Fast、区域费/网关/实际适配器仍须审核，不擅填生产上界/不默认接受付费暂停。
+- 主干又推进e6469ba Admin安全，已开始合入。新增真实HTTP回归证明M3无usage的预留配置及learning创建/retry/validation/对账actor不能删除；5业务red+2外键竞争red，fixtures的detached登录/错误选样单独记录。
+- 添加M3关联检查，DELETE外键拒绝回滚固定提示；不删除审计、不改DDL。上游usage history文案断言保留；关联108通过876警告39.37s。既有MySQL门禁扩展到真实Admin配置删除/对账actor保护，总数仍22，新版本尚未实跑。
+
 ## 2026-09-19 M3.2d学习派发可靠性（本地切片完成，M3仍进行中）
 - 用户继续；基线8bf2563、既有累积未提交/未暂存改动保留。Docker socket仍缺，PATH无mysqld/redis-server；临时venv可用。不连服务/生产、不提交或子代理。
 - 核对后先补计划：学习单session ID消息缺轮次/retry fence、重复HTTP/recover无重派间隔；旧未认领异常可能阻断新queued。拟用版本化派发键及单个可空due列，不另造付费额度/历史授权。

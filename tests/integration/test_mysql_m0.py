@@ -772,6 +772,48 @@ class MySQLM0Tests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'budget exceeded'):
                 LLMClient().translate('second')
             self.assertEqual(provider.call_count, 1)
+        from bs4 import BeautifulSoup
+        from werkzeug.security import generate_password_hash
+        from app.models.user import User
+        from app.models.llm import LLMConfig, LLMReservation, LLMReconciliation
+        self.db.session.remove()
+        config_id = self.db.session.query(LLMReservation).one().config_id
+        for name in ('reviewer', 'replacement'):
+            self.db.session.add(User(email=f'{name}@test.invalid', is_admin=True,
+                                     password_hash=generate_password_hash('synthetic-password')))
+        self.db.session.commit()
+        actor_id = self.db.session.query(User).filter_by(email='reviewer@test.invalid').one().id
+        client = self.app.test_client()
+        def http(method, path, **kwargs):
+            with self.app.app_context():
+                return getattr(client, method)(path, **kwargs)
+        def token(path='/auth/login'):
+            return BeautifulSoup(http('get', path).text, 'html.parser').select_one('[name=csrf_token]')['value']
+        def login(name):
+            response = http('post', '/auth/login', data={'csrf_token': token(),
+                'email': f'{name}@test.invalid', 'password': 'synthetic-password'})
+            self.assertEqual(response.status_code, 302)
+        login('reviewer')
+        response = http('post', f'/admin/llm-config/{config_id}/delete',
+                               data={'csrf_token': token('/admin/llm-config')})
+        self.assertEqual(response.status_code, 302)
+        self.db.session.remove()
+        self.assertIsNotNone(self.db.session.get(LLMConfig, config_id))
+        self.assertEqual(self.db.session.query(LLMReservation).one().state, 'reserved')
+        form = BeautifulSoup(http('get', '/admin/llm-usage').text, 'html.parser').select_one('[data-reservation-state=reserved] form')
+        self.assertIsNotNone(form)
+        response = http('post', form['action'], data={'csrf_token': form.select_one('[name=csrf_token]')['value'],
+            'expected_state': 'reserved', 'final_cost': '0.003', 'evidence_note': 'Final synthetic invoice',
+            'confirmed_final': '1', 'confirmed_stopped': '1'})
+        self.assertEqual(response.status_code, 302)
+        http('get', '/auth/logout')
+        login('replacement')
+        response = http('post', f'/admin/users/{actor_id}/delete', data={'csrf_token': token('/admin/users')})
+        self.assertEqual(response.status_code, 302)
+        self.db.session.remove()
+        self.assertIsNotNone(self.db.session.get(User, actor_id))
+        self.assertEqual(self.db.session.query(LLMReconciliation).one().actor_id, actor_id)
+        self.assertEqual(self.db.session.query(LLMReservation).one().state, 'reconciled')
 
     def test_mysql_llm_independent_ledger_does_not_wait_on_business_parent(self):
         from app.llm.tasks import process_article_llm

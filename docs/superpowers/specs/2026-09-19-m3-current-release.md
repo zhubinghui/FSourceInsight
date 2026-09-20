@@ -65,3 +65,5 @@
 - 结束查询时共享origin/master又推进e6469ba（Admin安全修复），不能用7f候选覆盖。先只读核增量；生产计费模式与并行发布冻结仍未确认，不切换生产。
 - e646增量为7文件/221新增：防自锁/密码/历史删除/整点按配置时区爬取；另一工作树当前clean。先提交本轮CI/计费证据，再合入该已提交安全修复，重新验收准确SHA。
 - 语义整合预先明确：上游删除防护只识别usage及crawl_schema作者；M3另有尚无usage的reservation、learning创建/retry/validation申请人和reconciliation actor外键。须通过真实Admin删除行为回归保留这些关联，不能合并后让账本/身份丢失或500；不修改已有记录/DDL，不开放删除审计。
+- Admin新回归实际重现5类记录被删除（SQLite允许孤立关联，MySQL会外键拒绝）；另外两条DELETE外键竞争故障重现私有IntegrityError外抛。补读前检查及IntegrityError rollback/固定提示，不宣称真实并发/数据库故障全覆盖。初次fixture为detached User登录/错误validation selector，第二次为错误base采样；改真实HTTP登录及已确认HTML留出后取得5条业务red，分别保存日志，不弱化断言。
+- Admin/账本/安全/运维关联回归首轮107通过/1失败：新提示替换了上游已测试的usage history措辞；保留原措辞并补充reservations，不改上游断言。扩展既有MySQL用量提交失败门禁，经真实Admin尝试删保留预留配置及对账actor；保留原收费/余额断言，总测试数仍22，不冒称新增独立门禁或已实跑。
