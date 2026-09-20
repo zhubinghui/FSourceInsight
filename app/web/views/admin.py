@@ -32,6 +32,40 @@ def require_admin():
 
 # ── Dashboard ─────────────────────────────────────────────────────
 
+ADMIN_ERRORS = {
+    400: ('The request could not be processed', 'A field was missing, malformed or not allowed.'),
+    403: ('Not allowed', 'This action is not permitted for the current state or account.'),
+    404: ('Not found', 'The record does not exist or was removed.'),
+    409: ('The page was out of date', 'Something changed since the page was loaded. Go back, reload and try again.'),
+    503: ('Temporarily unavailable', 'A required service or configuration is not available right now.'),
+}
+
+
+def _admin_error(error):
+    from urllib.parse import urlsplit
+    # CSRF failures are raised before the admin guard runs; outsiders get the plain response.
+    if not (current_user.is_authenticated and current_user.is_admin):
+        return error
+    heading, explanation = ADMIN_ERRORS[error.code]
+    referrer = urlsplit(request.referrer or '')
+    # Only same-site admin pages are offered as a way back.
+    same_site = referrer.netloc == request.host and referrer.path.startswith('/admin')
+    back = (referrer.path + ('?' + referrer.query if referrer.query else '')) if same_site else url_for('admin.dashboard')
+    default = type(error).description
+    detail = error.description if error.description and error.description != default else None
+    return render_template('admin/error.html', code=error.code, heading=heading, explanation=explanation,
+                           detail=detail, back=back), error.code
+
+
+for _code in ADMIN_ERRORS:
+    admin_bp.register_error_handler(_code, _admin_error)
+
+
+@admin_bp.context_processor
+def admin_navigation_counts():
+    return {'admin_pending_reviews': Company.query.filter_by(review_status='pending').count()}
+
+
 @admin_bp.route('/')
 def dashboard():
     source_count = NewsSource.query.filter_by(is_active=True).count()

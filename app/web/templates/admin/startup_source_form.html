@@ -1,11 +1,11 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}{{ 'Edit' if source else 'New' }} Startup Source{% endblock %}
+{% block title %}{{ 'Edit' if source else 'New' }} Discovery Source{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{{ url_for('admin.startup_sources') }}" class="text-decoration-none">Startup Sources</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('admin.startup_sources') }}" class="text-decoration-none">Discovery Sources</a></li>
 <li class="breadcrumb-item active">{{ 'Edit' if source else 'New' }}</li>
 {% endblock %}
 {% block content %}
-<h3 class="mb-4">{{ 'Edit: ' + source.name if source else 'New Startup Discovery Source' }}</h3>
+<h3 class="mb-4">{{ 'Edit: ' + source.name if source else 'New Discovery Source' }}</h3>
 
 <div class="card card-fs">
     <div class="card-body">
@@ -28,7 +28,7 @@
                 <label class="form-label">Type *</label>
                 <select name="source_type" class="form-select" required>
                     <option value="startup" {{ 'selected' if not source or source.source_type == 'startup' }}>Startup / Company Directory</option>
-                    <option value="research_lab" {{ 'selected' if source and source.source_type == 'research_lab' }}>Research Lab / Institute</option>
+                    <option value="research_lab" {{ 'selected' if source and source.source_type == 'research_lab' }}>Research Lab / Institute (kept for reference, not scanned)</option>
                 </select>
             </div>
             <div class="mb-3">
