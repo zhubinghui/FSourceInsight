@@ -394,6 +394,10 @@ def llm_config_edit(config_id):
 def llm_config_delete(config_id):
     config = LLMConfig.query.get_or_404(config_id)
     name = f'{config.provider}/{config.model}'
+    if LLMUsageLog.query.filter_by(config_id=config.id).first():
+        # Cost history references the config; keep both.
+        flash(f'LLM config {name} has usage history and cannot be deleted. Disable it instead.', 'error')
+        return redirect(url_for('admin.llm_config'))
     db.session.delete(config)
     db.session.commit()
     flash(f'LLM config {name} deleted.', 'success')
@@ -692,6 +696,20 @@ def users():
     return render_template('admin/users.html', users=users)
 
 
+PASSWORD_RULE = 'Password must be at least 8 characters (at most 1024).'
+
+
+def _valid_password(password):
+    return 8 <= len(password) <= 1024
+
+
+def _authored_records(user_id):
+    from app.models import crawl_schema
+    models = [model for model in vars(crawl_schema).values()
+              if isinstance(model, type) and hasattr(model, 'created_by_id')]
+    return any(model.query.filter_by(created_by_id=user_id).first() for model in models)
+
+
 @admin_bp.route('/users/new', methods=['GET', 'POST'])
 def user_new():
     from app.models.user import User
@@ -700,6 +718,9 @@ def user_new():
         email = request.form.get('email', '').strip()
         if User.query.filter_by(email=email).first():
             flash(f'User {email} already exists.', 'error')
+            return redirect(url_for('admin.user_new'))
+        if not _valid_password(request.form.get('password', '')):
+            flash(PASSWORD_RULE, 'error')
             return redirect(url_for('admin.user_new'))
         user = User(
             email=email,
@@ -723,14 +744,22 @@ def user_edit(user_id):
     from werkzeug.security import generate_password_hash
     user = User.query.get_or_404(user_id)
     if request.method == 'POST':
-        user.email = request.form.get('email', user.email).strip()
+        new_email = request.form.get('email', user.email).strip()
+        new_password = request.form.get('password', '').strip()
+        if User.query.filter(User.email == new_email, User.id != user.id).first():
+            flash(f'Email {new_email} is already used by another account.', 'error')
+            return redirect(url_for('admin.user_edit', user_id=user.id))
+        if new_password and not _valid_password(new_password):
+            flash(PASSWORD_RULE, 'error')
+            return redirect(url_for('admin.user_edit', user_id=user.id))
+        user.email = new_email
         user.name = request.form.get('name', '').strip()
         user.preferred_language = request.form.get('preferred_language', 'zh')
         user.receive_daily_digest = request.form.get('receive_daily_digest') == 'on'
-        user.is_active_user = request.form.get('is_active_user') == 'on'
+        # Administrators cannot lock themselves out or drop their own role.
         if user.id != current_user.id:
+            user.is_active_user = request.form.get('is_active_user') == 'on'
             user.is_admin = request.form.get('is_admin') == 'on'
-        new_password = request.form.get('password', '').strip()
         if new_password:
             user.password_hash = generate_password_hash(new_password)
         db.session.commit()
@@ -745,6 +774,9 @@ def user_delete(user_id):
     user = User.query.get_or_404(user_id)
     if user.id == current_user.id:
         flash('Cannot delete your own account.', 'error')
+    elif _authored_records(user.id):
+        flash(f'User "{user.email}" authored crawl configuration records and cannot be deleted. '
+              'Deactivate the account instead.', 'error')
     else:
         email = user.email
         db.session.delete(user)
@@ -811,10 +843,17 @@ def settings():
             if val:
                 SystemSetting.set(key, val)
         # Save crawl schedule
+        from zoneinfo import available_timezones
         crawl_hour = request.form.get('crawl_daily_hour', '').strip()
+        crawl_tz = request.form.get('crawl_timezone', '').strip()
+        if (crawl_hour and not (crawl_hour.isdigit() and int(crawl_hour) <= 23)) or (
+                crawl_tz and crawl_tz not in available_timezones()):
+            db.session.rollback()
+            flash('Invalid daily crawl hour (0-23) or timezone; nothing was saved.', 'error')
+            return redirect(url_for('admin.settings'))
         if crawl_hour:
             SystemSetting.set(key='crawl_daily_hour', value=crawl_hour,
-                              description='Daily crawl start hour (UTC, 0-23)')
+                              description='Daily crawl start hour in the configured timezone (0-23)')
         check_interval = request.form.get('crawl_check_interval_hours', '').strip()
         if check_interval:
             SystemSetting.set(key='crawl_check_interval_hours', value=check_interval,

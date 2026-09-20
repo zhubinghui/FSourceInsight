@@ -34,7 +34,7 @@ def make_celery(app=None):
         beat_schedule={
             'daily-crawl-all': {
                 'task': 'app.crawlers.tasks.crawl_all_sources',
-                'schedule': crontab(hour=1, minute=0),  # Default: 1:00 AM Paris time
+                'schedule': crontab(minute=0),  # Hourly; the task runs only at the configured hour
             },
             'crawl-frequency-check': {
                 'task': 'app.crawlers.tasks.schedule_due_crawls',
