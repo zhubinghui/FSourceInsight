@@ -1,0 +1,32 @@
+slug,name,sector,entity_type,basis
+verkor,Verkor,Energy & CleanTech,,battery cells; general knowledge
+hrs,HRS,Energy & CleanTech,,hydrogen refuelling stations; general knowledge
+waga-energy,Waga Energy,Energy & CleanTech,,biomethane from landfill gas; general knowledge
+renaissance-fusion,Renaissance Fusion,Energy & CleanTech,,fusion energy; general knowledge
+rosi,Rosi,Energy & CleanTech,,PV/silicon recycling; general knowledge
+vencorex,Vencorex,Materials & Chemistry,,isocyanates chemistry; general knowledge
+andyamo,Andyamo,Software & Digital,,Minalogic theme: Software
+idec-hautes-technologies,IDEC HAUTES TECHNOLOGIES,Software & Digital,,Minalogic theme: Software
+zzzapp,Zzzapp,Software & Digital,,Minalogic theme: Software
+marbulb,marbulb,Software & Digital,,"Minalogic themes: AI, Cybersecurity, IoT, Software"
+socialdream,SocialDream,Software & Digital,,VR software; general knowledge
+idiscovr,iDiscoVR,Software & Digital,,VR software; name/general knowledge
+novilix,Novilix,AI & Computing,,"Minalogic themes: AI, Software"
+inceptive,Inceptive,AI & Computing,,"Minalogic themes: AI, Software"
+axl-technologies,AXL technologies,AI & Computing,,Minalogic theme: AI
+hawai-tech,HawAI.tech,AI & Computing,,"Minalogic themes: AI, Microelectronics, Software"
+bluecime,Bluecime,AI & Computing,,Minalogic themes: AI first; computer vision
+ecrin-systems,ECRIN Systems,AI & Computing,,embedded computing systems; Minalogic themes
+thelyos,Thélyos,AI & Computing,,"Minalogic themes: Microelectronics, Quantics"
+engo,ENGO,Photonics & Sensors,,"AR eyewear displays; Minalogic themes IoT, Microelectronics, Photonics"
+radiall,Radiall,IoT & Connectivity,,RF/optical connectors; Minalogic themes
+atraltech,Atraltech,IoT & Connectivity,,connected security electronics; Minalogic themes
+jay-electronique,JAY ELECTRONIQUE,IoT & Connectivity,,industrial radio remote controls; general knowledge
+egis-industrie-et-process,Egis Industrie et Process,Semiconductor,,Minalogic theme: Microelectronics
+life-01,LIFE 01,Semiconductor,,Minalogic theme: Microelectronics
+champollion-avocats,Champollion Avocats,,ecosystem_support,"law/IP/consulting/training firm, not a tech company"
+kpmg-avocats,KPMG Avocats,,ecosystem_support,"law/IP/consulting/training firm, not a tech company"
+business-english-with-christina,Business English With Christina,,ecosystem_support,"law/IP/consulting/training firm, not a tech company"
+mille47-conseil-coaching,Mille47 Conseil & Coaching,,ecosystem_support,"law/IP/consulting/training firm, not a tech company"
+rainmakers-partners,RAINMAKERS & Partners,,ecosystem_support,"law/IP/consulting/training firm, not a tech company"
+reactivip,Reactiv’IP,,ecosystem_support,"law/IP/consulting/training firm, not a tech company"
