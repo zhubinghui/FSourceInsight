@@ -27,7 +27,7 @@ web-only evidence volume preserved; restarts 0; fast worker ready; beat started.
 `scripts/apply_ecosystem_review.py` dry run on production: 610 rows, 0 skipped, counts as expected. Applied the 596 evidence-based rows:
 199 rejected (kept as tombstones), 232 unflagged (registered outside Isère), 165 given entity type/postcode/city. Second dry run: no changes.
 Public map: 746 → 315 entries; junk fragments and EURONEXT no longer shown; Schools & Research 9, Ecosystem support 13 (collapsed).
-Held back for owner review: 14 `flag` rows (Isère entities missing from the map) whose locations are not externally evidenced.
+The 14 `flag` rows (Isère entities missing from the map; locations from general knowledge, not external evidence) were held for the owner, confirmed, then applied on 2026-09-20: Inovallée, SPINTEC, Institut Néel, Clinatec, Fonds Clinatec, TIMA, MIAI, Verkor, HRS, Vencorex, Renaissance Fusion, Waga Energy, Rossignol, Métropole de Grenoble. Full 610-row file now reports no changes. Map: 329 entries (Schools & Research 14, Ecosystem support 16, no sector 62). The new entries have no sector or analysis yet. Not included (duplicates or below the export threshold): Université Grenoble Alpes, CHU de Grenoble, Minatec, FAMES, IRIG, Air Liquide Advanced Technologies.
 
 ## Open
 - 23 `research_lab` startup sources are still active in the database; the code no longer scans them.
