@@ -3,7 +3,7 @@ import json
 import math
 from datetime import date
 
-CONTRACT_VERSION = '1'
+CONTRACT_VERSION = '2'
 CATEGORIES = {'semiconductor', 'ai', 'software', 'cloud', 'cybersecurity', 'iot',
               'energy', 'automotive', 'aerospace', 'biotech', 'startup', 'fintech', 'telecom', 'research'}
 HIGHLIGHTS = {'tech_breakthrough', 'local_research', 'investment', 'local_event'}
@@ -69,13 +69,22 @@ def validate_response(task, text):
         _object(value, {'companies'})
         _list(value['companies'], 100)
         for entry in value['companies']:
-            _object(entry, {'name', 'mentions', 'is_primary'}, {'spinoff_origin', 'company_stage'})
+            _object(entry, {'name', 'mentions', 'is_primary'},
+                    {'spinoff_origin', 'company_stage', 'location'})
             _string(entry['name'], 300, nonempty=True)
             _require(type(entry['mentions']) is int and 1 <= entry['mentions'] <= 100000)
             _require(type(entry['is_primary']) is bool)
             if entry.get('spinoff_origin') is not None:
                 _string(entry['spinoff_origin'], 200)
             _require(entry.get('company_stage') in (None, 'startup', 'scale-up', 'mature'))
+            location = entry.get('location')
+            if location is not None:
+                _object(location, {'in_isere'}, {'city', 'postcode'})
+                _require(type(location['in_isere']) is bool)
+                if location.get('city') is not None:
+                    _string(location['city'], 120)
+                if location.get('postcode') is not None:
+                    _string(location['postcode'], 10)
     elif task == 'sentiment':
         _object(value, {'sentiment', 'score', 'reason'})
         _require(value['sentiment'] in ('positive', 'negative', 'neutral'))

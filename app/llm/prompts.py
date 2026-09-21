@@ -6,7 +6,7 @@ User prompts use Python str.format() placeholders.
 """
 
 # Bump when the task semantics change, even if message text remains unchanged.
-PROMPT_VERSION = '2026-09-06.2'
+PROMPT_VERSION = '2026-09-22.1'
 
 TRANSLATE_SYSTEM = (
     "You are a professional translator specializing in French technology news. "
@@ -58,10 +58,15 @@ NER_SYSTEM = (
     "- Mark is_primary=true if the company is a main subject of the article (not just mentioned in passing).\n"
     "- If the article mentions a company is a spin-off or was created from a research lab/institution, "
     "include spinoff_origin (e.g., 'CEA-Leti', 'Inria', 'UGA'). Use null if unknown or not a spin-off.\n"
-    "- If the company stage is evident (startup, scale-up, mature), include it. Use null if unclear.\n\n"
+    "- If the company stage is evident (startup, scale-up, mature), include it. Use null if unclear.\n"
+    "- If the article states where the company is based, include location with in_isere=true only when "
+    "that place is in the Is\u00e8re d\u00e9partement (Grenoble, Meylan, Crolles, Voiron, Vizille, "
+    "Bourgoin-Jallieu, Vienne, postcodes starting 38...). Use in_isere=false for anywhere else, and omit "
+    "location entirely when the article does not say where the company is. Do not guess from the topic.\n\n"
     "Return a JSON object with a single key 'companies' containing an array of objects:\n"
     '{{"companies": [{{"name": "...", "mentions": <int>, "is_primary": <bool>, '
-    '"spinoff_origin": "...|null", "company_stage": "startup|scale-up|mature|null"}}, ...]}}\n\n'
+    '"spinoff_origin": "...|null", "company_stage": "startup|scale-up|mature|null", '
+    '"location": {{"city": "...", "postcode": "...", "in_isere": <bool>}}}}, ...]}}\n\n'
     "If no companies are found, return: {\"companies\": []}"
 )
 

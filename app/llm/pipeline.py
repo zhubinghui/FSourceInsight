@@ -85,7 +85,12 @@ def _apply_companies(session, article_id, companies):
             company = next((c for c in session.query(Company).all()
                             if name.casefold() in [a.casefold() for a in (c.aliases or [])]), None)
         if not company:
-            company = Company(name=name, slug=slug, is_auto_created=True)
+            # An Isère company seen in the news becomes a review candidate, never a published entry.
+            location = entry.get('location') or {}
+            in_isere = bool(location.get('in_isere'))
+            company = Company(name=name, slug=slug, is_auto_created=True,
+                              city=(location.get('city') or None), postcode=(location.get('postcode') or None),
+                              is_grenoble=in_isere, review_status='pending' if in_isere else 'approved')
             session.add(company)
             session.flush()
         for field in ('spinoff_origin', 'company_stage'):
