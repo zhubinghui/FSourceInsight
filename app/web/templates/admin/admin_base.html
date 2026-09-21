@@ -127,6 +127,7 @@
             {% set navigation = [
                 ('Monitoring', [
                     ('Dashboard', 'speedometer2', url_for('admin.dashboard'), endpoint == 'admin.dashboard'),
+                    ('System Health', 'activity', url_for('admin.monitoring'), endpoint == 'admin.monitoring'),
                     ('Crawl Logs', 'clock-history', url_for('admin.crawl_logs'), endpoint.startswith('admin.crawl_log')),
                     ('Email Logs', 'envelope', url_for('admin.email_logs'), endpoint.startswith('admin.email')),
                 ]),

@@ -183,6 +183,12 @@ def _save_source_from_form(source: NewsSource) -> NewsSource:
 
 # ── Companies ─────────────────────────────────────────────────────
 
+@admin_bp.route('/monitoring')
+def monitoring():
+    from app.monitoring import snapshot
+    return render_template('admin/monitoring.html', **snapshot())
+
+
 @admin_bp.route('/companies')
 def companies():
     page = request.args.get('page', 1, type=int)

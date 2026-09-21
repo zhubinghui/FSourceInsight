@@ -1,0 +1,101 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}System Health - Admin{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="mb-0">System Health</h2>
+    <small class="text-muted">Snapshot at {{ now.strftime('%Y-%m-%d %H:%M') }} UTC · <a href="{{ url_for('admin.monitoring') }}">refresh</a></small>
+</div>
+
+<div class="row g-3 mb-4">
+    {% set cards = [
+        ('stale-sources', 'Stale sources', sources.stale | length, 'not crawled in 24h', sources.stale | length > 0),
+        ('failed-crawls-24h', 'Failed crawls (24h)', crawls.failed_24h, crawls.total_24h ~ ' crawls run', crawls.failed_24h > 0),
+        ('unprocessed-articles', 'Unprocessed articles', pipeline.unprocessed, pipeline.articles_24h ~ ' new in 24h', pipeline.unprocessed > 50),
+        ('llm-failure-rate', 'LLM failure rate (24h)', llm.failure_rate, llm.calls_24h ~ ' calls', llm.failures_24h > 0),
+    ] %}
+    {% for metric, label, value, hint, warn in cards %}
+    <div class="col-6 col-lg-3">
+        <div class="card card-fs h-100">
+            <div class="card-body py-3">
+                <div class="text-muted" style="font-size: 0.78rem;">{{ label }}</div>
+                <div class="fw-bold {{ 'text-danger' if warn }}" style="font-size: 1.6rem;"
+                     data-metric="{{ metric }}">{{ value }}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">{{ hint }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card card-fs mb-3">
+            <div class="card-header bg-transparent fw-semibold">Queue depth</div>
+            <div class="card-body py-2">
+                {% if queues %}
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        {% for queue, depth in queues.items() %}
+                        <tr><td>{{ queue }}</td><td class="text-end fw-semibold" data-queue="{{ queue }}">{{ depth }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted mb-0 py-2">Queue depth unavailable — the broker did not answer.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card card-fs">
+            <div class="card-header bg-transparent fw-semibold">LLM</div>
+            <div class="card-body py-2">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><td>Cost today</td><td class="text-end fw-semibold" data-metric="llm-cost-today">${{ '%.2f' | format(llm.cost_today) }}{% if llm.budget %} of ${{ '%.2f' | format(llm.budget) }}{% endif %}</td></tr>
+                        <tr><td>Calls (24h)</td><td class="text-end">{{ llm.calls_24h }}</td></tr>
+                        <tr><td>Active configs</td><td class="text-end"><a href="{{ url_for('admin.llm_config') }}">{{ llm.configs_active }}</a></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card card-fs mb-3" id="stale-sources">
+            <div class="card-header bg-transparent fw-semibold">Stale sources ({{ sources.active }} active)</div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Source</th><th>Last crawled (UTC)</th><th></th></tr></thead>
+                    <tbody>
+                        {% for source in sources.stale %}
+                        <tr>
+                            <td>{{ source.name }}</td>
+                            <td>{{ source.last_crawled_at.strftime('%Y-%m-%d %H:%M') if source.last_crawled_at else 'never' }}</td>
+                            <td class="text-end"><a href="{{ url_for('admin.sources') }}">sources</a></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-muted">Every active source was crawled in the last 24 hours.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card card-fs" id="failed-crawls">
+            <div class="card-header bg-transparent fw-semibold">Failed crawls (24h)</div>
+            <div class="card-body py-2">
+                {% for log in crawls.failures %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-semibold">{{ log.source.name if log.source else 'source #' ~ log.source_id }}</span>
+                        <small class="text-muted">{{ log.started_at.strftime('%Y-%m-%d %H:%M') }} UTC</small>
+                    </div>
+                    <pre class="mb-0 text-danger" style="font-size: 0.74rem; white-space: pre-wrap;">{{ log.error_message or 'no error message recorded' }}</pre>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0 py-2">No failed crawls in the last 24 hours.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
