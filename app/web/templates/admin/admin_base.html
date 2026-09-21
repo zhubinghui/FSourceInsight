@@ -135,6 +135,9 @@
                     ('News Sources', 'rss', url_for('admin.sources'), endpoint.startswith(('admin.source', 'admin.crawl_config'))),
                     ('Discovery Sources', 'rocket-takeoff', url_for('admin.startup_sources'), endpoint.startswith('admin.startup_source')),
                 ]),
+                ('Content', [
+                    ('Articles', 'newspaper', url_for('admin.articles'), endpoint.startswith('admin.article')),
+                ]),
                 ('Ecosystem', [
                     ('Companies', 'building', url_for('admin.companies'),
                      not review_queue and endpoint.startswith(('admin.compan', 'admin.edit_company', 'admin.delete_company', 'admin.merge_companies', 'admin.review_company'))),

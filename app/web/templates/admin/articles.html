@@ -1,0 +1,76 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Articles - Admin{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Articles ({{ articles.total }})</h2>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a class="nav-link {{ 'active' if not filters.state }}" href="{{ url_for('admin.articles', source=filters.source, q=filters.q) }}">All</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if filters.state == 'unprocessed' }}" href="{{ url_for('admin.articles', state='unprocessed', source=filters.source, q=filters.q) }}">Pending ({{ pending_count }})</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if filters.state == 'processed' }}" href="{{ url_for('admin.articles', state='processed', source=filters.source, q=filters.q) }}">Processed</a></li>
+    </ul>
+    <form method="get" class="d-flex gap-2">
+        {% if filters.state %}<input type="hidden" name="state" value="{{ filters.state }}">{% endif %}
+        <select name="source" class="form-select form-select-sm" style="max-width: 220px;">
+            <option value="">All sources</option>
+            {% for source in sources %}
+            <option value="{{ source.id }}" {{ 'selected' if filters.source == source.id }}>{{ source.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="search" name="q" class="form-control form-control-sm" placeholder="Search title" value="{{ filters.q or '' }}">
+        <button type="submit" class="btn btn-fs-ghost btn-sm">Filter</button>
+    </form>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+    <thead><tr><th>Title</th><th>Source</th><th>Crawled (UTC)</th><th>LLM</th><th>Highlights</th><th></th></tr></thead>
+    <tbody>
+        {% for article in articles.items %}
+        <tr>
+            <td>
+                <a href="{{ url_for('admin.article_detail', article_id=article.id) }}">{{ article.title_fr }}</a>
+                {% if article.title_zh %}<br><small class="text-muted">{{ article.title_zh }}</small>{% endif %}
+            </td>
+            <td><small>{{ article.source.name if article.source else '-' }}</small></td>
+            <td><small>{{ article.crawled_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+            <td>
+                {% if article.llm_processed %}
+                <span class="badge bg-success">processed</span>
+                {% else %}
+                <span class="badge bg-warning text-dark">pending</span>
+                {% endif %}
+            </td>
+            <td>{% for tag in article.highlights or [] %}<span class="badge bg-secondary">{{ tag }}</span> {% endfor %}</td>
+            <td class="text-end">
+                <form method="post" action="{{ url_for('admin.article_reprocess', article_id=article.id) }}" style="display:inline"
+                      data-confirm="Queue an LLM run for this article? This costs money."
+                      onsubmit="return confirm(this.dataset.confirm)">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Reprocess</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-muted">No articles match these filters.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+{% if articles.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for p in articles.iter_pages() %}
+        {% if p %}
+        <li class="page-item {{ 'active' if p == articles.page }}">
+            <a class="page-link" href="{{ url_for('admin.articles', page=p, **filters) }}">{{ p }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

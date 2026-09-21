@@ -183,6 +183,45 @@ def _save_source_from_form(source: NewsSource) -> NewsSource:
 
 # ── Companies ─────────────────────────────────────────────────────
 
+ARTICLE_STATES = ['unprocessed', 'processed']
+
+
+@admin_bp.route('/articles')
+def articles():
+    page = request.args.get('page', 1, type=int)
+    state = request.args.get('state', '')
+    source_id = request.args.get('source', type=int)
+    search = request.args.get('q', '').strip()
+    query = Article.query
+    if state in ARTICLE_STATES:
+        query = query.filter(Article.llm_processed == (state == 'processed'))
+    if source_id:
+        query = query.filter(Article.source_id == source_id)
+    if search:
+        like = f'%{search}%'
+        query = query.filter(db.or_(Article.title_fr.like(like), Article.title_zh.like(like),
+                                    Article.title_en.like(like)))
+    articles = query.order_by(Article.crawled_at.desc()).paginate(page=page, per_page=50, error_out=False)
+    filters = {key: value for key, value in (('state', state), ('source', source_id), ('q', search)) if value}
+    return render_template('admin/articles.html', articles=articles, filters=filters,
+                           sources=NewsSource.query.order_by(NewsSource.name).all(),
+                           pending_count=Article.query.filter_by(llm_processed=False).count())
+
+
+@admin_bp.route('/articles/<int:article_id>')
+def article_detail(article_id):
+    return render_template('admin/article_detail.html', article=Article.query.get_or_404(article_id))
+
+
+@admin_bp.route('/articles/<int:article_id>/reprocess', methods=['POST'])
+def article_reprocess(article_id):
+    from app.llm.tasks import process_article_llm
+    article = Article.query.get_or_404(article_id)
+    process_article_llm.delay(article.id, force=True)
+    flash(f'Queued "{article.title_fr[:60]}" for LLM processing.', 'success')
+    return redirect(request.referrer or url_for('admin.articles'))
+
+
 @admin_bp.route('/monitoring')
 def monitoring():
     from app.monitoring import snapshot

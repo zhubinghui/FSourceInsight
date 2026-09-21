@@ -29,6 +29,7 @@ def test_sidebar_is_grouped_by_job_with_a_review_queue(db, client, login):
     assert sections == {
         'Monitoring': ['Dashboard', 'System Health', 'Crawl Logs', 'Email Logs'],
         'Sources': ['News Sources', 'Discovery Sources'],
+        'Content': ['Articles'],
         'Ecosystem': ['Companies', 'Review Queue 2', 'Sector Groups'],
         'AI / LLM': ['Task Routing', 'Model Config', 'Usage & Cost'],
         'System': ['Users', 'Settings'],
