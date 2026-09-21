@@ -349,6 +349,16 @@ def merge_companies():
                 article_id=ac.article_id, company_id=target_id
             ).first()
             if existing:
+                # Both knew this article: keep the richer link instead of dropping one.
+                if (ac.mention_count or 0) > (existing.mention_count or 0):
+                    existing.mention_count = ac.mention_count
+                if ac.is_primary and not existing.is_primary:
+                    existing.is_primary = True
+                if existing.sentiment in (None, 'neutral') and ac.sentiment not in (None, 'neutral'):
+                    existing.sentiment = ac.sentiment
+                    existing.sentiment_score = ac.sentiment_score
+                elif existing.sentiment_score is None and ac.sentiment == existing.sentiment:
+                    existing.sentiment_score = ac.sentiment_score
                 db.session.delete(ac)
             else:
                 ac.company_id = target_id
