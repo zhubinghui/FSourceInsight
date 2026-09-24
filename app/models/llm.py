@@ -72,6 +72,7 @@ class LLMReservation(db.Model):
     task_type = db.Column(db.String(50), nullable=False)
     learning_attempt_id = db.Column(db.String(36), db.ForeignKey('crawl_repair_attempt.id'))
     startup_analysis_id = db.Column(db.String(36), db.ForeignKey('startup_analysis_job.id'), index=True)
+    company_refresh_id = db.Column(db.String(36), db.ForeignKey('company_refresh_job.id'), index=True)
     billing_day = db.Column(db.Date, nullable=False)
     provider = db.Column(db.String(100), nullable=False)
     model = db.Column(db.String(200), nullable=False)

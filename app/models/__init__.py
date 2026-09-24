@@ -3,6 +3,7 @@ from .category import Category
 from .article import Article, ArticleCategory, ArticleCompany
 from .company import Company
 from .startup_analysis import StartupAnalysisJob
+from .company_refresh import CompanyRefreshJob
 from .user import User, KeywordSubscription
 from .llm import LLMConfig, LLMUsageLog, LLMBudgetGate, LLMReservation, LLMReconciliation
 from .email_log import EmailLog
@@ -13,7 +14,7 @@ __all__ = [
     'NewsSource', 'CrawlLog',
     'Category',
     'Article', 'ArticleCategory', 'ArticleCompany',
-    'Company', 'StartupAnalysisJob',
+    'Company', 'StartupAnalysisJob', 'CompanyRefreshJob',
     'User', 'KeywordSubscription',
     'LLMConfig', 'LLMUsageLog', 'LLMBudgetGate', 'LLMReservation', 'LLMReconciliation',
     'EmailLog', 'CrawlRepairSession', 'CrawlRepairAttempt', 'CrawlLearningHistory', 'CrawlValidationReport', 'CrawlRepairRetry',

@@ -404,7 +404,8 @@ def merge_companies():
                 moved += 1
 
         # Add source name as alias to target
-        aliases = target.aliases or []
+        # Copy: an in-place append to the loaded JSON list is never persisted.
+        aliases = list(target.aliases or [])
         if source_company.name not in aliases:
             aliases.append(source_company.name)
         if source_company.aliases:

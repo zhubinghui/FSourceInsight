@@ -100,7 +100,8 @@ class LLMClient:
         except RedisError:
             logger.warning('LLM response cache write unavailable; paid result retained')
 
-    def _call_llm(self, config, messages, task_type, article_id, learning_attempt=None, discovery_job=None):
+    def _call_llm(self, config, messages, task_type, article_id, learning_attempt=None, discovery_job=None,
+                  refresh_job=None):
         model = config.model
         if config.provider and '/' not in model:
             model = f'{config.provider}/{model}'
@@ -119,7 +120,8 @@ class LLMClient:
             kwargs['service_tier'] = tier
         if task_type in JSON_TASKS:
             kwargs['response_format'] = {'type': 'json_object'}
-        permit = spend.reserve(config, task_type, learning_attempt, messages, discovery_job=discovery_job)
+        permit = spend.reserve(config, task_type, learning_attempt, messages, discovery_job=discovery_job,
+                               refresh_job=refresh_job)
         start = time.monotonic()
         usage, error, result = None, None, None
         try:
@@ -139,7 +141,7 @@ class LLMClient:
         # committed permit and must never cause another billable call.
         accounting_error = spend.settle(permit, log_entry, usage)
         if accounting_error and (error is None or usage is not None or learning_attempt is not None
-                                 or discovery_job is not None):
+                                 or discovery_job is not None or refresh_job is not None):
             raise accounting_error
         if error is not None:
             self._breaker.record_failure(config.provider)
@@ -147,7 +149,7 @@ class LLMClient:
         self._breaker.record_success(config.provider)
         return result
 
-    def _request(self, task, messages, article_id=None, learning_attempt=None, discovery_job=None):
+    def _request(self, task, messages, article_id=None, learning_attempt=None, discovery_job=None, refresh_job=None):
         last_error, attempts = None, 0
         for config in self._candidates(task):
             if self._breaker.is_open(config.provider):
@@ -159,7 +161,8 @@ class LLMClient:
                     break
                 attempts += 1
                 try:
-                    result = self._call_llm(config, messages, task, article_id, learning_attempt, discovery_job)
+                    result = self._call_llm(config, messages, task, article_id, learning_attempt, discovery_job,
+                                           refresh_job)
                 except _ProviderFailure as exc:
                     last_error = exc.error
                     continue
@@ -210,10 +213,16 @@ class LLMClient:
 
     def analyze_company(self, name, sector=None, headquarters=None, description=None,
                         spinoff_origin=None, company_stage=None, recent_news=None, website_excerpt=None,
-                        discovery_job=None):
+                        discovery_job=None, refresh_job=None):
         messages = prompts.get_company_analysis_messages(
             name, sector, headquarters, description, spinoff_origin, company_stage,
             recent_news, website_excerpt=website_excerpt)
+        if refresh_job is not None:
+            if discovery_job is not None or not isinstance(refresh_job, str) or not refresh_job:
+                raise spend.BudgetError('Persisted company refresh job required')
+            from app.llm.company_refresh import check as check_refresh
+            check_refresh(refresh_job, messages)  # Cache hits also require the current claim.
+            return self._request('company_analysis', messages, refresh_job=refresh_job)
         if discovery_job is not None:
             if not isinstance(discovery_job, str) or not discovery_job:
                 raise spend.BudgetError('Persisted discovery job required')

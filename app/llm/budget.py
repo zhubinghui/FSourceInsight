@@ -79,7 +79,7 @@ def transaction():
         yield session
 
 
-def reserve(config, task, learning_attempt=None, messages=None, discovery_job=None):
+def reserve(config, task, learning_attempt=None, messages=None, discovery_job=None, refresh_job=None):
     quoted = quote(config)
     limit = money(current_app.config.get('LLM_DAILY_BUDGET_USD', 0))
     endpoint_hash = hashlib.sha256((config.api_base_url or '').encode()).hexdigest()
@@ -122,9 +122,16 @@ def reserve(config, task, learning_attempt=None, messages=None, discovery_job=No
                 raise BudgetError('Persisted discovery job required')
             from app.llm.startup_analysis import admit as admit_discovery
             admit_discovery(session, discovery_job, messages, config)
+        if refresh_job is not None:
+            if (task != 'company_analysis' or learning_attempt is not None or discovery_job is not None
+                    or not refresh_job):
+                raise BudgetError('Persisted company refresh job required')
+            from app.llm.company_refresh import admit as admit_refresh
+            admit_refresh(session, refresh_job, messages, config)
         reservation = LLMReservation(
             id=str(uuid.uuid4()), config_id=config.id, task_type=task, billing_day=day.date(),
             learning_attempt_id=learning_attempt, startup_analysis_id=discovery_job,
+            company_refresh_id=refresh_job,
             provider=config.provider, model=config.model,
             endpoint_hash=endpoint_hash,
             input_limit=quoted.input_limit, output_limit=quoted.output_limit,

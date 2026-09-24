@@ -1,7 +1,7 @@
 import json
 import re
 from collections import defaultdict
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
@@ -175,10 +175,15 @@ def detail(slug):
     }
 
     trend_data = _get_sentiment_trend(company.id)
+    refresh_job = None
+    if current_user.is_authenticated and current_user.is_admin:
+        from app.llm.company_refresh import latest
+        refresh_job = latest(company.id)
 
     return render_template(
         'company/detail.html',
         company=company,
+        refresh_job=refresh_job,
         articles=articles,
         sentiment_stats=sentiment_stats,
         trend_data_json=json.dumps(trend_data),
@@ -208,7 +213,7 @@ def update_sector(slug):
 @login_required
 def generate_analysis(slug):
     """Queue an AI Refresh for this company. The actual website crawl + LLM
-    analysis runs asynchronously on the llm queue (see refresh_company_analysis),
+    analysis runs as a durable job on the llm queue (see app.llm.company_refresh),
     so we don't block the request for 30-90s and risk a gunicorn timeout.
     """
     if not current_user.is_admin:
@@ -216,22 +221,20 @@ def generate_analysis(slug):
         return redirect(url_for('company.detail', slug=slug))
 
     company = Company.query.filter_by(slug=slug).first_or_404()
-
+    from app.llm import company_refresh
     try:
-        from app.llm.tasks import refresh_company_analysis
-        refresh_company_analysis.delay(company.id)
-        flash(
-            f'AI Refresh queued for {company.name}. '
-            f'Reload the page in 1-2 minutes to see the result.',
-            'success'
-        )
-    except Exception as e:
+        identity, created = company_refresh.request(company.id, 'manual', f'user:{current_user.id}')
+    except Exception:
         import logging
-        logging.getLogger(__name__).error(
-            f'Failed to queue AI Refresh for {company.name}: {e}', exc_info=True
-        )
-        flash(f'Failed to queue refresh: {e}', 'error')
-
+        logging.getLogger(__name__).warning('AI Refresh intent unavailable for company %s', company.id)
+        flash('AI Refresh could not be queued. Please try again later.', 'error')
+        return redirect(url_for('company.detail', slug=slug))
+    if created:
+        company_refresh.publish(identity)  # Broker loss keeps the durable intent.
+        flash(f'AI Refresh queued for {company.name}. '
+              f'Reload the page in 1-2 minutes to see the result.', 'success')
+    else:
+        flash(f'An AI Refresh for {company.name} is already queued or running.', 'info')
     return redirect(url_for('company.detail', slug=slug))
 
 
@@ -287,41 +290,26 @@ def edit_analysis(slug):
 
 
 def _get_sentiment_trend(company_id: int) -> dict:
-    """Build sentiment trend data grouped by week for Chart.js."""
+    """Mention counts per sentiment for the latest 12 weeks with data (Monday-start)."""
+    day = func.date(Article.published_at)
     rows = (
-        db.session.query(
-            func.yearweek(Article.published_at).label('yw'),
-            func.min(Article.published_at).label('week_start'),
-            ArticleCompany.sentiment,
-            func.count(ArticleCompany.id).label('cnt'),
-        )
+        db.session.query(day.label('day'), ArticleCompany.sentiment, func.count(ArticleCompany.id).label('cnt'))
         .join(Article, ArticleCompany.article_id == Article.id)
         .filter(ArticleCompany.company_id == company_id)
         .filter(Article.published_at.isnot(None))
-        .group_by('yw', ArticleCompany.sentiment)
-        .order_by('yw')
+        .group_by(day, ArticleCompany.sentiment)
         .all()
     )
-
-    weeks = []
-    pos = []
-    neu = []
-    neg = []
-    week_map = defaultdict(lambda: {'positive': 0, 'neutral': 0, 'negative': 0})
-
+    weeks = defaultdict(lambda: {'positive': 0, 'neutral': 0, 'negative': 0})
     for row in rows:
-        label = row.week_start.strftime('%m/%d') if row.week_start else str(row.yw)
-        week_map[label][row.sentiment] = row.cnt
-
-    for label in sorted(week_map.keys()):
-        weeks.append(label)
-        pos.append(week_map[label]['positive'])
-        neu.append(week_map[label]['neutral'])
-        neg.append(week_map[label]['negative'])
-
+        value = row.day if isinstance(row.day, date) else date.fromisoformat(str(row.day))
+        counts = weeks[value - timedelta(days=value.weekday())]  # Unscored mentions still show the week.
+        if row.sentiment in counts:
+            counts[row.sentiment] += row.cnt
+    latest = sorted(weeks)[-12:]
     return {
-        'labels': weeks[-12:],
-        'positive': pos[-12:],
-        'neutral': neu[-12:],
-        'negative': neg[-12:],
+        'labels': [monday.strftime('%m/%d') for monday in latest],
+        'positive': [weeks[monday]['positive'] for monday in latest],
+        'neutral': [weeks[monday]['neutral'] for monday in latest],
+        'negative': [weeks[monday]['negative'] for monday in latest],
     }

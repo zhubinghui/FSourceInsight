@@ -76,6 +76,20 @@
                     </div>
                     {% endif %}
                 </div>
+                {% if refresh_job %}
+                {% set refresh_labels = {
+                    'queued': 'queued', 'running': 'running',
+                    'succeeded': 'saved',
+                    'stale': 'discarded: the company changed while it ran',
+                    'blocked': 'not applied (' ~ (refresh_job.reason or 'unavailable') ~ '); no automatic paid retry',
+                } %}
+                <div class="text-fs-muted mb-2" style="font-size: 0.78rem;"
+                     data-refresh-id="{{ refresh_job.id }}" data-refresh-state="{{ refresh_job.state }}">
+                    <i class="bi bi-clock-history"></i> Last AI Refresh
+                    ({{ refresh_job.trigger }}, {{ refresh_job.created_at.strftime('%Y-%m-%d %H:%M') }} UTC):
+                    {{ refresh_labels.get(refresh_job.state, refresh_job.state) }}
+                </div>
+                {% endif %}
 
                 {% if a %}
                 <div style="font-size: 0.9rem;">

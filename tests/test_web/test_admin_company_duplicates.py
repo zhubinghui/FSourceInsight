@@ -36,3 +36,15 @@ def test_suggests_spacing_suffix_and_word_order_variants_and_merges(db, client, 
     db.session.expire_all()
     assert Company.query.filter_by(slug='microlight3d').first() is None
     assert 'MICROLIGHT3D' in db.session.get(Company, keep).aliases
+
+
+def test_merge_into_a_company_with_existing_aliases_keeps_the_duplicate_names(db, client, login):
+    keep = _add(db, 'Microlight 3D', 'microlight-3d', aliases=['Microlight'])
+    _add(db, 'MICROLIGHT3D', 'microlight3d', aliases=['ML3D'], is_auto_created=True)
+    login('admin')
+    page = BeautifulSoup(client.get('/admin/companies/duplicates').text, 'html.parser')
+    form = page.select_one('.duplicate-group form')
+    data = {field['name']: field['value'] for field in form.select('input[name]')}
+    assert client.post(form['action'], data=data).status_code == 302
+    db.session.remove()
+    assert db.session.get(Company, keep).aliases == ['Microlight', 'MICROLIGHT3D', 'ML3D']

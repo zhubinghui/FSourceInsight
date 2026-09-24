@@ -9,7 +9,8 @@ import pytest
 from app import create_app
 from app.config import TestingConfig
 
-HEAD = 'c7f21a9d680e'
+HEAD = 'c7f21a9d680e'  # The merge revision under test.
+CURRENT_HEAD = 'd3e7a1c95b28'
 
 
 def test_one_explicit_head_preserves_both_lineages(tmp_path):
@@ -19,10 +20,10 @@ def test_one_explicit_head_preserves_both_lineages(tmp_path):
     root = Path(__file__).resolve().parents[2]
     heads = subprocess.run(command + ['heads'], cwd=root, env=env, capture_output=True, text=True, timeout=30)
     assert heads.returncode == 0, heads.stderr
-    assert heads.stdout.count('(head)') == 1 and HEAD in heads.stdout
+    assert heads.stdout.count('(head)') == 1 and CURRENT_HEAD in heads.stdout
     history = subprocess.run(command + ['history'], cwd=root, env=env, capture_output=True, text=True, timeout=30)
     assert history.returncode == 0, history.stderr
-    assert 'b3d5e8a1c407' in history.stdout and 'b5d81e6a430f' in history.stdout
+    assert all(rev in history.stdout for rev in ('b3d5e8a1c407', 'b5d81e6a430f', HEAD))
 
 
 @pytest.mark.parametrize('previous,required,forbidden', [
