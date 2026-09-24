@@ -16,7 +16,7 @@ from sqlalchemy.engine import make_url
 
 TEST_URL = os.environ.get('FSI_MYSQL_TEST_URL')
 DATABASE = 'fsource_m0_validation'
-HEAD = 'c7f21a9d680e'
+HEAD = 'd3e7a1c95b28'
 PREVIOUS = 'fd3132082a6b'
 
 
@@ -87,6 +87,7 @@ class MySQLM0Tests(unittest.TestCase):
             row = conn.execute(text('SELECT review_status,postcode,city,entity_type,local_site,analysis_generation,ai_analysis_failures FROM company')).one()
             self.assertEqual(tuple(row), ('rejected', '69001', 'Lyon', 'company', 0, 0, 3))
             self.assertEqual(conn.execute(text('SELECT count(*) FROM startup_analysis_job')).scalar(), 0)
+            self.assertEqual(conn.execute(text('SELECT count(*) FROM company_refresh_job')).scalar(), 0)
             self.assertEqual(conn.execute(text('SELECT version_num FROM alembic_version')).scalars().all(), [HEAD])
             self.assertEqual(compare_metadata(MigrationContext.configure(conn), self.db.metadata), [])
 
@@ -523,11 +524,12 @@ class MySQLM0Tests(unittest.TestCase):
         from app.crawlers.learning_tasks import learn
 
         with self.synthetic_news_engine() as fixture, TemporaryDirectory(prefix='fsi-learning-') as directory, patch.dict(self.app.config):
-            self.app.config.update(CRAWL_EVIDENCE_DIR=directory, CRAWL_LEARNING_ENABLED=True)
+            self.app.config.update(CRAWL_EVIDENCE_DIR=directory, CRAWL_LEARNING_ENABLED=True,
+                                   CRAWL_LEARNING_BYTE_BOUND_PROVIDERS='synthetic')
             self.db.session.add_all([
                 User(email='learning-admin@test.invalid', is_admin=True, password_hash=generate_password_hash('test-password')),
                 LLMConfig(provider='synthetic', model='recipe', tasks=['crawl_schema'], is_active=True,
-                          cost_per_1k_input='0.01', cost_per_1k_output='0.02', billing_input_limit=1024, billing_output_limit=4096)])
+                          cost_per_1k_input='0.01', cost_per_1k_output='0.02', billing_input_limit=7168, billing_output_limit=1024, max_tokens=1024)])
             self.db.session.commit()
             self.db.session.remove()
             client = self.app.test_client()

@@ -34,6 +34,9 @@ class Config:
     CRAWL_EVIDENCE_DIR = os.environ.get('CRAWL_EVIDENCE_DIR')
     CRAWL_LEARNING_ENABLED = os.environ.get('CRAWL_LEARNING_ENABLED') == '1'
     CRAWL_LEARNING_HISTORY_SCAN_LIMIT = os.environ.get('CRAWL_LEARNING_HISTORY_SCAN_LIMIT', '4096')
+    # Operator-reviewed: providers whose billing tokenizer is byte-level BPE, so a
+    # prompt's UTF-8 byte count bounds its billed input tokens.
+    CRAWL_LEARNING_BYTE_BOUND_PROVIDERS = os.environ.get('CRAWL_LEARNING_BYTE_BOUND_PROVIDERS', 'openai')
 
     # LLM cost budget (USD per day, 0 = unlimited)
     LLM_DAILY_BUDGET_USD = float(os.environ.get('LLM_DAILY_BUDGET_USD', '5.0'))

@@ -63,13 +63,16 @@ def test_start_records_one_cancellable_session_without_inline_model_or_ingestion
 
 
 @pytest.fixture
-def model(db, monkeypatch, learning_io):
+def model(app, db, monkeypatch, learning_io):
     from app.models import LLMConfig
     from tests.test_llm.conftest import MemoryRedis, Provider
     provider, cache = Provider(), MemoryRedis()
+    # Operator-reviewed: the synthetic provider bills a byte-level tokenizer.
+    # 7168 x 0.01 + 1024 x 0.02 per 1k keeps the historical 0.092160 reservation.
+    app.config['CRAWL_LEARNING_BYTE_BOUND_PROVIDERS'] = 'synthetic'
     config = LLMConfig(provider='synthetic', model='recipe', tasks=['crawl_schema'],
         is_default=False, cost_per_1k_input='0.01', cost_per_1k_output='0.02',
-        billing_input_limit=1024, billing_output_limit=4096)
+        billing_input_limit=7168, billing_output_limit=1024, max_tokens=1024)
     db.session.add(config)
     db.session.commit()
     monkeypatch.setattr('litellm.completion', provider)
