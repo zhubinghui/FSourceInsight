@@ -59,7 +59,8 @@ def _build_article_query():
             pass
     if date_to:
         try:
-            query = query.filter(Article.published_at <= datetime.strptime(date_to, '%Y-%m-%d'))
+            # The whole named day is included: exclusive next-midnight bound.
+            query = query.filter(Article.published_at < datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1))
         except ValueError:
             pass
 

@@ -1,5 +1,5 @@
 """REST API v1 for programmatic access to news and companies."""
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, jsonify, request
 from app.extensions import db
@@ -42,7 +42,8 @@ def list_news():
             pass
     if date_to:
         try:
-            query = query.filter(Article.published_at <= datetime.strptime(date_to, '%Y-%m-%d'))
+            # The whole named day is included: exclusive next-midnight bound.
+            query = query.filter(Article.published_at < datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1))
         except ValueError:
             pass
 
