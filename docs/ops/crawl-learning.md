@@ -1,6 +1,6 @@
 # 有界学习：已安装代码与启用前置
 
-**代码随83813e2/c7安装，但学习开关关闭、专用worker未启动，M3未完成。不要直接开启生产学习。** 普通付费配置采用400000完整输入界，不能满足学习20000累计token约束；不可为启用而猜小上界。当前发布/实际普通worker与23 MySQL证据见[发布审计](../audits/2026-09-20-m3-paid-release.md)，不替代专用学习worker/更广故障容量门禁。 实现/测试证据见[1b会话审计](../audits/2026-09-19-m31b-learning-sessions.md)、[3a暴露历史前置](../audits/2026-09-19-m33a-exposure-history.md)、[3b限定HTML留出](../audits/2026-09-19-m33b-holdout-validation.md)、[2c生命周期](../audits/2026-09-19-m32c-learning-lifecycle.md)、[4a学习worker配置](../audits/2026-09-19-m34a-learning-worker.md)及[2d派发身份/恢复](../audits/2026-09-19-m32d-learning-dispatch.md)。
+**代码随83813e2/c7安装，但学习开关关闭、专用worker未启动，M3未完成。不要直接开启生产学习。** 普通付费配置采用400000完整输入界，不能满足学习20000累计token约束。M3.1c（本地、未部署）改为可证明上界：新建仅分配`crawl_schema`的配置，审核一个小输入上界（例如OpenAI输入5000/输出1500）；认领时按字节裁剪样本，使“UTF-8字节+每条消息角色字节+8+整体64”不超过所有学习配置中最小的输入上界，付费准入再复核。仅对`CRAWL_LEARNING_BYTE_BOUND_PROVIDERS`（默认`openai`，运维审核其计费分词为字节级BPE）中的供应商成立；未声明、上界放不下说明或样本被裁空则blocked不付费。单次预留还须≤会话$0.20：按价格计算`输入界×输入价+输出界×输出价`。当前发布/实际普通worker与23 MySQL证据见[发布审计](../audits/2026-09-20-m3-paid-release.md)，不替代专用学习worker/更广故障容量门禁。 实现/测试证据见[1b会话审计](../audits/2026-09-19-m31b-learning-sessions.md)、[3a暴露历史前置](../audits/2026-09-19-m33a-exposure-history.md)、[3b限定HTML留出](../audits/2026-09-19-m33b-holdout-validation.md)、[3c通用清单留出](../audits/2026-09-24-m33c-general-holdouts.md)、[2c生命周期](../audits/2026-09-19-m32c-learning-lifecycle.md)、[4a学习worker配置](../audits/2026-09-19-m34a-learning-worker.md)及[2d派发身份/恢复](../audits/2026-09-19-m32d-learning-dispatch.md)。
 
 ## 当前可用行为
 
@@ -26,7 +26,7 @@ blocked页面的“Request safe retry”仅适用于**整个会话从未有任�
 
 1. 从学习详情打开“original base candidate”，沿用正常Admin preview授权，保留新的原始证据。
 2. 回学习详情请求“Validate frozen candidate”。系统选择冻结水位之后该base第一份保存的capture，不能提交capture ID、阈值或规则来选样。
-3. 首版base和候选均须为单个无分页HTML列表，有至少三份不同详情并覆盖全部候选详情模板。只回放已有文件，不补抓、不调用模型；RSS、多列表、分页或不足证据会inconclusive。
+3. 新冻结使用`holdout-validation.v2`（M3.3c）：先以base（去掉详情模板）在固定采样上确定清单，清单文章对应详情页，其余证据文档为清单页（列表/分页/RSS源）。清单页须原始字节与正文指纹均未在训练或更早选样出现；详情页另须URL未出现且彼此不重复。需至少三份不同详情、覆盖全部候选详情模板，候选声明的每个列表/RSS源都须产出文章，声明分页的须至少从第2页产出文章，否则`insufficient_list_coverage`。正文直接来自feed为`feed_content_not_independently_sampled`。受证据6文档上限约束，至多3个清单页+3详情。v1冻结记录保持原单列表HTML规则。只回放已有文件，不补抓、不调用模型。
 4. 第一份已存在但未保留/过期/坏样本不会被后来好结果替换；没有新capture则409，可先正常采样。每个冻结候选只选一次，重复提交不重跑。没有线上重新选样/覆写报告入口。
 5. `passed`只指受控学习工作流内、固定M1质量标准下的有界检查通过。候选仍未发布；不证明语义事实、所有系统外模型或预训练未见过样本。
 6. 页面同时显示当前状态和记录状态。证据过期/缺失、撤权、来源变化、历史损坏或后来模型见过留出会使旧passed显示stale，不能据旧截图继续当有效通过。
@@ -73,7 +73,7 @@ blocked页面的“Request safe retry”仅适用于**整个会话从未有任�
 
 1. 获得独立部署授权及备份；完成当前合并head `c7f21a9d680e` 的真实可丢弃MySQL全部门禁和broker/进程故障门禁。本地没有可用MySQL服务；应用1becae8的CI35517521638已通过22项真实MySQL及基础broker门禁，但不是实际待部署镜像/学习worker证明。已授权发布但仍在计费和候选门禁阶段，见[发布计划](../superpowers/specs/2026-09-19-m3-current-release.md)。
    2c迁移`f8b64d2c901e`对旧失败/取消会话设置从迁移执行时起六小时保守隔离，不伪造历史失败时间。4b扩展初始企业分析；2d仅添加可空dispatch_due_at/索引，旧NULL不补派发资格。均不改写旧费用/期限、补造retry或重签历史。旧应用不执行新冷却/重试/派发fence，不能混用。
-2. 当前仅单列表HTML/三详情的受控留出路径本地通过；通用RSS/分页/多列表、全系统暴露覆盖仍未完成。不得将局部passed冒充通用验证、审批或整个M3完成。
+2. 受控留出本地支持单/多列表HTML、next_link分页与带详情模板的RSS（v2）；feed正文、超过6文档的清单及全系统暴露覆盖仍未完成。不得将局部passed冒充通用验证、审批或整个M3完成。
 3. 专用worker的可选Compose、启动/健康guard已本地实现；**尚未实际build/start或完成服务/容量验收**。初始并发1/prefetch1、1GiB/1CPU/PIDs64等值必须在实际候选镜像验证，不借旧容量记录启用。
 4. 新学习层配置同external卷worker RO/web RW；仍须实际验证UID、目录0700/文件0600、内核写拒绝、持久性、容量与到期。历史生产卷仍只挂web，本轮未部署。不要擅自复制原文或放宽权限。
 5. 在Admin明确给受审核模型分配`crawl_schema`，补全可信计费上界/价格。default模型不会隐式接手，不修改seed来自动认证。

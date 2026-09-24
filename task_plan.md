@@ -1,5 +1,14 @@
 # 全项目审查与动态爬虫 Agent 改造
 
+## 当前继续：M3剩余开发（2026-09-24）
+- [complete local] M3.3c通用留出v2；M3.1c学习输入字节上界。全套1141/23skip。
+- [pending] 专用学习worker/broker/MySQL实机门禁、提交/CI/部署授权、生产学习配置审核与启用。
+
+## 当前继续：M3.4c公司refresh可靠性（2026-09-23）
+- [complete local] 分支m3-company-refresh，head d3e7a1c95b28；全量1125/23skip。审计docs/audits/2026-09-23-m34c-company-refresh.md。
+- [complete local] 附带修复：修订历史/合并别名JSON原地修改不持久化；新闻/API日期结束日漏当天文章；公司周情绪趋势拆柱/跨年错序。均有先red的HTTP回归。
+- [pending] 提交/推送、准确CI与实际MySQL门禁、排空llm队列后的受控部署均需另行授权。刷新频率策略、学习启用、通用留出、专用worker实测仍后续。
+
 ## 当前继续：付费LLM必须保留，推进剩余部署（2026-09-20）
 - [complete release] 用户明确不要暂停付费LLM。83813e2/c7于17:39:41Z部署，模型/任务/key/日预算5保留，审核官方标准层/完整计费界后放行普通付费。学习仍不开启，M3整体未完成。审计docs/audits/2026-09-20-m3-paid-release.md。
 - [complete gates] 83813e2正常付费合同/请求TDD，本地1083/23skip，准确CI35523984792、两真实image各23 MySQL/49模板/Admin/真实broker、terms/snapshot运维CLI演练通过，实际SDK及104完整依赖/OS一致。

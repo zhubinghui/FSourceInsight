@@ -15,7 +15,10 @@
 - [complete local restricted slice] 3b：冻结候选→系统固定首份新base采样→真实M1单列表/三详情留出→未发布报告；42新增离线，head e1c73d9b502a。当前独立性只覆盖受控流程，不支持RSS/多列表/分页成功路径。
 - [complete local config/protocol] 4a：可选worker Compose/RO共享证据配置/启动与健康CLI，46新增离线；未实际运行新worker，配置不当容量/内核mount证明，无新DDL。
 - [complete local bounded slice] 4b：企业初始分析原子job/来源归属/llm队列/全局费用关联/有界重派及无付费接管、SafeFetcher目录出口，64新增离线，head a2f6d9b3107c。并非全部公司refresh或实际服务完成。
-- [pending] 4–5：通用留出覆盖、专用worker实际mount/容量/服务验证、真实broker/进程故障门禁、完整恢复与全部公司refresh可靠性。
+- [complete local bounded slice] 4c：已有公司手动/文章触发refresh迁持久job（每公司至多一个活跃job、认领时代次fence、无自动付费重试、有界恢复），head d3e7a1c95b28，分支m3-company-refresh；全套1125通过/23专用MySQL跳过。见docs/audits/2026-09-23-m34c-company-refresh.md。
+- [complete local slice] 3c：`holdout-validation.v2`支持多列表/next_link分页/带详情模板RSS，按引擎确认清单区分角色；v1记录保持原规则。6新HTTP回归，全套1138通过/23跳过。见docs/audits/2026-09-24-m33c-general-holdouts.md。
+- [complete local slice] 1c：学习输入字节上界（`CRAWL_LEARNING_BYTE_BOUND_PROVIDERS`默认openai）；认领按最小审核输入上界裁剪、准入复核。3新HTTP回归先red，全套1141通过/23跳过。见docs/audits/2026-09-24-m31c-learning-input-bound.md。
+- [pending] 4–5：feed正文/超6文档留出、全系统暴露覆盖、专用worker实际mount/容量/服务验证、真实broker/进程故障门禁、完整恢复与全部公司refresh可靠性。
 - [unverified] 20项真实MySQL，含预算2项、学习并发/取消1项及企业初始分析并发/ABA1项。Docker socket不存在且无本地mysqld；不擅自SSH或使用生产库。后续实机门禁需可用的专用隔离服务。
 
 ## 现实与原计划的差异（先记录，再行动）
@@ -175,7 +178,71 @@
 - 保留既有“损坏history立即隔离为blocked”的断言：queued读取到history不完整/损坏时先隔离，不以坏counter导致派发键不匹配为由把它留在queued；旧键不能关闭的是仍有效的新意图。存储读取失败则没有这个判定，仍只能用自己的键/attempt fence收敛。
 - 严格按公共seam逐条red→green；只替换外部broker/SDK/OS时间与存储失败。旧恢复测试按新的最小重派间隔推进合成时间；MySQL门禁同步新消息而不标已通过。全套、静态、迁移和审计随后更新。
 
+## M3.4c：已有公司的手动/文章触发refresh迁持久job（实施前记录）
+
+2026-09-23用户“继续”。基线master c5d0b0a（生产a93beb8/schema c7，学习仍关）；在分支`m3-company-refresh`本地实施，不提交生产、不SSH、不真实抓取/付费/邮件，无子代理。
+
+实查旧路径缺陷（`app/llm/tasks.py`）：
+1. 企业详情“AI Refresh”每次POST直接delay，无去重；重复点击或Celery重试会产生重复付费调用，失败还`self.retry`最多两次，每次最多三供应商尝试。
+2. 任务开始读公司、模型调用最长约180秒后以旧快照合并并覆盖`ai_analysis`/修订历史；期间人工编辑分析或并发refresh会被静默覆盖（lost update）。
+3. 文章完成后在`process_article_llm`内同步、逐个为已有分析的关联公司付费调用；同批多篇文章涉及同一公司会重复refresh，且阻塞llm worker。
+
+实施偏差（先记录）：企业详情页周趋势用MySQL专有`YEARWEEK`，SQLite测试中页面500，此前无详情页测试。仅在新测试夹具的SQLite连接注册同名函数模拟方言边界，不改产品查询；该页MySQL行为仍由既有部署验证。
+
+全量验证偏差（先记录）：首轮全量跨越本地午夜，204失败/921通过/23跳过（404秒），全部集中在调用抓取helper子进程的预览/证据/学习测试（503、transport network_error）。事后发现`/tmp/fsi-m3-izjIZv/venv`的site-packages在00:00被macOS临时目录清理掏空（`_pytest`目录仅剩空壳，pytest已无法启动），判断为环境损坏而非产品退化。改在`~/.cache/fsourceinsight-m3-venv`按requirements重建同版本依赖后重跑全量，失败日志保留，不把该轮计为通过或失败的产品证据。
+
+本切片行为（公共seam：企业详情真实HTTP、`process_article_llm`/新refresh任务公共run、`LLMClient.analyze_company`、Alembic）：
+- 新表`company_refresh_job`：公司、触发类型（manual/article）与引用、**认领时**公司`analysis_generation`（排队期间的人工编辑应被refresh读取而非判过期，只有认领后到应用前的变化才是lost update）、状态queued/running/succeeded/stale/blocked、固定原因、认领身份、24小时队列期限、认领后180秒期限、持久`next_dispatch_at`（至少120秒重派间隔）。`active_company_id`仅在queued/running时等于公司ID、关闭即NULL，由唯一索引保证每公司至多一个活跃job。
+- 手动POST已有活跃job时不新建、不付费，提示已排队；否则同事务建job后派发只带job ID的消息到llm队列。文章路径只为已有分析的关联公司合并入队，不再在文章任务中调用模型。
+- 认领时锁job/公司，校验代次未变、未过期且此job从未有供应商预留，冻结最近5条新闻；认领后在事务外经既有SafeFetcher官网摘要取数，再持久记录最终消息hash。`LLMClient.analyze_company(refresh_job=…)`缓存命中也须当前认领与消息一致；预留关联新列`llm_reservation.company_refresh_id`，每job最多三供应商且不同配置，前次未settled不再付费。
+- 应用时锁公司，代次与认领时不同（人工编辑、另一refresh、公司字段变化）则关闭为stale且不写；否则按旧规则合并非空字段并记修订。失败关闭为blocked，不自动Celery付费重试；管理员可再次请求。复用60秒recover节拍：到期queued有界重派（最多50）、过期running阻断不重付。
+- 企业详情显示最近refresh job的状态/原因；不增加HTTP状态写入口。
+- 迁移expand-only：新表一张、预留新增可空列；不回填历史或给旧消息执行权。旧整数参数的`refresh_company_analysis`消息不再付费执行（仅记录丢弃），部署时需先排空旧llm队列。
+- 非目标：刷新频率/每日次数策略（仅合并，不改变“每篇文章都可触发”的产品语义）、整库回滚认证、实际MySQL/broker/进程故障门禁（新MySQL用例只加入不实跑）。
+
+## M3.4c附带：公司修订历史丢失（实施前记录）
+
+2026-09-24用户再次“继续”。遗留清单第4节“企业人工内容及修订”指出`_save_revision`原地append。真实Admin HTTP回归确认：公司已有1条修订时连续两次人工编辑后重新读取仍只有1条，分析内容已保存但修订被丢弃（SQLAlchemy普通JSON列原地修改后再赋值等值列表，不产生UPDATE）。满10条时切片生成新列表，才会保存。
+
+- 最小修复：复制旧列表再追加新条目后赋值，保留最近10条语义；不改修订格式、不回填已丢失的历史。
+- 同一函数服务手动编辑、M3.4b初始分析与M3.4c refresh；别名合并等其它原地JSON修改另列，不在本修复内。
+- 扩展（先记录再修）：扫描后确认Admin重复公司合并同样原地append目标`aliases`。真实HTTP回归：目标已有别名时，合并后重读别名不含被合并公司名称/别名，削弱后续发现与NER去重。同样复制后赋值；其他JSON列扫描未发现同类写法。
+
+## 独立小修：日期过滤结束日（实施前记录）
+
+遗留清单第4节。真实HTTP回归确认：新闻页与`/api/v1/news`的`date_to=2026-09-20`只返回00:00:00那一条，当天中午/深夜文章被漏掉。改为次日00:00排他上界，`date_from`保持包含式。与M3无关，改动限于`app/web/views/news.py`、`app/api/v1/routes.py`及新测试文件，便于单独提交。时区语义（存储为无时区UTC、按日期字面比较）不在本修复内。
+
+## 独立小修：公司周情绪趋势（实施前记录）
+
+遗留清单第4节。`_get_sentiment_trend`按MySQL`YEARWEEK`与情绪分组后，以每组min(日期)的`MM/DD`作键：同一周不同情绪的最早文章日期不同就拆成多个柱；按字符串排序使跨年时1月排在前一年12月之前，最后12周截取也随之错误。改为SQL按`DATE()`与情绪聚合（MySQL/SQLite均支持），Python按周一起点归桶、按真实日期排序，标签仍为周一的`MM/DD`。同时去掉页面唯一的MySQL专有函数。回归在企业详情真实HTTP上解析图表数据；旧代码red需要测试夹具注册SQLite `yearweek`，修复后不再依赖。
+
+## M3.3c：通用留出——多列表、分页与RSS（实施前记录）
+
+2026-09-24用户“同意。继续完成M3开发”。现`holdout-validation.v1`只接受单个无分页HTML列表，RSS/多列表/分页一律`unsupported_sampling_inventory`。另一个隐患：污染检查只按配方静态列表URL区分列表页，分页页URL会被当作详情页与训练URL比对而误判“已见过”。
+
+- 新冻结使用`holdout-validation.v2`；v1已冻结记录保持原规则与结果键，不重签、不升级。
+- v2先用基础配方（去掉详情模板）在固定采样上跑清单：清单文章URL对应详情页，其余证据文档为清单页（列表/分页/RSS源）。清单页只要求原始字节与正文指纹未在训练和更早选样中出现；详情页另要求URL未出现且彼此不重复。评估前先做字节/指纹检查，角色确定后再做完整检查；结果新增`inventory`（清单页snapshot_id有序列表），`lists`为清单页数量，passed在查看时按记录的角色复查。
+- 候选覆盖：候选每个列表（RSS源为0号）都必须有文章来自该列表；声明分页的列表必须至少有文章来自第2页及以后，否则`insufficient_list_coverage`（原“候选新增分页/重复列表”用例的原因由此变化，仍为inconclusive）。
+- RSS仅认证经详情模板取得正文；正文直接来自feed时为`feed_content_not_independently_sampled`（feed滑动窗口条目无法逐条证明独立）。
+- 证据最多6文档/引擎6请求的既有上限不变，因此一次留出至多容纳3详情+3清单页。不增加HTTP入口、不改学习付费/暴露协议、不发布候选。
+- 验收：真实Admin学习→冻结→新采样→验证HTTP；新增分页/多列表/RSS通过、分页页复用训练原文仍判已见过、候选分页未被行使判无法下结论。
+
+## M3.1c：学习输入字节上界与专用小额度配置（实施前记录）
+
+2026-09-24用户对“为学习单独配置小输入上限、由应用按字节保证不超限”回复“OK，继续”，据此放宽原“不可为启用而缩小上界”的约束：不是猜测token，而是可证明上界。提交/部署仍未授权。
+
+- 依据：字节级BPE分词中每个token至少对应1个UTF-8字节，文本token数不超过字节数。每条消息再计角色字节+8、整体+64作为聊天格式开销裕量。仅对运维声明为字节级分词的供应商成立：新配置`CRAWL_LEARNING_BYTE_BOUND_PROVIDERS`，默认`openai`；与价格/上界同属运维审核输入。
+- 认领：取当前显式分配`crawl_schema`、primary/fallback、已声明字节级供应商中最小的`billing_input_limit`，按字节裁剪样本，使整条提示词上界不超过它；连说明与配方都放不下或样本被裁空则blocked（固定原因），不付费。提示词hash与暴露记录仍在认领时固定。
+- 准入：每次付费前在全局准入事务内复核供应商在声明列表且提示词上界≤该配置审核的输入上限，否则拒绝。累计20,000 token、$0.20等既有限额不变。
+- 运营含义：可新建仅分配`crawl_schema`的OpenAI配置，例如输入5000/输出1500，满足三轮累计；普通任务的400000配置不受影响。供应商若违反自身计费仍由既有overrun检测与对账处理。
+- 测试：真实Admin学习HTTP。夹具声明合成供应商为字节级并把审核上限设为输入7168/输出1024（max_tokens 1024），单次预留仍为既有测试依据的0.092160美元、每轮8192 token。偏差：先试15000（预留超$0.20，一个新测试因此假通过，已识别），再试11000使9个既有测试的金额断言（0.092160/0.002/0.093阈值）失效；不改断言，改选保持原金额的上限组合；MySQL夹具同步但不实跑。
+
 ## 执行记录
+
+### M3.4c本地refresh收尾
+- 7/9新行为测试先red（重复派发、无job状态、文章内联付费、旧消息付费），2个守护用例原本即通过不冒称red；网站校验回归与迁移测试为实现后补写，前者经临时变异确认可失败。
+- 首轮全量跨午夜遭/tmp venv被清理，204失败为环境损坏（保留日志）；重建~/.cache/fsourceinsight-m3-venv（115个同版本包）后全量1125 passed/23 skipped/629秒。关联子集314通过；258 AST/51模板，新增代码flake8 E9/F干净。
+- 新MySQL断言与head同步仅加入未实跑；无提交/部署。
 
 ### M3.2d本地派发收尾
 - 新增31离线，最终专门子集31/575 warnings/33.65秒；关联阶段169/3709 warnings/292.69秒。全套1019 passed/20 dedicated-MySQL skipped/10149 warnings/570.29秒，`/tmp/fsi-m3-izjIZv/m32d-full-01.log`，无30秒faulthandler dump。
