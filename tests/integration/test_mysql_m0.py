@@ -92,17 +92,22 @@ class MySQLM0Tests(unittest.TestCase):
             self.assertEqual(compare_metadata(MigrationContext.configure(conn), self.db.metadata), [])
 
     def test_merge_from_m3_preserves_unknown_funds(self):
-        from datetime import datetime, date
-        from app.models import LLMConfig, LLMReservation
+        from datetime import datetime
+        from app.models import LLMConfig
         self.upgrade('b5d81e6a430f')
         config = LLMConfig(provider='synthetic', model='migration', tasks=['summarize'])
         self.db.session.add(config)
         self.db.session.flush()
-        self.db.session.add(LLMReservation(id='synthetic-old-hold', config_id=config.id,
-            task_type='summarize', billing_day=date(2026, 9, 19), provider='synthetic', model='migration',
-            endpoint_hash='0' * 64, input_limit=1000, output_limit=1000,
-            input_price='0.01', output_price='0.02', reserved_usd='0.030000', state='unknown', created_at=datetime.utcnow()))
         self.db.session.commit()
+        # Raw SQL with only the columns that exist at b5: the current ORM model
+        # carries later columns (company_refresh_id) that an old schema lacks.
+        with self.db.engine.begin() as conn:
+            conn.execute(text("""INSERT INTO llm_reservation
+                (id,config_id,task_type,billing_day,provider,model,endpoint_hash,input_limit,output_limit,
+                 input_price,output_price,reserved_usd,state,created_at)
+                VALUES ('synthetic-old-hold',:config,'summarize','2026-09-19','synthetic','migration',:endpoint,
+                        1000,1000,0.01,0.02,0.030000,'unknown',:created)"""),
+                {'config': config.id, 'endpoint': '0' * 64, 'created': datetime.utcnow()})
         self.upgrade()
         with self.db.engine.connect() as conn:
             row = conn.execute(text('SELECT state,reserved_usd,actual_usd FROM llm_reservation')).one()

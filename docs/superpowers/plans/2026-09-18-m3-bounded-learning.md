@@ -239,6 +239,9 @@
 
 ## 执行记录
 
+### 提交与CI（2026-09-24用户授权“提交、推送+CI”）
+- 分支m3-company-refresh五个提交0c91f4b..53487cc已推送；CI36020415131离线job成功，MySQL 22/23通过。失败的`test_merge_from_m3_preserves_unknown_funds`在b5旧schema上用当前ORM插入预留，模型已含新列company_refresh_id而旧表没有（1054）。属测试造数问题，非产品迁移缺陷：改为仅含b5列的原生SQL插入，断言不变，再推送复跑CI。
+
 ### M3.4c本地refresh收尾
 - 7/9新行为测试先red（重复派发、无job状态、文章内联付费、旧消息付费），2个守护用例原本即通过不冒称red；网站校验回归与迁移测试为实现后补写，前者经临时变异确认可失败。
 - 首轮全量跨午夜遭/tmp venv被清理，204失败为环境损坏（保留日志）；重建~/.cache/fsourceinsight-m3-venv（115个同版本包）后全量1125 passed/23 skipped/629秒。关联子集314通过；258 AST/51模板，新增代码flake8 E9/F干净。
