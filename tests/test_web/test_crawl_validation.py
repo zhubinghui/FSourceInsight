@@ -230,4 +230,4 @@ def test_unexercised_candidate_list_branches_are_not_certified_by_single_list_ev
     capture(client, item.base, fetch_network, 'holdout')
     page, _, _ = check(client, item)
     assert page.select_one('[data-validation-status]').get_text(strip=True) == 'inconclusive'
-    assert json.loads(page.select_one('[data-validation-result]').get_text())['reason'] == 'unsupported_sampling_inventory'
+    assert json.loads(page.select_one('[data-validation-result]').get_text())['reason'] == 'insufficient_list_coverage'

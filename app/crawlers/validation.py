@@ -2,6 +2,7 @@
 from dataclasses import replace
 from datetime import timedelta
 import hashlib
+import re
 import time
 from types import SimpleNamespace
 from urllib.parse import urlsplit
@@ -19,7 +20,11 @@ from ._preview import source_fingerprint
 from .engine import CrawlEngine
 from .schema import validate_recipe
 
-VERSION = 'holdout-validation.v1'
+VERSION = 'holdout-validation.v2'
+LEGACY = 'holdout-validation.v1'
+_KEYS = {'status', 'reason', 'lists', 'details', 'templates', 'engine_status', 'errors'}
+_RESULT_KEYS = {LEGACY: _KEYS, VERSION: _KEYS | {'inventory'}}
+_BRANCH = re.compile(r':list:(\d+):page:(\d+):')
 _TERMINAL = {'passed', 'failed', 'inconclusive'}
 
 
@@ -56,7 +61,7 @@ def _reports(session):
             or sorted(selections) != list(range(1, marker.selection_generation + 1))):
         raise ValueError('Selection history unavailable')
     for row in rows:
-        if (not isinstance(row.binding, dict) or row.binding.get('format') != VERSION
+        if (not isinstance(row.binding, dict) or row.binding.get('format') not in _RESULT_KEYS
                 or row.binding.get('session_id') != row.session_id or row.binding.get('candidate_id') != row.candidate_id
                 or _capture.fingerprint(row.binding) != row.binding_hash
                 or row.state not in _TERMINAL | {'awaiting_evidence', 'running'}):
@@ -72,7 +77,7 @@ def _reports(session):
                 raise ValueError('Selection history unavailable')
         if row.state in _TERMINAL:
             if (not isinstance(row.result, dict) or row.result.get('status') != row.state
-                    or set(row.result) != {'status', 'reason', 'lists', 'details', 'templates', 'engine_status', 'errors'}
+                    or set(row.result) != _RESULT_KEYS[row.binding['format']]
                     or _capture.fingerprint({'binding': row.binding_hash, 'selection': row.selection_hash,
                                              'result': row.result}) != row.result_hash):
                 raise ValueError('Validation result unavailable')
@@ -90,7 +95,7 @@ def _authority(session, row):
     enabled()
     _learning_history.require(session)
     b = row.binding
-    if not isinstance(b, dict) or _capture.fingerprint(b) != row.binding_hash or b.get('format') != VERSION:
+    if not isinstance(b, dict) or _capture.fingerprint(b) != row.binding_hash or b.get('format') not in _RESULT_KEYS:
         raise ValueError('Validation binding unavailable')
     learning = session.get(CrawlRepairSession, row.session_id)
     source = session.scalar(select(NewsSource).where(NewsSource.id == b['source_id'])
@@ -153,7 +158,10 @@ def _samples(session, row, fetch_policy, quality):
     return pages, fingerprints
 
 
-def _tainted(session, row, fingerprints, base):
+def _tainted(session, row, fingerprints, base, inventory=None):
+    """v1 splits pages by static list URLs. v2 splits by the engine-confirmed
+    inventory snapshots; without them (before evaluation) only raw bytes and
+    normalized text are checked, since roles are not yet known."""
     seen = [page for attempt in session.scalars(select(CrawlRepairAttempt)) for page in attempt.exposure]
     for prior in _reports(session):
         if prior.selection and prior.selection['sequence'] < row.selection['sequence']:
@@ -161,20 +169,35 @@ def _tainted(session, row, fingerprints, base):
     raw = {p['snapshot_id'] for p in seen}
     text = {p['text_hash'] for p in seen}
     urls = {p[key] for p in seen for key in ('requested_url_hash', 'document_url_hash')}
-    lists = {hashlib.sha256(p['url'].encode()).hexdigest() for p in base.get('list_pages', [])}
-    details = [p for p in fingerprints if p['requested_url_hash'] not in lists]
+    if row.binding.get('format') == LEGACY:
+        lists = {hashlib.sha256(p['url'].encode()).hexdigest() for p in base.get('list_pages', [])}
+        details = [p for p in fingerprints if p['requested_url_hash'] not in lists]
+    elif inventory is None:
+        details = []
+    else:
+        details = [p for p in fingerprints if p['snapshot_id'] not in inventory]
     return (any(p['snapshot_id'] in raw or p['text_hash'] in text for p in fingerprints)
             or any(p['requested_url_hash'] in urls or p['document_url_hash'] in urls for p in details)
             or len({p['text_hash'] for p in details}) != len(details)
             or len({p['document_url_hash'] for p in details}) != len(details))
 
 
-def _result(status, reason, *, details=0, templates=(), engine_status=None, errors=()):
-    return {'status': status, 'reason': reason, 'lists': 1 if details else 0, 'details': details,
-            'templates': list(templates), 'engine_status': engine_status, 'errors': list(errors)[:20]}
+def _result(status, reason, *, details=0, templates=(), engine_status=None, errors=(), inventory=None):
+    result = {'status': status, 'reason': reason, 'lists': 1 if details else 0, 'details': details,
+              'templates': list(templates), 'engine_status': engine_status, 'errors': list(errors)[:20]}
+    if inventory is not None:
+        result.update(inventory=sorted(inventory), lists=len(inventory))
+    return result
+
+
+def _inventory(result):
+    """Recorded v2 inventory snapshots, or None when roles were never established."""
+    return set(result['inventory']) if isinstance(result, dict) and result.get('inventory') else None
 
 
 def _evaluate(work):
+    if work.format == VERSION:
+        return _evaluate_inventory(work)
     base, candidate = work.base, work.candidate
     if any(recipe.get('extractor') != 'html' or len(recipe['list_pages']) != 1
            or recipe['list_pages'][0].get('pagination') for recipe in (base, candidate)):
@@ -214,7 +237,69 @@ def _evaluate(work):
                    templates=sorted(covered), engine_status=result.status)
 
 
+def _runner(work):
+    deadline = time.monotonic() + 20
+
+    def run(recipe):
+        left = min(work.fetch_policy.max_seconds, deadline - time.monotonic())
+        if left <= 0:
+            raise ValueError('Validation deadline')
+        return CrawlEngine(work.source_id, recipe=recipe, snapshots=work.pages,
+            fetch_policy=replace(work.fetch_policy, max_seconds=left), profile=work.quality).preview()
+    return run
+
+
+def _evaluate_inventory(work):
+    """v2: any list/pagination/RSS inventory; every declared branch must be exercised."""
+    base, candidate, run = work.base, work.candidate, _runner(work)
+    inventory = run({**base, 'detail_templates': []})
+    expected = {a.url for a in inventory.articles}
+    pages = {p.url: p for p in work.pages}
+    if any(article.content_level == 'full' and any(p.field == 'content' and ':list:' in (p.locator or '')
+                                                   for p in article.provenance) for article in inventory.articles):
+        # Feed windows overlap across captures; single items cannot be shown independent.
+        return _result('inconclusive', 'feed_content_not_independently_sampled', inventory=())
+    if inventory.status != 'ready' or len(expected) < 3 or not expected <= pages.keys():
+        return _result('inconclusive', 'insufficient_independent_details', inventory=())
+    listing = {p.response.observation.snapshot_id for url, p in pages.items() if url not in expected}
+
+    def done(status, reason, **values):
+        return _result(status, reason, inventory=listing, **values)
+    result = run(candidate)
+    rss = candidate.get('extractor') == 'rss'
+    covered, branches = set(), set()
+    for article in result.articles:
+        branches.update((int(m.group(1)), int(m.group(2))) for p in article.provenance
+                        for m in [_BRANCH.search(p.locator or '')] if m)
+        evidence = next((p for p in article.provenance if p.field == 'content'), None)
+        if rss and evidence and ':list:' in (evidence.locator or ''):
+            return done('inconclusive', 'feed_content_not_independently_sampled', engine_status=result.status)
+        templates = [(i, t) for i, t in enumerate(candidate.get('detail_templates', []))
+            if urlsplit(article.url).hostname == t['match']['host']
+            and urlsplit(article.url).path.startswith(t['match']['path_prefix'])]
+        if not templates or article.content_level != 'full' or article.url not in pages:
+            return done('failed', 'detail_quality_failed', engine_status=result.status)
+        index, template = max(templates, key=lambda pair: len(pair[1]['match']['path_prefix']))
+        if (not evidence or evidence.snapshot_id != pages[article.url].response.observation.snapshot_id
+                or not evidence.locator.endswith(f':detail:{index}:content')):
+            return done('failed', 'detail_provenance_failed', engine_status=result.status)
+        covered.add(index)
+    if result.status != 'ready' or {a.url for a in result.articles} != expected:
+        return done('failed', 'inventory_or_template_coverage_failed', engine_status=result.status,
+                    errors=[e.code for e in result.errors])
+    for index, page in enumerate([candidate['feed']] if rss else candidate['list_pages']):
+        used = {number for branch, number in branches if branch == index}
+        if not used or (page.get('pagination') and max(used) < 1):
+            return done('inconclusive', 'insufficient_list_coverage', engine_status=result.status)
+    if covered != set(range(len(candidate.get('detail_templates', [])))):
+        return done('inconclusive', 'insufficient_template_coverage', engine_status=result.status)
+    return done('passed', 'controlled_holdout_checks_passed', details=len(expected),
+                templates=sorted(covered), engine_status=result.status)
+
+
 def _save(row, result):
+    if row.binding.get('format') == VERSION and 'inventory' not in result:
+        result = {**result, 'inventory': [], 'lists': 0}
     row.state, row.result = result['status'], result
     row.result_hash = _capture.fingerprint({'binding': row.binding_hash, 'selection': row.selection_hash, 'result': result})
 
@@ -252,7 +337,8 @@ def run(source_id, identity, actor_id):
             _save(row, _result('inconclusive', 'previously_seen_evidence'))
             return
         work = SimpleNamespace(base=base.recipe, candidate=candidate.recipe, pages=pages, source_id=source_id,
-                               fetch_policy=fetch_policy, quality=quality, fingerprints=fingerprints)
+                               fetch_policy=fetch_policy, quality=quality, fingerprints=fingerprints,
+                               format=row.binding['format'])
         row_id = row.id
     try:
         result = _evaluate(work)
@@ -265,10 +351,13 @@ def run(source_id, identity, actor_id):
         try:
             _authority(session, row)
             _, final_fingerprints = _samples(session, row, fetch_policy, quality)
-            if _tainted(session, row, final_fingerprints, work.base):
-                raise ValueError('Evidence was exposed')
             if budget.now() >= row.deadline_at:
                 raise ValueError('Validation deadline')
+            if _tainted(session, row, final_fingerprints, work.base, _inventory(result)):
+                if work.format != VERSION:
+                    raise ValueError('Evidence was exposed')
+                # v2 learns page roles only now: a seen detail URL is reported as such.
+                result = _result('inconclusive', 'previously_seen_evidence', inventory=result.get('inventory', ()))
         except (ValueError, TypeError, KeyError, OSError, RecursionError):
             result = _result('inconclusive', 'inputs_changed_or_deadline')
         _save(row, result)
@@ -294,7 +383,7 @@ def view(session, identity):
             if state == 'passed':
                 base, _, policy, quality = _authority(session, row)
                 _, fingerprints = _samples(session, row, policy, quality)
-                if _tainted(session, row, fingerprints, base.recipe):
+                if _tainted(session, row, fingerprints, base.recipe, _inventory(result)):
                     raise ValueError('Evidence was exposed')
     except (ValueError, TypeError, KeyError, OSError, RecursionError):
         state, result = 'stale', None

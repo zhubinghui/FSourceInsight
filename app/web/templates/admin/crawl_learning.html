@@ -41,7 +41,7 @@
 <p>Scope: controlled learning workflow only. This does not prove absence of external or pretraining exposure.</p>
 {% if validation.result %}<pre data-validation-result>{{ validation.result|tojson(indent=2) }}</pre>{% endif %}
 {% if validation.state == 'awaiting_evidence' %}
-<p>First retain a new preview using the <a data-validation-base href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=learning.base_version_id) }}">original base candidate</a>. The system selects its first capture saved after candidate freezing; failed or unavailable selections are not replaced. Requires one HTML list and at least three distinct detail pages. Validation only replays retained evidence, without network or model calls.</p>
+<p>First retain a new preview using the <a data-validation-base href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=learning.base_version_id) }}">original base candidate</a>. The system selects its first capture saved after candidate freezing; failed or unavailable selections are not replaced. Requires at least three distinct detail pages; every list, pagination step or feed the candidate declares must contribute articles. Bodies taken directly from a feed are not certified. Records frozen under {{ 'holdout-validation.v1' }} keep the single HTML list rule. Validation only replays retained evidence, without network or model calls.</p>
 <form method="post" data-validation-start action="{{ url_for('admin.crawl_config.learning.validate', source_id=source.id, identity=learning.id) }}">
 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-secondary">Validate frozen candidate</button>
 </form>
