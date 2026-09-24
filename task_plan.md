@@ -2,7 +2,8 @@
 
 ## 当前继续：M3剩余开发（2026-09-24）
 - [complete local] M3.3c通用留出v2；M3.1c学习输入字节上界。全套1141/23skip。
-- [pending] 专用学习worker/broker/MySQL实机门禁、提交/CI/部署授权、生产学习配置审核与启用。
+- [complete release] 7ec578c/d3e7a1c95b28于2026-09-24 17:15Z上线（M3.4c/3.3c/1c及小修），CI36023303297。审计docs/audits/2026-09-24-m34c-release.md。
+- [pending] 专用学习worker/broker实机门禁、生产学习配置审核与启用。
 
 ## 当前继续：M3.4c公司refresh可靠性（2026-09-23）
 - [complete local] 分支m3-company-refresh，head d3e7a1c95b28；全量1125/23skip。审计docs/audits/2026-09-23-m34c-company-refresh.md。
