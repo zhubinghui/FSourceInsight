@@ -11,7 +11,7 @@
         <table class="table table-hover mb-0" style="font-size: 0.88rem;">
             <thead>
                 <tr class="text-fs-secondary" style="font-size: 0.82rem;">
-                    <th>Source</th><th>Started</th><th>Duration</th><th>Status</th><th>Found</th><th>New</th><th>Error</th>
+                    <th>Source</th><th>Started</th><th>Duration</th><th>Status</th><th>Route</th><th>Outcome</th><th>Found</th><th>New</th><th>Code</th><th>Error</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,6 +29,8 @@
                             {{ log.status }}
                         </span>
                     </td>
+                    <td data-log-route>{{ log.route or '-' }}{% if log.schema_version_id %} v{{ log.schema_version_id }}{% endif %}</td>
+                    <td data-log-outcome>{{ log.outcome or log.status }}</td>
                     <td>{{ log.articles_found }}</td>
                     <td>
                         {% if log.articles_new and log.articles_new > 0 %}
@@ -39,6 +41,7 @@
                         <span class="text-fs-muted">0</span>
                         {% endif %}
                     </td>
+                    <td data-log-error>{{ log.error_code or '' }}</td>
                     <td class="text-fs-muted" style="font-size: 0.8rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         {{ log.error_message[:80] if log.error_message else '' }}
                     </td>

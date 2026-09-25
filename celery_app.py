@@ -40,13 +40,9 @@ def make_celery(app=None):
             'app.email.tasks.*': {'queue': 'email'},
         },
         beat_schedule={
-            'daily-crawl-all': {
-                'task': 'app.crawlers.tasks.crawl_all_sources',
-                'schedule': crontab(minute=0),  # Hourly; the task runs only at the configured hour
-            },
-            'crawl-frequency-check': {
-                'task': 'app.crawlers.tasks.schedule_due_crawls',
-                'schedule': 600.0,  # Every 10 min, check sources with custom frequency
+            'dispatch-due-crawls': {
+                'task': 'app.crawlers.tasks.dispatch_due_crawls',
+                'schedule': 60.0,  # One next-due rule: frequency plus the daily anchor (spec §5.4)
             },
             'daily-digest': {
                 'task': 'app.email.tasks.send_daily_digest',

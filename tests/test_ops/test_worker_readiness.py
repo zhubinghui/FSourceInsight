@@ -12,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_readiness_cli_understands_celery_registration_protocol(tmp_path, case, expected):
     # Captured protocol shape, not output recomputed from the implementation.
     tasks = ['app.crawlers.tasks.crawl_source',
-             'app.llm.tasks.process_article_llm [rate_limit=10/m]',
+             'app.crawlers.tasks.dispatch_due_crawls',
+             'app.llm.tasks.process_article_llm',
+             'app.llm.article_tasks.process [rate_limit=10/m]',
              'app.email.tasks.send_daily_digest']
     if case == 'missing_task':
         tasks = tasks[1:]

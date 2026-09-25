@@ -8,7 +8,9 @@ import time
 
 REQUIRED_TASKS = {
     'app.crawlers.tasks.crawl_source',
+    'app.crawlers.tasks.dispatch_due_crawls',
     'app.llm.tasks.process_article_llm',
+    'app.llm.article_tasks.process',
     'app.email.tasks.send_daily_digest',
 }
 

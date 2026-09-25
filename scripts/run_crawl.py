@@ -1,4 +1,4 @@
-"""Manually trigger a crawl for all active sources or a specific source."""
+"""Manually crawl all active sources or one source, under the same claims as scheduled crawls."""
 import sys
 import os
 import argparse
@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import create_app
 from app.extensions import db
 from app.models.source import NewsSource
-from app.crawlers.registry import get_crawler, discover_crawlers
+from app.crawlers.registry import discover_crawlers
 
 
 def main():
@@ -36,18 +36,17 @@ def main():
         else:
             sources = NewsSource.query.filter_by(is_active=True).all()
 
+        from app.crawlers import runs, schedule
+        runs.ensure_states(schedule.now())
         print(f'Crawling {len(sources)} source(s)...\n')
         for source in sources:
             print(f'--- {source.name} ({source.feed_type}) ---')
-            try:
-                crawler = get_crawler(source)
-                result = crawler.run()
-                print(f'  Found: {result.articles_found}, New: {result.articles_new}')
-                if result.errors:
-                    for err in result.errors:
-                        print(f'  Error: {err}')
-            except Exception as e:
-                print(f'  FAILED: {e}')
+            claim = runs.claim(source.id, due_only=False)
+            if claim is None:
+                print('  Skipped: disabled or already running')
+                continue
+            result = runs.execute(source.id, claim.claim_id)
+            print(f'  Status: {getattr(result, "status", "not run")}')
             print()
 
 

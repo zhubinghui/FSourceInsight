@@ -112,8 +112,12 @@ SOURCE_CATEGORIES = ['national', 'regional', 'institutional']
 
 @admin_bp.route('/sources')
 def sources():
+    from app.models.crawl_runtime import CrawlSourceState
     sources = NewsSource.query.order_by(NewsSource.name).all()
-    return render_template('admin/sources.html', sources=sources)
+    states = {state.source_id: state for state in CrawlSourceState.query.all()}
+    active = dict(db.session.query(CrawlSourceProfile.source_id, CrawlSourceProfile.active_version_id)
+                  .filter(CrawlSourceProfile.active_version_id.isnot(None)).all())
+    return render_template('admin/sources.html', sources=sources, states=states, active=active)
 
 
 @admin_bp.route('/sources/new', methods=['GET', 'POST'])
@@ -155,11 +159,14 @@ def source_toggle(source_id):
 
 @admin_bp.route('/sources/<int:source_id>/crawl-now', methods=['POST'])
 def source_crawl_now(source_id):
-    """Trigger immediate crawl for a source."""
-    from app.crawlers.tasks import crawl_source
-    crawl_source.delay(source_id)
+    """Make the source due now; the dispatcher claims it within a minute."""
+    from app.crawlers import runs
     source = NewsSource.query.get_or_404(source_id)
-    flash(f'Crawl queued for "{source.name}".', 'success')
+    outcome = runs.request_now(source_id)
+    messages = {'queued': (f'Crawl requested for "{source.name}"; it starts within a minute.', 'success'),
+                'running': (f'"{source.name}" is already running; no second crawl was queued.', 'warning'),
+                'inactive': (f'"{source.name}" is disabled; enable it before crawling.', 'warning')}
+    flash(*messages[outcome])
     return redirect(url_for('admin.sources'))
 
 
@@ -803,12 +810,11 @@ def startup_scan_now():
 
 @admin_bp.route('/crawl-all-now', methods=['POST'])
 def crawl_all_now():
-    """Trigger immediate crawl of all active sources."""
-    from app.crawlers.tasks import crawl_source
-    sources = NewsSource.query.filter_by(is_active=True).all()
-    for source in sources:
-        crawl_source.delay(source.id)
-    flash(f'Crawl queued for {len(sources)} active sources.', 'success')
+    """Make every active source due now; the dispatcher claims them."""
+    from app.crawlers import runs
+    outcomes = [runs.request_now(source.id) for source in NewsSource.query.filter_by(is_active=True).all()]
+    flash(f'Crawl requested for {outcomes.count("queued")} sources; '
+          f'{outcomes.count("running")} already running.', 'success')
     return redirect(url_for('admin.settings'))
 
 
@@ -1022,10 +1028,6 @@ def settings():
         if crawl_hour:
             SystemSetting.set(key='crawl_daily_hour', value=crawl_hour,
                               description='Daily crawl start hour in the configured timezone (0-23)')
-        check_interval = request.form.get('crawl_check_interval_hours', '').strip()
-        if check_interval:
-            SystemSetting.set(key='crawl_check_interval_hours', value=check_interval,
-                              description='Frequency check interval (hours)')
         crawl_tz = request.form.get('crawl_timezone', '').strip()
         if crawl_tz:
             SystemSetting.set(key='crawl_timezone', value=crawl_tz,
@@ -1056,7 +1058,6 @@ def settings():
 
     # Crawl schedule
     crawl_daily_hour = SystemSetting.get_int('crawl_daily_hour', 1)
-    crawl_check_interval = SystemSetting.get_int('crawl_check_interval_hours', 6)
     crawl_timezone = SystemSetting.get('crawl_timezone', 'Europe/Paris')
 
     # LLM provider status
@@ -1070,7 +1071,6 @@ def settings():
         settings=settings_data,
         highlight_settings=highlight_settings,
         crawl_daily_hour=crawl_daily_hour,
-        crawl_check_interval=crawl_check_interval,
         crawl_timezone=crawl_timezone,
         llm_keys=llm_keys,
     )

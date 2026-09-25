@@ -1,11 +1,6 @@
 """Admin actions must not lock the owner out, 500 on history, or silently stop crawling."""
-from datetime import datetime
-from zoneinfo import ZoneInfo
-
 from bs4 import BeautifulSoup
-from celery.schedules import crontab
 
-from app.crawlers import tasks
 from app.models.crawl_schema import CrawlSchemaVersion, CrawlSourceProfile
 from app.models.llm import LLMConfig, LLMUsageLog
 from app.models.setting import SystemSetting
@@ -109,33 +104,6 @@ def test_llm_config_with_usage_history_is_not_deleted(db, client, login):
 
 
 # ── daily crawl schedule ───────────────────────────────────────────
-
-def test_daily_crawl_runs_at_the_configured_hour_not_only_at_one(app, db, monkeypatch):
-    from celery_app import celery
-    schedule = celery.conf.beat_schedule['daily-crawl-all']['schedule']
-    assert isinstance(schedule, crontab) and schedule.hour == set(range(24)) and schedule.minute == {0}
-
-    _source(db)
-    SystemSetting.set('crawl_daily_hour', '8')
-    SystemSetting.set('crawl_timezone', 'Europe/Paris')
-    db.session.commit()
-    queued = []
-    monkeypatch.setattr(tasks.crawl_source, 'delay', lambda source_id: queued.append(source_id))
-
-    class Clock(datetime):
-        hour_now = 1
-        @classmethod
-        def now(cls, tz=None):
-            return datetime(2026, 9, 20, cls.hour_now, 0, tzinfo=tz or ZoneInfo('UTC'))
-    monkeypatch.setattr(tasks, 'datetime', Clock)
-
-    assert tasks.crawl_all_sources.run()['skipped'] is True and queued == []
-    Clock.hour_now = 9  # adjacent hours no longer count: the task is offered every hour
-    assert tasks.crawl_all_sources.run()['skipped'] is True
-    Clock.hour_now = 8
-    tasks.crawl_all_sources.run()
-    assert len(queued) == 1
-
 
 def test_settings_refuse_invalid_crawl_hour_and_timezone(db, client, login):
     SystemSetting.set('crawl_daily_hour', '1')

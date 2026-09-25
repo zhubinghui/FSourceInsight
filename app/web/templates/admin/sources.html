@@ -12,7 +12,7 @@
     <thead>
         <tr>
             <th>Name</th><th>Type</th><th>Category</th><th>Frequency</th>
-            <th>Active</th><th>Last Crawled</th><th>Actions</th>
+            <th>Active</th><th>Last Crawled</th><th>Route</th><th>Next due (UTC)</th><th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -34,6 +34,10 @@
                 </form>
             </td>
             <td>{{ source.last_crawled_at.strftime('%m-%d %H:%M') if source.last_crawled_at else 'Never' }}</td>
+            {% set state = states.get(source.id) %}
+            <td data-route>{% if active.get(source.id) %}Schema v{{ active[source.id] }}{% else %}Legacy{% endif %}</td>
+            <td><span data-next-due>{{ state.next_due_at.strftime('%m-%d %H:%M') if state else 'Not scheduled' }}</span>
+                {% if state and state.attention_reason %}<span class="badge bg-danger ms-1" data-attention>{{ state.attention_reason }}</span>{% endif %}</td>
             <td>
                 <a href="{{ url_for('admin.source_edit', source_id=source.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                 <a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}" class="btn btn-sm btn-outline-secondary">Crawl config</a>

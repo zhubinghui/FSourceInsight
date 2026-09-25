@@ -133,18 +133,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="text-fs-secondary">Frequency Check</td>
-                        <td>
-                            <select class="form-select form-select-sm" name="crawl_check_interval_hours" form="settings-form" style="width: 160px;">
-                                {% for h in [1, 2, 3, 4, 6, 8, 12, 24] %}
-                                <option value="{{ h }}" {{ 'selected' if crawl_check_interval == h }}>
-                                    Every {{ h }} hour{{ 's' if h > 1 }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
                         <td class="text-fs-secondary">Active Sources</td>
                         <td class="fw-medium">
                             <a href="{{ url_for('admin.sources') }}">Manage Sources</a>

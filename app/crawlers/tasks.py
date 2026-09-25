@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 
 from celery_app import celery
-from app.extensions import db
 from app.models.source import NewsSource
 from app.crawlers.registry import discover_crawlers
 
@@ -36,69 +35,16 @@ def dispatch_due_crawls():
     return {'dispatched': len(claims)}
 
 
-@celery.task(name='app.crawlers.tasks.crawl_all_sources', queue='crawl')
+@celery.task(name='app.crawlers.tasks.crawl_all_sources', queue='crawl', ignore_result=True)
 def crawl_all_sources():
-    """Daily crawl: fetch all active sources. Triggered by Beat at configured hour."""
-    from app.models.setting import SystemSetting
-
-    # Check if the configured hour matches in the configured timezone
-    configured_hour = SystemSetting.get_int('crawl_daily_hour', 1)
-    configured_tz = SystemSetting.get('crawl_timezone', 'Europe/Paris')
-
-    try:
-        from zoneinfo import ZoneInfo
-        local_now = datetime.now(ZoneInfo(configured_tz))
-        current_hour = local_now.hour
-    except Exception:
-        current_hour = datetime.utcnow().hour
-
-    # Beat offers this task every hour; only the configured local hour runs it.
-    if current_hour != configured_hour:
-        return {'skipped': True, 'reason': f'hour mismatch: {current_hour} vs {configured_hour} ({configured_tz})'}
-
-    sources = NewsSource.query.filter_by(is_active=True).all()
-    scheduled = 0
-    for source in sources:
-        crawl_source.delay(source.id)
-        scheduled += 1
-
-    logger.info(f'Daily crawl: scheduled {scheduled} sources')
-    return {'scheduled': scheduled}
+    """Retired: dispatch_due_crawls applies the daily anchor. Kept so queued old messages are harmless."""
+    return {'skipped': True, 'reason': 'retired'}
 
 
-@celery.task(name='app.crawlers.tasks.schedule_due_crawls', queue='crawl')
+@celery.task(name='app.crawlers.tasks.schedule_due_crawls', queue='crawl', ignore_result=True)
 def schedule_due_crawls():
-    """Frequency-based check: crawl sources whose crawl_frequency has elapsed.
-
-    Beat triggers this every 10 min, but the task self-gates using
-    crawl_check_interval_hours from SystemSetting to avoid over-checking.
-    """
-    from app.models.setting import SystemSetting
-
-    interval_hours = SystemSetting.get_int('crawl_check_interval_hours', 6)
-
-    # Self-gating: only actually run if enough time has passed since last check
-    from app.extensions import redis_client
-    gate_key = 'crawl:last_frequency_check'
-    if redis_client:
-        last_check = redis_client.get(gate_key)
-        if last_check:
-            elapsed = (datetime.utcnow() - datetime.fromisoformat(last_check.decode())).total_seconds()
-            if elapsed < interval_hours * 3600:
-                return {'skipped': True, 'next_in_hours': round((interval_hours * 3600 - elapsed) / 3600, 1)}
-        redis_client.setex(gate_key, interval_hours * 3600 + 600, datetime.utcnow().isoformat())
-
-    sources = NewsSource.query.filter_by(is_active=True).all()
-    scheduled = 0
-
-    for source in sources:
-        if source.is_due_for_crawl:
-            crawl_source.delay(source.id)
-            scheduled += 1
-
-    if scheduled:
-        logger.info(f'Frequency check: scheduled {scheduled} crawls')
-    return {'scheduled': scheduled}
+    """Retired: dispatch_due_crawls applies source frequencies. Kept for queued old messages."""
+    return {'skipped': True, 'reason': 'retired'}
 
 
 @celery.task(name='app.crawlers.tasks.check_crawl_health', queue='crawl')
