@@ -4,6 +4,7 @@ from .article import Article, ArticleCategory, ArticleCompany
 from .company import Company
 from .startup_analysis import StartupAnalysisJob
 from .company_refresh import CompanyRefreshJob
+from .crawl_runtime import CrawlSourceState, CrawlSchemaDecision, ArticleLLMJob
 from .user import User, KeywordSubscription
 from .llm import LLMConfig, LLMUsageLog, LLMBudgetGate, LLMReservation, LLMReconciliation
 from .email_log import EmailLog
@@ -19,4 +20,5 @@ __all__ = [
     'LLMConfig', 'LLMUsageLog', 'LLMBudgetGate', 'LLMReservation', 'LLMReconciliation',
     'EmailLog', 'CrawlRepairSession', 'CrawlRepairAttempt', 'CrawlLearningHistory', 'CrawlValidationReport', 'CrawlRepairRetry',
     'CrawlSourceProfile', 'CrawlSchemaVersion', 'CrawlPreviewReport', 'CrawlPolicyVersion', 'CrawlCaptureManifest',
+    'CrawlSourceState', 'CrawlSchemaDecision', 'ArticleLLMJob',
 ]

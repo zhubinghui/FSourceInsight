@@ -237,3 +237,11 @@ outcome 对应：成功/无变化/partial 按引擎结果；可重试与抽取/�
 - `run_llm_process.py` 绕过任务认领。
 - 进入付费调用后中断的文章任务不自动重跑，需要人工重新处理。
 - 旧爬虫仍直连外网，没有 SafeFetcher 的安全保证。
+
+## 12. 实施对齐（2026-09-25，写实施计划时）
+
+1. §5.5 初始值不在 Alembic 中回填：`dispatch_due_crawls` 每轮先为缺少 state 行的启用源补一行，按同一规则计算（`last_crawled_at` 为空则为当前时刻，否则按成功规则并不早于当前时刻）。迁移保持只增不改数据。
+2. §5.4 “运行期间请求立即抓取”的那一段作废，以 §5.6 为准：租约有效时请求只返回“正在运行”，不改到期时间，也不追加第二次运行（与原 M2 计划“同一次认领合并完成”一致）。
+3. §6.2 的任务名改为沿用公司刷新的两模块写法：状态机在 `app.llm.article_jobs`，Celery 任务为 `app.llm.article_tasks.process` 与 `app.llm.article_tasks.recover`。
+4. §9 下次到期规则是纯函数（`app.crawlers.schedule.next_due`），DST 与退避规则直接对它测试；另有经真实抓取路径的结算测试确认运行确实使用该规则。
+5. `CrawlEngine.run()` 与 `BaseCrawler.run()` 改为必须传入认领（`run(claim)`），保证所有写文章的路径都经过 claim/fence 检查；`scripts/run_recipe.py --apply` 与 `scripts/run_crawl.py` 先认领再运行。

@@ -56,6 +56,16 @@ class CrawlLog(db.Model):
     articles_found = db.Column(db.Integer, default=0)
     articles_new = db.Column(db.Integer, default=0)
     error_message = db.Column(db.Text)
+    claim_id = db.Column(db.String(36))
+    fence = db.Column(db.Integer)
+    route = db.Column(db.String(16))
+    activation_generation = db.Column(db.Integer)
+    schema_version_id = db.Column(db.Integer, db.ForeignKey(
+        'crawl_schema_version.id', name='fk_crawl_log_schema_version'))
+    policy_version_id = db.Column(db.Integer, db.ForeignKey(
+        'crawl_policy_version.id', name='fk_crawl_log_policy_version'))
+    outcome = db.Column(db.String(24))
+    error_code = db.Column(db.String(40))
 
     __table_args__ = (
         db.Index('idx_source_started', 'source_id', 'started_at'),

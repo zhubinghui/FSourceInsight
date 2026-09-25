@@ -92,7 +92,7 @@ def cleanup_evidence(source_id):
 @crawl_config_bp.route('/versions/<int:version_id>')
 def version(source_id, version_id):
     source = NewsSource.query.get_or_404(source_id)
-    candidate = (CrawlSchemaVersion.query.join(CrawlSourceProfile)
+    candidate = (CrawlSchemaVersion.query.join(CrawlSourceProfile, CrawlSchemaVersion.profile_id == CrawlSourceProfile.id)
                  .filter(CrawlSourceProfile.source_id == source_id, CrawlSchemaVersion.id == version_id)
                  .first_or_404())
     profile = db.session.get(CrawlSourceProfile, candidate.profile_id)
@@ -123,7 +123,7 @@ def preview(source_id, version_id):
         except (OSError, ValueError):
             abort(503, description='Evidence storage unavailable')
     source = NewsSource.query.filter_by(id=source_id).populate_existing().with_for_update().first_or_404()
-    candidate = (CrawlSchemaVersion.query.join(CrawlSourceProfile)
+    candidate = (CrawlSchemaVersion.query.join(CrawlSourceProfile, CrawlSchemaVersion.profile_id == CrawlSourceProfile.id)
                  .filter(CrawlSourceProfile.source_id == source_id, CrawlSchemaVersion.id == version_id)
                  .first_or_404())
     profile = CrawlSourceProfile.query.filter_by(id=candidate.profile_id).populate_existing().with_for_update().one()
@@ -235,7 +235,7 @@ def replay(source_id, version_id, report_id):
     if (set(request.form) != {'csrf_token'} or len(request.form.getlist('csrf_token')) != 1 or request.files):
         abort(400, description='Invalid replay form')
     source = NewsSource.query.get_or_404(source_id)
-    report = (CrawlPreviewReport.query.join(CrawlSchemaVersion).join(CrawlSourceProfile)
+    report = (CrawlPreviewReport.query.join(CrawlSchemaVersion).join(CrawlSourceProfile, CrawlSchemaVersion.profile_id == CrawlSourceProfile.id)
               .filter(CrawlSourceProfile.source_id == source_id, CrawlPreviewReport.version_id == version_id,
                       CrawlPreviewReport.id == report_id).first_or_404())
     candidate = db.session.get(CrawlSchemaVersion, version_id)
@@ -264,7 +264,7 @@ def replay(source_id, version_id, report_id):
 @crawl_config_bp.route('/versions/<int:version_id>/previews/<int:report_id>')
 def preview_report(source_id, version_id, report_id, replay_data=None):
     source = NewsSource.query.get_or_404(source_id)
-    report = (CrawlPreviewReport.query.join(CrawlSchemaVersion).join(CrawlSourceProfile)
+    report = (CrawlPreviewReport.query.join(CrawlSchemaVersion).join(CrawlSourceProfile, CrawlSchemaVersion.profile_id == CrawlSourceProfile.id)
               .filter(CrawlSourceProfile.source_id == source_id, CrawlPreviewReport.version_id == version_id,
                       CrawlPreviewReport.id == report_id).first_or_404())
     candidate = db.session.get(CrawlSchemaVersion, version_id)

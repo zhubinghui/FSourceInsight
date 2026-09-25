@@ -14,6 +14,13 @@ class CrawlSourceProfile(db.Model):
     policy_generation = db.Column(db.Integer, nullable=True)
     capture_generation = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     capture_history_complete = db.Column(db.Boolean, nullable=False, default=True, server_default='0')
+    # Pointers form a cycle with crawl_schema_version.profile_id, hence use_alter.
+    active_version_id = db.Column(db.Integer, db.ForeignKey(
+        'crawl_schema_version.id', use_alter=True, name='fk_profile_active_version'))
+    previous_version_id = db.Column(db.Integer, db.ForeignKey(
+        'crawl_schema_version.id', use_alter=True, name='fk_profile_previous_version'))
+    activation_generation = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    active_source_generation = db.Column(db.Integer)
 
     __table_args__ = (db.UniqueConstraint('source_id', name='uq_crawl_profile_source'),)
 
