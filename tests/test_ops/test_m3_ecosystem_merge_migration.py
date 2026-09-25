@@ -10,7 +10,7 @@ from app import create_app
 from app.config import TestingConfig
 
 HEAD = 'c7f21a9d680e'  # The merge revision under test.
-CURRENT_HEAD = 'b9d4f6a2c813'
+CURRENT_HEAD = 'c2e8a4f6b917'
 
 
 def test_one_explicit_head_preserves_both_lineages(tmp_path):

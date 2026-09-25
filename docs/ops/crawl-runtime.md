@@ -36,6 +36,17 @@ not kill a stuck process.
 Manual crawls (`Crawl now`, `Crawl all now`, `scripts/run_crawl.py`) go through the same claims.
 While a source runs, a manual request only reports "already running".
 
+## Pause versus disable
+
+To stop crawling a source for a while, use **Pause** on the source list (migration `c2e8a4f6b917`). A paused
+source is skipped by the dispatcher, "Crawl now" and `scripts/run_crawl.py`; a run already in progress finishes.
+Pausing changes nothing else, so its source policy, preview evidence and approved recipe stay valid, and
+**Resume** makes it crawlable again (immediately if it is already due).
+
+**Disable** (the On/Off toggle) is for retiring a source: the enabled flag is part of the source's configuration,
+so toggling it makes its policy, previews and approved recipe stale (`schema_stale`), and they must be reviewed and
+approved again.
+
 ## Attention
 
 The source list shows the route, the next due time and an attention badge:

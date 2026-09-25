@@ -79,7 +79,7 @@ def claim(source_id, *, due_only):
     with Session(db.engine) as session, session.begin():
         state = _state(session, source_id)
         source = session.get(NewsSource, source_id)
-        if state is None or source is None or not source.is_active:
+        if state is None or source is None or not source.is_active or state.paused_at is not None:
             return None
         if (due_only and state.next_due_at > moment) or _live(state, moment):
             return None
@@ -104,7 +104,8 @@ def claim_due(limit=50):
     with Session(db.engine) as session:
         ids = list(session.scalars(
             select(CrawlSourceState.source_id).join(NewsSource, NewsSource.id == CrawlSourceState.source_id)
-            .where(NewsSource.is_active.is_(True), CrawlSourceState.next_due_at <= moment,
+            .where(NewsSource.is_active.is_(True), CrawlSourceState.paused_at.is_(None),
+                   CrawlSourceState.next_due_at <= moment,
                    or_(CrawlSourceState.claim_id.is_(None), CrawlSourceState.lease_expires_at <= moment))
             .order_by(CrawlSourceState.next_due_at, CrawlSourceState.source_id).limit(limit)))
     return [item for item in (claim(source_id, due_only=True) for source_id in ids) if item is not None]
@@ -186,6 +187,20 @@ def abandon(claim, *, route, error_code, found=0, retry_after=None, message=None
         logger.warning('Crawl failure for source %s could not be recorded; the lease will expire', claim.source_id)
 
 
+def set_paused(source_id, paused):
+    """Pause or resume scheduling only; a running claim finishes and nothing is invalidated."""
+    moment = schedule.now()
+    with Session(db.engine) as session, session.begin():
+        if session.get(NewsSource, source_id) is None:
+            return False
+        state = _state(session, source_id)
+        if state is None:
+            state = CrawlSourceState(source_id=source_id, next_due_at=moment, due_reason='initial')
+            session.add(state)
+        state.paused_at = moment if paused else None
+        return True
+
+
 def request_now(source_id):
     """Admin/old-message request: due now unless a live claim is already running (spec §5.6)."""
     moment = schedule.now()
@@ -197,6 +212,8 @@ def request_now(source_id):
         if state is None:
             session.add(CrawlSourceState(source_id=source_id, next_due_at=moment, due_reason='manual'))
             return 'queued'
+        if state.paused_at is not None:
+            return 'paused'
         if _live(state, moment):
             return 'running'
         state.next_due_at, state.due_reason = min(state.next_due_at, moment), 'manual'

@@ -17,6 +17,9 @@ class CrawlSourceState(db.Model):
     # Monotonic: every claim increments it, so a late worker can never commit.
     fence = db.Column(db.Integer, nullable=False, default=0, server_default='0')
     running_log_id = db.Column(db.Integer, db.ForeignKey('crawl_log.id'))
+    # Set while an operator pauses scheduling; unlike disabling the source it
+    # invalidates no policy, evidence or approved recipe.
+    paused_at = db.Column(db.DateTime)
 
     __table_args__ = (db.Index('idx_crawl_state_due', 'next_due_at'),)
 

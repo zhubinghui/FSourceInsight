@@ -37,10 +37,22 @@
             {% set state = states.get(source.id) %}
             <td data-route>{% if active.get(source.id) %}Schema v{{ active[source.id] }}{% else %}Legacy{% endif %}</td>
             <td><span data-next-due>{{ state.next_due_at.strftime('%m-%d %H:%M') if state else 'Not scheduled' }}</span>
-                {% if state and state.attention_reason %}<span class="badge bg-danger ms-1" data-attention>{{ state.attention_reason }}</span>{% endif %}</td>
+                {% if state and state.attention_reason %}<span class="badge bg-danger ms-1" data-attention>{{ state.attention_reason }}</span>{% endif %}
+                {% if state and state.paused_at %}<span class="badge bg-secondary ms-1" data-paused>Paused</span>{% endif %}</td>
             <td>
                 <a href="{{ url_for('admin.source_edit', source_id=source.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                 <a href="{{ url_for('admin.crawl_config.index', source_id=source.id) }}" class="btn btn-sm btn-outline-secondary">Crawl config</a>
+                {% if state and state.paused_at %}
+                <form method="post" data-resume action="{{ url_for('admin.source_resume', source_id=source.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-success" title="Resume scheduling">Resume</button>
+                </form>
+                {% else %}
+                <form method="post" data-pause action="{{ url_for('admin.source_pause', source_id=source.id) }}" style="display:inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="Pause scheduling without invalidating the policy or recipe">Pause</button>
+                </form>
+                {% endif %}
                 <form method="post" action="{{ url_for('admin.source_crawl_now', source_id=source.id) }}" style="display:inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-outline-warning" title="Crawl now">

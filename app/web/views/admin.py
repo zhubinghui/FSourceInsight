@@ -165,8 +165,28 @@ def source_crawl_now(source_id):
     outcome = runs.request_now(source_id)
     messages = {'queued': (f'Crawl requested for "{source.name}"; it starts within a minute.', 'success'),
                 'running': (f'"{source.name}" is already running; no second crawl was queued.', 'warning'),
+                'paused': (f'"{source.name}" is paused; resume it before crawling.', 'warning'),
                 'inactive': (f'"{source.name}" is disabled; enable it before crawling.', 'warning')}
     flash(*messages[outcome])
+    return redirect(url_for('admin.sources'))
+
+
+@admin_bp.route('/sources/<int:source_id>/pause', methods=['POST'])
+def source_pause(source_id):
+    """Stop scheduling this source without touching its policy, evidence or approved recipe."""
+    from app.crawlers import runs
+    source = NewsSource.query.get_or_404(source_id)
+    runs.set_paused(source_id, True)
+    flash(f'"{source.name}" paused; scheduled and manual crawls are skipped until you resume it.', 'success')
+    return redirect(url_for('admin.sources'))
+
+
+@admin_bp.route('/sources/<int:source_id>/resume', methods=['POST'])
+def source_resume(source_id):
+    from app.crawlers import runs
+    source = NewsSource.query.get_or_404(source_id)
+    runs.set_paused(source_id, False)
+    flash(f'"{source.name}" resumed; it is crawled when next due.', 'success')
     return redirect(url_for('admin.sources'))
 
 

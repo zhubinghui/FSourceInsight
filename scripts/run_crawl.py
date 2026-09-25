@@ -43,7 +43,7 @@ def main():
             print(f'--- {source.name} ({source.feed_type}) ---')
             claim = runs.claim(source.id, due_only=False)
             if claim is None:
-                print('  Skipped: disabled or already running')
+                print('  Skipped: disabled, paused or already running')
                 continue
             result = runs.execute(source.id, claim.claim_id)
             print(f'  Status: {getattr(result, "status", "not run")}')
