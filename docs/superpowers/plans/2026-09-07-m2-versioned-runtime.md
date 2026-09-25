@@ -101,3 +101,4 @@ M2不是直接把`get_crawler()`替换为`CrawlEngine()`；没有档案的旧来
 - A本地完成：26项HTTP/2项迁移；全套487 passed/13 MySQL专用skip，152 AST/42模板/指定flake8/单Alembic head通过。代码和迁移未提交部署，生产仍M1。
 - B1也已本地完成：20秒/6请求的引擎预算、5条有限样本、每候选20报告、输入/ABA过期检测；新增b6迁移。最终525/14、156 AST/43模板通过；无原始HTML、无审批/路由/运行lease/outbox。
 - B2a原始证据/回放已本地完成，574/14、158 AST/43模板通过，[报告](../../audits/2026-09-08-m2b2a-private-evidence.md)；没有新DDL，head仍b6。下一步B2b持久policy/独立验证/人工审批/CAS；继续同一HTTP验收面逐条red/green。完整MySQL/并发/候选/生产仍后续授权与验收。
+- 2026-09-25：剩余的 B（规则 active/previous、批准/拒绝/回滚/CAS）、C（运行认领/租约/fencing、outbox）与 D（日常路由、统一调度）合并进 [M2 收尾设计](../specs/2026-09-25-m2-activation-routing-design.md)，用户已选完整 M2、频率 + 每日锚点调度、按候选来源区分的批准门槛、新旧路径统一 outbox。与本文差异：outbox 以 `article_llm_job` 持久任务实现（沿用 `company_refresh_job` 模式），失败重试不再使用 Celery retry。后续以该设计及其实施计划为准。
