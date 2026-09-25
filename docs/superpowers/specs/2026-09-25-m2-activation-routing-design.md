@@ -2,7 +2,7 @@
 
 - 日期：2026-09-25
 - 基线：`4731643`（生产 `7ec578c` / schema `d3e7a1c95b28`）
-- 状态：**设计已获用户逐节确认，待审阅本文件**；未开始实现。
+- 状态：**已实现于分支 `m2-activation-routing`，未部署**（设计经用户逐节确认并审阅；实施对齐见 §12）。
 - 上游：[动态爬虫 Agent 设计](2026-09-06-dynamic-crawler-agent-design.md)、[主计划 M2](../plans/2026-09-06-dynamic-crawler-agent.md)、[M2 本地细化](../plans/2026-09-07-m2-versioned-runtime.md) B/C/D 中尚未完成的部分。
 - 本文是动态爬虫闭环四项中的第 1 项。第 2 项（质量失败自动学习、生产开启学习）、第 3 项（无 schema 自动探测 RSS→HTML）、第 4 项（受限浏览器渲染 M4）各自另写 spec。
 
