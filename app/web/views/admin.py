@@ -210,15 +210,21 @@ def articles():
 
 @admin_bp.route('/articles/<int:article_id>')
 def article_detail(article_id):
-    return render_template('admin/article_detail.html', article=Article.query.get_or_404(article_id))
+    from app.llm import article_jobs
+    article = Article.query.get_or_404(article_id)
+    return render_template('admin/article_detail.html', article=article, llm_job=article_jobs.latest(article.id))
 
 
 @admin_bp.route('/articles/<int:article_id>/reprocess', methods=['POST'])
 def article_reprocess(article_id):
-    from app.llm.tasks import process_article_llm
+    from app.llm import article_jobs
     article = Article.query.get_or_404(article_id)
-    process_article_llm.delay(article.id, force=True)
-    flash(f'Queued "{article.title_fr[:60]}" for LLM processing.', 'success')
+    identity, created = article_jobs.request(article.id, 'manual', force=True)
+    if created:
+        article_jobs.publish(identity)
+        flash(f'Queued "{article.title_fr[:60]}" for LLM processing.', 'success')
+    else:
+        flash(f'"{article.title_fr[:60]}" already has a queued or running LLM job.', 'warning')
     return redirect(request.referrer or url_for('admin.articles'))
 
 
@@ -641,22 +647,20 @@ def llm_usage():
 
 @admin_bp.route('/llm-reprocess', methods=['POST'])
 def llm_reprocess():
-    """Trigger LLM reprocessing for unprocessed articles."""
-    from app.llm.tasks import process_article_llm
-
-    limit = request.form.get('limit', 50, type=int)
-    unprocessed = (
-        Article.query
-        .filter_by(llm_processed=False)
-        .order_by(Article.crawled_at.desc())
-        .limit(limit)
-        .all()
-    )
-
-    for article in unprocessed:
-        process_article_llm.delay(article.id)
-
-    flash(f'Enqueued {len(unprocessed)} articles for LLM processing.', 'success')
+    """Queue durable LLM jobs for unprocessed articles that have none active."""
+    from app.llm import article_jobs
+    from app.models.crawl_runtime import ArticleLLMJob
+    limit = max(1, min(request.form.get('limit', 50, type=int) or 50, 500))
+    active = db.session.query(ArticleLLMJob.active_article_id).filter(ArticleLLMJob.active_article_id.isnot(None))
+    pending = (Article.query.filter(Article.llm_processed.is_(False), Article.id.notin_(active))
+               .order_by(Article.crawled_at.desc()).limit(limit).all())
+    queued = 0
+    for article in pending:
+        identity, created = article_jobs.request(article.id, 'manual')
+        if created:
+            article_jobs.publish(identity)
+            queued += 1
+    flash(f'Enqueued {queued} articles for LLM processing.', 'success')
     return redirect(url_for('admin.dashboard'))
 
 

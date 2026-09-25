@@ -3,7 +3,7 @@ import pytest
 
 from app.llm import prompts
 from app.llm.contracts import InvalidLLMResponse, validate_response
-from app.llm.tasks import process_article_llm
+from app.llm.pipeline import process_article
 from app.models.company import Company
 
 
@@ -50,7 +50,7 @@ def test_isere_company_is_created_pending_and_stays_off_the_map(db, llm_env):
                                    _entry('Global Corp', location={'city': 'Paris', 'in_isere': False}),
                                    _entry('Unknown Place')])
 
-    process_article_llm.run(llm_env.article.id)
+    process_article(llm_env.article.id)
 
     db.session.expire_all()
     created = {c.name: (c.is_grenoble, c.review_status, c.city) for c in Company.query.all()}
@@ -68,7 +68,7 @@ def test_existing_companies_keep_their_review_decisions(db, llm_env):
     llm_env.provider.reply = _ner([_entry('Rejected Junk', location={'city': 'Grenoble', 'in_isere': True}),
                                    _entry('Known Local', location={'city': 'Grenoble', 'in_isere': True})])
 
-    process_article_llm.run(llm_env.article.id)
+    process_article(llm_env.article.id)
 
     db.session.expire_all()
     rejected = Company.query.filter_by(slug='rejected-junk').one()

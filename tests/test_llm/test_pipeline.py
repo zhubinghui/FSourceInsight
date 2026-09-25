@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import event
 
-from app.llm.tasks import process_article_llm
+from app.llm.pipeline import process_article
 from app.models.article import Article, ArticleCategory, ArticleCompany
 from app.models.category import Category
 from app.models.company import Company
@@ -27,7 +27,7 @@ def test_marked_incomplete_crawl_never_generates_deep_content_even_with_text(db,
     llm_env.article.content_level = level
     db.session.commit()
     llm_env.provider.reply = article_reply
-    process_article_llm.run(llm_env.article.id)
+    process_article(llm_env.article.id)
     db.session.expire_all()
     article = db.session.get(Article, llm_env.article.id)
     assert article.content_en is None and article.insight_en is None
@@ -40,7 +40,7 @@ def test_source_text_prompts_do_not_mislabel_english_as_french(db, llm_env):
     llm_env.article.content_level = 'full'
     db.session.commit()
     llm_env.provider.reply = article_reply
-    process_article_llm.run(llm_env.article.id)
+    process_article(llm_env.article.id)
     systems = [c['messages'][0]['content'] for c in llm_env.provider.calls]
     assert not any('given French text' in s or 'following French tech news article' in s or
                    'original French article' in s for s in systems)
@@ -57,7 +57,7 @@ def test_late_llm_failure_keeps_business_unchanged_and_retry_is_idempotent(db, l
             raise RuntimeError('synthetic insight failure')
     llm_env.provider.before = fail_insight
     with pytest.raises(Exception, match='synthetic insight failure'):
-        process_article_llm.run(article_id)
+        process_article(article_id)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert article.title_zh is None
@@ -66,14 +66,14 @@ def test_late_llm_failure_keeps_business_unchanged_and_retry_is_idempotent(db, l
     assert LLMUsageLog.query.filter_by(success=True).count() > 0
 
     llm_env.provider.before = None
-    process_article_llm.run(article_id)
+    process_article(article_id)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert article.llm_processed
     assert article.insight_en == 'Synthetic enriched text'
     assert ArticleCategory.query.count() == ArticleCompany.query.count() == Company.query.count() == 1
     assert ArticleCompany.query.one().sentiment_score == 0.8
-    process_article_llm.run(article_id)
+    process_article(article_id)
     assert ArticleCategory.query.count() == ArticleCompany.query.count() == 1
 
 
@@ -87,14 +87,14 @@ def test_each_provider_step_failure_leaves_no_partial_article(db, llm_env, step)
             raise RuntimeError('synthetic step interruption')
     llm_env.provider.before = interrupt
     with pytest.raises(Exception, match='synthetic step interruption'):
-        process_article_llm.run(article_id)
+        process_article(article_id)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert not article.llm_processed
     assert article.title_zh is article.summary_fr is article.insight_en is None
     assert Company.query.count() == ArticleCompany.query.count() == ArticleCategory.query.count() == 0
     llm_env.provider.before = None
-    process_article_llm.run(article_id)
+    process_article(article_id)
     db.session.expire_all()
     assert db.session.get(Article, article_id).llm_processed
     assert ArticleCompany.query.count() == 1
@@ -112,14 +112,14 @@ def test_late_business_failure_rolls_back_but_keeps_paid_usage(db, llm_env):
     event.listen(db.engine, 'before_cursor_execute', fail_category)
     try:
         with pytest.raises(Exception, match='synthetic database failure'):
-            process_article_llm.run(article_id)
+            process_article(article_id)
     finally:
         event.remove(db.engine, 'before_cursor_execute', fail_category)
     db.session.expire_all()
     assert not db.session.get(Article, article_id).llm_processed
     assert Company.query.count() == ArticleCompany.query.count() == 0
     assert LLMUsageLog.query.filter_by(success=True).count() == 12
-    process_article_llm.run(article_id)
+    process_article(article_id)
     db.session.expire_all()
     assert db.session.get(Article, article_id).llm_processed
     assert ArticleCompany.query.count() == ArticleCategory.query.count() == 1
@@ -158,7 +158,7 @@ def test_article_records_actual_fallback_not_configured_primary(db, llm_env):
         if 'professional translator' in call['messages'][0]['content'] and call['model'] == 'synthetic/primary':
             raise RuntimeError('primary unavailable')
     llm_env.provider.before = fail_translation
-    process_article_llm.run(article_id)
+    process_article(article_id)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert (article.llm_provider, article.llm_model) == ('second', 'backup')
@@ -170,7 +170,7 @@ def test_title_only_article_has_no_deep_insight(db, llm_env, content):
     llm_env.article.content_fr = content
     db.session.commit()
     llm_env.provider.reply = article_reply
-    process_article_llm.run(article_id)
+    process_article(article_id)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert article.llm_processed
@@ -189,7 +189,7 @@ def test_retry_reuses_legacy_partial_relations_and_preserves_manual_sentiment(db
                                       sentiment='negative', sentiment_score=-0.8)])
     db.session.commit()
     llm_env.provider.reply = article_reply
-    process_article_llm.run(article_id)
+    process_article(article_id)
     db.session.expire_all()
     assert ArticleCategory.query.count() == ArticleCompany.query.count() == 1
     assert ArticleCategory.query.one().confidence == 0.9
@@ -206,7 +206,7 @@ def test_changed_input_is_not_overwritten_by_old_llm_result(db, llm_env):
                 session.get(Article, article_id).title_fr = 'New source title'
     llm_env.provider.before = change_source
     with pytest.raises(Exception, match='Article changed'):
-        process_article_llm.run(article_id)
+        process_article(article_id)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert article.title_fr == 'New source title' and article.title_zh is None
@@ -228,7 +228,7 @@ def test_quality_or_language_changed_during_llm_collection_invalidates_the_resul
                 conn.execute(text(f'UPDATE article SET {column}=:value WHERE id=:id'), {'value': new_value, 'id': article_id})
     llm_env.provider.before = change_marker
     with pytest.raises(Exception, match='Article changed'):
-        process_article_llm.run(article_id)
+        process_article(article_id)
     db.session.expire_all()
     assert llm_env.article.content_en is None and not llm_env.article.llm_processed
     assert LLMUsageLog.query.count() > 0
@@ -254,7 +254,7 @@ def test_force_reprocess_without_body_clears_stale_digests(db, llm_env):
     llm_env.article.content_zh = llm_env.article.content_en = 'Obsolete body'
     db.session.commit()
     llm_env.provider.reply = article_reply
-    process_article_llm.run(article_id, force=True)
+    process_article(article_id, force=True)
     db.session.expire_all()
     article = db.session.get(Article, article_id)
     assert article.content_zh is article.content_en is None

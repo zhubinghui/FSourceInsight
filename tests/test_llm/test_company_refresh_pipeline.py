@@ -1,9 +1,17 @@
 """Article completion queues coalesced company refresh intent; it never pays inline."""
 from app.llm import prompts
-from app.llm.tasks import process_article_llm
+from app.llm import article_jobs
+from app.llm.article_tasks import process
 from app.models.article import Article
 from app.models.company import Company
 from tests.test_llm.test_pipeline import article_reply
+
+
+def consume(article_id):
+    """Process an article the way the llm worker does: a durable job, then its consumer."""
+    identity, created = article_jobs.request(article_id, 'manual')
+    assert created
+    process.run(identity)
 
 
 def test_articles_queue_one_refresh_per_tracked_company_without_inline_model_calls(db, llm_env, monkeypatch):
@@ -19,8 +27,8 @@ def test_articles_queue_one_refresh_per_tracked_company_without_inline_model_cal
     db.session.commit()
     llm_env.provider.reply = article_reply
 
-    process_article_llm.run(llm_env.article.id)
-    process_article_llm.run(second.id)
+    consume(llm_env.article.id)
+    consume(second.id)
     db.session.expire_all()
 
     assert not any(call['messages'][0]['content'] == prompts.COMPANY_ANALYSIS_SYSTEM
@@ -36,5 +44,5 @@ def test_untracked_company_mentions_queue_nothing(db, llm_env, monkeypatch):
     monkeypatch.setattr(Celery, 'send_task', lambda self, name, args=None, kwargs=None, **options:
                         sent.append((name, args, options)))
     llm_env.provider.reply = article_reply
-    process_article_llm.run(llm_env.article.id)
+    consume(llm_env.article.id)
     assert not [item for item in sent if item[0] == 'app.llm.refresh_tasks.refresh']

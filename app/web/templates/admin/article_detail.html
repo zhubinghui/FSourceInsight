@@ -10,6 +10,10 @@
         <h3 class="mb-1">{{ article.title_fr }}</h3>
         {% if article.title_zh %}<div class="text-muted">{{ article.title_zh }}</div>{% endif %}
     </div>
+    {% if llm_job %}
+    <p class="small mb-0">Latest LLM job: <span data-llm-job-state>{{ llm_job.state }}</span>
+        {% if llm_job.reason %}({{ llm_job.reason }}){% endif %} — trigger {{ llm_job.trigger }}</p>
+    {% endif %}
     <form method="post" action="{{ url_for('admin.article_reprocess', article_id=article.id) }}"
           data-confirm="Queue an LLM run for this article? This costs money."
           onsubmit="return confirm(this.dataset.confirm)">

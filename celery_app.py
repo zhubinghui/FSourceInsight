@@ -27,6 +27,7 @@ def make_celery(app=None):
             'app.llm.tasks',
             'app.llm.startup_tasks',
             'app.llm.refresh_tasks',
+            'app.llm.article_tasks',
             'app.email.tasks',
         ],
         task_routes={
@@ -35,6 +36,7 @@ def make_celery(app=None):
             'app.llm.tasks.*': {'queue': 'llm'},
             'app.llm.startup_tasks.*': {'queue': 'llm'},
             'app.llm.refresh_tasks.*': {'queue': 'llm'},
+            'app.llm.article_tasks.*': {'queue': 'llm'},
             'app.email.tasks.*': {'queue': 'email'},
         },
         beat_schedule={
@@ -60,6 +62,10 @@ def make_celery(app=None):
             },
             'recover-company-refresh': {
                 'task': 'app.llm.refresh_tasks.recover',
+                'schedule': 60.0,
+            },
+            'recover-article-llm': {
+                'task': 'app.llm.article_tasks.recover',
                 'schedule': 60.0,
             },
             'startup-discovery': {

@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from flask import current_app
 
 from app.extensions import db
+from app.llm import article_jobs
 from app.models.article import Article
 from app.models.llm import LLMConfig, LLMUsageLog
 from app.models.source import CrawlLog, NewsSource
@@ -56,6 +57,7 @@ def snapshot():
                    'failures': failed_crawls},
         'pipeline': {'articles_24h': Article.query.filter(Article.crawled_at >= since).count(),
                      'unprocessed': Article.query.filter_by(llm_processed=False).count()},
+        'llm_jobs': article_jobs.counts(),
         'llm': {'calls_24h': calls, 'failures_24h': failures,
                 'failure_rate': f'{failures / calls * 100:.1f}%' if calls else '0.0%',
                 'cost_today': float(cost_today or 0),

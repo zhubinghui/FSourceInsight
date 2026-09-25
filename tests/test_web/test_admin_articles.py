@@ -59,9 +59,10 @@ def test_filters_survive_pagination_and_a_source_filter(db, client, login):
 
 
 def test_requeue_one_article_and_refuse_unknown_ones(db, client, login, monkeypatch):
+    from celery import Celery
+    from app.models.crawl_runtime import ArticleLLMJob
     queued = []
-    from app.llm import tasks
-    monkeypatch.setattr(tasks.process_article_llm, 'delay', lambda article_id, **kw: queued.append((article_id, kw)))
+    monkeypatch.setattr(Celery, 'send_task', lambda self, name, args=None, **options: queued.append((name, args)))
     ids, _ = _seed(db)
     login('admin')
     page = _list(client, state='unprocessed')
@@ -71,7 +72,9 @@ def test_requeue_one_article_and_refuse_unknown_ones(db, client, login, monkeypa
     response = client.post(form['action'], data=data)
 
     assert response.status_code == 302
-    assert queued == [(ids['Article en attente'], {'force': True})]
+    job = ArticleLLMJob.query.one()
+    assert (job.article_id, job.force, job.trigger) == (ids['Article en attente'], True, 'manual')
+    assert queued == [('app.llm.article_tasks.process', [job.id])]
     assert client.post('/admin/articles/999999/reprocess', data=data).status_code == 404
 
 

@@ -5,26 +5,17 @@ from celery_app import celery
 from app.extensions import db
 from app.models.article import ArticleCompany
 from app.models.company import Company
-from app.llm.pipeline import process_article
 
 logger = logging.getLogger(__name__)
 
 
-@celery.task(name='app.llm.tasks.process_article_llm', bind=True,
-             max_retries=2, default_retry_delay=120, queue='llm',
-             rate_limit='10/m')
-def process_article_llm(self, article_id: int, force=False, skip_translate=False):
-    """Full pipeline; the shared implementation also serves the manual CLI."""
-    try:
-        applied = process_article(article_id, force=force, skip_translate=skip_translate)
-    except Exception as exc:
-        logger.error(f'LLM processing failed for article {article_id}: {exc}')
-        db.session.rollback()
-        raise self.retry(exc=exc)
-    if applied:
-        # Only durable, coalesced intent; the model is never called here.
-        _queue_company_refreshes(article_id)
-        logger.info(f'LLM processing complete for article {article_id}')
+@celery.task(name='app.llm.tasks.process_article_llm', queue='llm', ignore_result=True)
+def process_article_llm(article_id: int, force=False, skip_translate=False):
+    """Retired direct consumer: older messages become durable jobs and never pay here."""
+    from app.llm import article_jobs
+    identity, created = article_jobs.request(article_id, 'legacy_message', force=force)
+    if created:
+        article_jobs.publish(identity)
 
 
 def _queue_company_refreshes(article_id: int):

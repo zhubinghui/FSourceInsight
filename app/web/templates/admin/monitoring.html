@@ -53,6 +53,9 @@
                         <tr><td>Cost today</td><td class="text-end fw-semibold" data-metric="llm-cost-today">${{ '%.2f' | format(llm.cost_today) }}{% if llm.budget %} of ${{ '%.2f' | format(llm.budget) }}{% endif %}</td></tr>
                         <tr><td>Calls (24h)</td><td class="text-end">{{ llm.calls_24h }}</td></tr>
                         <tr><td>Active configs</td><td class="text-end"><a href="{{ url_for('admin.llm_config') }}">{{ llm.configs_active }}</a></td></tr>
+                        <tr><td>Article LLM jobs</td><td class="text-end">
+                            {% for state in ['queued', 'running', 'done', 'failed', 'expired'] %}{{ state }} <span data-llm-jobs="{{ state }}">{{ llm_jobs.get(state, 0) }}</span>{% if not loop.last %} · {% endif %}{% endfor %}
+                        </td></tr>
                     </tbody>
                 </table>
             </div>
