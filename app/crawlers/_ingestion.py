@@ -1,37 +1,35 @@
-"""Apply a quality-checked preview. No network, model calls or config publication."""
+"""Apply a quality-checked preview under a run claim. No model calls or config publication."""
 from dataclasses import asdict, replace
-from datetime import datetime
 import hashlib
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.extensions import db
+from app.llm import article_jobs
 from app.models.article import Article
-from app.models.source import CrawlLog, NewsSource
+from app.models.source import NewsSource
+from . import runs, schedule
 from .contracts import CrawlError, CrawlOutcome, FieldProvenance
 
 
-def run(engine):
+def run(engine, claim):
     with Session(db.engine) as session:
         source = session.get(NewsSource, engine.source_id)
         if not source or not source.is_active:
             raise ValueError('Source unavailable')
         source_input = (source.url, source.feed_url, source.updated_at)
-    with Session(db.engine) as session, session.begin():
-        log = CrawlLog(source_id=engine.source_id, started_at=datetime.utcnow(), status='running')
-        session.add(log)
-        session.flush()
-        run_id = log.id
     preview = engine.preview()
     new = updated = 0
-    duplicate, ids, errors = preview.quality.duplicate, [], list(preview.errors)
+    duplicate, ids, errors, jobs = preview.quality.duplicate, [], list(preview.errors), []
     try:
         with Session(db.engine) as session, session.begin():
+            state = runs.lock(session, claim)
             source = session.query(NewsSource).filter_by(id=engine.source_id).with_for_update().one()
             if not source.is_active or (source.url, source.feed_url, source.updated_at) != source_input:
                 raise ValueError('invalid_schema')
             for value in preview.articles:
+                upgraded = False
                 query = session.query(Article).filter_by(source_id=source.id)
                 existing = query.filter_by(external_id=value.external_id).one_or_none()
                 if existing is None:
@@ -44,7 +42,7 @@ def run(engine):
                         continue  # Never overwrite equal/better or unknown legacy body.
                     if existing.url != value.url:
                         raise ValueError('invalid_article')
-                    article = existing
+                    article, upgraded = existing, True
                     updated += 1
                     article.llm_processed = False
                     article.llm_processed_at = None
@@ -72,32 +70,43 @@ def run(engine):
                                            'content_hash': hashlib.sha256((value.content or '').encode()).hexdigest()}
                 session.flush()
                 ids.append(article.id)
-            if preview.articles or preview.status == 'no_change':
-                source.last_crawled_at = datetime.utcnow()
+                job = article_jobs.enqueue(session, article.id, 'upgrade' if upgraded else 'crawl',
+                                           crawl_log_id=claim.log_id)
+                if job:
+                    jobs.append(job)
             quality = replace(preview.quality, new=new, updated=updated, duplicate=duplicate)
             status = preview.status
             if status == 'ready':
                 status = 'success' if ids else 'no_change'
                 if not ids:
                     quality = replace(quality, no_change_reason='all_duplicates')
-            outcome = CrawlOutcome(run_id=run_id, status=status, quality=quality, article_ids=tuple(ids), errors=tuple(errors))
-            _finish_log(session, outcome)
+            runs.settle(session, state, claim, status='partial' if status == 'degraded' else status,
+                        route='schema', error_code=_error_code(status, errors), found=quality.discovered, new=new)
+            outcome = CrawlOutcome(run_id=claim.log_id, status=status, quality=quality,
+                                   article_ids=tuple(ids), errors=tuple(errors))
+    except runs.RunLost:
+        runs.mark_stale(claim)
+        return CrawlOutcome(run_id=claim.log_id, status='failed',
+                            quality=replace(preview.quality, no_change_reason=None),
+                            errors=tuple(errors) + (CrawlError(stage='persistence', code='stale_claim'),))
     except (SQLAlchemyError, ValueError) as exc:
-        errors.append(CrawlError(stage='persistence' if isinstance(exc, SQLAlchemyError) else 'extraction',
-                                 code='database_error' if isinstance(exc, SQLAlchemyError) else 'invalid_article'))
-        outcome = CrawlOutcome(run_id=run_id, status='failed',
-                               quality=replace(preview.quality, no_change_reason=None), errors=tuple(errors))
-        try:
-            with Session(db.engine) as session, session.begin():
-                _finish_log(session, outcome)
-        except SQLAlchemyError:
-            pass  # Business transaction is already rolled back; failure log may remain running.
+        code = 'database_error' if isinstance(exc, SQLAlchemyError) else 'invalid_article'
+        errors.append(CrawlError(stage='persistence' if isinstance(exc, SQLAlchemyError) else 'extraction', code=code))
+        runs.abandon(claim, route='schema', error_code=code, found=preview.quality.discovered)
+        return CrawlOutcome(run_id=claim.log_id, status='failed',
+                            quality=replace(preview.quality, no_change_reason=None), errors=tuple(errors))
+    for identity in jobs:
+        article_jobs.publish(identity)
     return outcome
 
 
-def _finish_log(session, outcome):
-    log = session.get(CrawlLog, outcome.run_id)
-    log.status = 'failed' if outcome.errors or outcome.status in {'failed', 'blocked', 'inconclusive'} else 'success'
-    log.finished_at = datetime.utcnow()
-    log.articles_found, log.articles_new = outcome.quality.discovered, outcome.quality.new
-    log.error_message = '\n'.join(error.code for error in outcome.errors) or None
+def _error_code(status, errors):
+    """The error code that drives the schedule; None for results that were written."""
+    if status in ('success', 'no_change', 'partial', 'degraded'):
+        return None
+    codes = [error.code for error in errors]
+    for category in ('blocked', 'retry'):
+        chosen = [code for code in codes if schedule.kind(code) == category]
+        if chosen:
+            return chosen[0]
+    return codes[0] if codes else 'no_evidence'

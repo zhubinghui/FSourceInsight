@@ -154,7 +154,7 @@ class CrawlError:
                           'budget_exceeded', 'robots_unavailable', 'transport_unavailable'},
             'extraction': {'invalid_schema', 'missing_fields', 'selector_mismatch', 'invalid_article', 'resource_limit', 'parser_unavailable'},
             'quality': {'low_quality', 'no_evidence'},
-            'persistence': {'database_error'},
+            'persistence': {'database_error', 'stale_claim'},
         }
         _choice(self.stage, codes, 'error.stage')
         _choice(self.code, codes[self.stage], 'error.code')

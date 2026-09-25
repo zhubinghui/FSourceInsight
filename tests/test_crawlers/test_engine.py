@@ -253,14 +253,14 @@ def test_run_applies_metadata_only_once_and_keeps_language_and_provenance(db, ne
         'body': '<article><h2><a href="/research">Research</a></h2></article>'}})
     doc = recipe(news_source.id)
     doc['locale'] = 'en'
-    first = engine(doc).run()
+    first = engine(doc).run(claimed(news_source.id))
     assert first.status == 'success' and len(first.article_ids) == 1
     article = db.session.get(Article, first.article_ids[0])
     assert article.content_level == 'metadata_only' and article.source_language == 'en'
     assert article.crawl_provenance['recipe']
     assert article.crawl_provenance['engine'] == 'news-engine.v1'
     assert article.crawl_provenance['quality_profile']['min_content_chars'] == 200
-    second = engine(doc).run()
+    second = engine(doc).run(claimed(news_source.id))
     assert second.status == 'no_change' and second.quality.duplicate == 1
     assert not second.article_ids and not second.repair_dispatched
     assert Article.query.count() == 1
@@ -277,12 +277,15 @@ def test_metadata_upgrade_preserves_the_existing_guid_and_requeues_enrichment(db
         'https://news.test.invalid/news': {'body': '<article><h2><a href="/research">Recherche Grenoble</a></h2></article>'},
         'https://news.test.invalid/research': {'body': f'<h1>Recherche Grenoble</h1><div class="body"><p>{TEXT_A}</p><p>{TEXT_B}</p></div>'},
     })
-    result = engine(with_detail(recipe(news_source.id))).run()
+    result = engine(with_detail(recipe(news_source.id))).run(claimed(news_source.id))
     db.session.expire_all()
     assert result.quality.updated == 1 and result.article_ids == (article_id,)
     assert Article.query.count() == 1
     assert old.external_id == 'historical-guid' and old.content_level == 'full'
     assert not old.llm_processed
+    from app.models.crawl_runtime import ArticleLLMJob
+    job = ArticleLLMJob.query.one()
+    assert (job.article_id, job.trigger, job.state) == (article_id, 'upgrade', 'queued')
 
 
 def test_late_ingestion_failure_rolls_back_all_articles_and_returns_failed_outcome(db, news_source, fetch_network):
@@ -300,7 +303,7 @@ def test_late_ingestion_failure_rolls_back_all_articles_and_returns_failed_outco
                 raise OperationalError(statement, parameters, RuntimeError('Synthetic write failure'))
     event.listen(db.engine, 'before_cursor_execute', fail_second)
     try:
-        result = engine(recipe(news_source.id)).run()
+        result = engine(recipe(news_source.id)).run(claimed(news_source.id))
     finally:
         event.remove(db.engine, 'before_cursor_execute', fail_second)
     assert result.status == 'failed' and result.retryable and not result.article_ids
@@ -402,8 +405,8 @@ def test_legacy_rss_adapter_preserves_guid_without_running_old_ingestion(db, new
     result = crawler.preview()
     assert result.articles[0].external_id == 'stable-guid' and result.articles[0].source_language == 'unknown'
     assert result.articles[0].content_level == 'excerpt' and Article.query.count() == 0
-    assert crawler.run().status == 'success'
-    assert crawler.run().status == 'no_change'
+    assert crawler.run(claimed(news_source.id)).status == 'success'
+    assert crawler.run(claimed(news_source.id)).status == 'no_change'
 
 
 def test_custom_legacy_python_cannot_enter_the_safe_adapter(db, news_source):
@@ -419,7 +422,7 @@ def test_custom_legacy_python_cannot_enter_the_safe_adapter(db, news_source):
 
 def test_replay_is_preview_only_and_cannot_be_used_as_a_live_ingestion(db, news_source):
     with pytest.raises(ValueError, match='Replay is preview-only'):
-        engine(recipe(news_source.id), snapshots=()).run()
+        engine(recipe(news_source.id), snapshots=()).run(claimed(news_source.id))
 
 
 def test_recipe_cli_previews_saves_private_snapshots_and_replays_without_http(db, news_source, fetch_network, monkeypatch, tmp_path, capsys):
@@ -449,7 +452,7 @@ def test_recipe_cli_previews_saves_private_snapshots_and_replays_without_http(db
 def test_many_bad_cards_do_not_overflow_outcome_or_lose_the_committed_result(db, news_source, fetch_network):
     from app.models.article import Article
     fetch_network.configure(routes={'https://news.test.invalid/news': {'body': '<article>Missing title</article>' * 180 + '<article><h2><a href="/research">Research</a></h2></article>'}})
-    result = engine(recipe(news_source.id)).run()
+    result = engine(recipe(news_source.id)).run(claimed(news_source.id))
     assert result.status == 'partial' and result.quality.rejected == 180
     assert len(result.errors) <= 100 and len(result.article_ids) == Article.query.count() == 1
 
@@ -481,7 +484,7 @@ def test_final_log_failure_also_rolls_back_business_application(db, news_source,
             raise OperationalError(statement, parameters, RuntimeError('Synthetic log failure'))
     event.listen(db.engine, 'before_cursor_execute', fail_log)
     try:
-        result = engine(recipe(news_source.id)).run()
+        result = engine(recipe(news_source.id)).run(claimed(news_source.id))
     finally:
         event.remove(db.engine, 'before_cursor_execute', fail_log)
     assert result.status == 'failed' and not result.article_ids and Article.query.count() == 0
@@ -563,7 +566,7 @@ def test_quality_upgrade_keeps_an_unchanged_title_translation_and_manual_relatio
         'https://news.test.invalid/news': {'body': '<article><h2><a href="/research">Recherche Grenoble</a></h2></article>'},
         'https://news.test.invalid/research': {'body': f'<h1>Recherche Grenoble</h1><div class="body"><p>{TEXT_A}</p><p>{TEXT_B}</p></div>'},
     })
-    result = engine(with_detail(recipe(news_source.id))).run()
+    result = engine(with_detail(recipe(news_source.id))).run(claimed(news_source.id))
     db.session.expire_all()
     assert result.quality.updated == 1 and article.title_zh == '既有成功标题翻译'
     assert ArticleCompany.query.one().extracted_by == 'manual' and ArticleCompany.query.one().sentiment == 'negative'
@@ -578,7 +581,7 @@ def test_lower_quality_never_overwrites_a_better_or_unknown_legacy_body(db, news
     db.session.add(article)
     db.session.commit()
     fetch_network.configure(routes={'https://news.test.invalid/news': {'body': '<article><h2><a href="/research">Research</a></h2></article>'}})
-    result = engine(recipe(news_source.id)).run()
+    result = engine(recipe(news_source.id)).run(claimed(news_source.id))
     db.session.expire_all()
     assert result.status == 'no_change' and not result.article_ids
     assert article.content_fr == 'Preserved original body' and article.insight_en == 'Preserved insight'
@@ -595,7 +598,7 @@ def test_implicit_rss_guid_stays_compatible_with_a_later_legacy_run(db, news_sou
     db.session.commit()
     feed = '<rss version="2.0"><channel><title>News</title><item><guid isPermaLink="false">retained-guid</guid><title>Research</title><link>https://news.test.invalid/research</link></item></channel></rss>'
     fetch_network.configure(routes={doc['feed']['url']: {'body': feed, 'headers': {'Content-Type': 'application/rss+xml'}}})
-    assert engine(doc).run().status == 'success'
+    assert engine(doc).run(claimed(news_source.id)).status == 'success'
     result = RSSCrawler(news_source).run(claimed(news_source.id))
     assert result.status == 'no_change' and Article.query.count() == 1
     assert Article.query.one().external_id == 'retained-guid'
@@ -607,7 +610,7 @@ def test_url_canonicalization_does_not_change_the_legacy_hash_identity(db, news_
     import hashlib
     url = 'https://news.test.invalid/research#section'
     fetch_network.configure(routes={'https://news.test.invalid/news': {'body': f'<article><h2><a href="{url}">Research</a></h2></article>'}})
-    assert engine(recipe(news_source.id)).run().status == 'success'
+    assert engine(recipe(news_source.id)).run(claimed(news_source.id)).status == 'success'
     result = HTMLCrawler(news_source).run(claimed(news_source.id))
     assert result.status == 'no_change' and Article.query.count() == 1
     assert Article.query.one().external_id == hashlib.sha256(url.encode()).hexdigest()[:32]
@@ -625,7 +628,7 @@ def test_upgrade_provenance_does_not_claim_new_evidence_for_a_preserved_identity
         'https://news.test.invalid/news': {'body': '<article><h2><a id="changed-guid" href="/research">Recherche Grenoble</a></h2></article>'},
         'https://news.test.invalid/research': {'body': f'<h1>Recherche Grenoble</h1><div class="body"><p>{TEXT_A}</p><p>{TEXT_B}</p></div>'},
     })
-    assert engine(doc).run().quality.updated == 1
+    assert engine(doc).run(claimed(news_source.id)).quality.updated == 1
     db.session.expire_all()
     assert article.external_id == 'retained-guid' and article.author == 'Known author'
     provenance = {p['field']: p for p in article.crawl_provenance['fields']}
@@ -809,5 +812,33 @@ def test_run_start_is_durable_before_network(db, news_source, fetch_network, mon
         return original(command, **kwargs)
     monkeypatch.setattr(subprocess, 'Popen', launch)
     fetch_network.configure(routes={'https://news.test.invalid/news': {'body': '<article><h2><a href="/one">Research</a></h2></article>'}})
-    result = engine(recipe(news_source.id)).run()
+    result = engine(recipe(news_source.id)).run(claimed(news_source.id))
     assert observed == [result.run_id] and result.status == 'success'
+
+
+def test_engine_run_queues_crawl_jobs_in_the_same_commit(db, news_source, fetch_network, monkeypatch):
+    from app.models.crawl_runtime import ArticleLLMJob
+    sent = []
+    monkeypatch.setattr('celery.app.base.Celery.send_task',
+                        lambda self, name, args=None, **options: sent.append((name, args)))
+    fetch_network.configure(routes={'https://news.test.invalid/news': {
+        'body': '<article><h2><a href="/research">Recherche</a></h2></article>'}})
+    first = engine(recipe(news_source.id)).run(claimed(news_source.id))
+    job = ArticleLLMJob.query.one()
+    assert (first.status, job.trigger, job.article_id) == ('success', 'crawl', first.article_ids[0])
+    assert sent == [('app.llm.article_tasks.process', [job.id])]
+
+
+def test_engine_run_with_a_lost_claim_writes_nothing(db, news_source, fetch_network, monkeypatch):
+    from datetime import timedelta
+    from app.crawlers import schedule
+    from app.models.article import Article
+    from app.models.crawl_runtime import ArticleLLMJob
+    fetch_network.configure(routes={'https://news.test.invalid/news': {
+        'body': '<article><h2><a href="/research">Recherche</a></h2></article>'}})
+    claim = claimed(news_source.id)
+    later = schedule.now() + timedelta(minutes=16)
+    monkeypatch.setattr(schedule, 'now', lambda: later)
+    outcome = engine(recipe(news_source.id)).run(claim)
+    assert outcome.status == 'failed' and outcome.errors[-1].code == 'stale_claim'
+    assert Article.query.count() == 0 and ArticleLLMJob.query.count() == 0

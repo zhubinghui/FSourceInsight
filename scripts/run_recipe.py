@@ -50,6 +50,16 @@ def save_snapshots(path, source_id, pages, profile):
         stream.write(payload)
 
 
+def _apply(engine, source_id):
+    """Apply once under a run claim, like scheduled crawls; a live claim or disabled source refuses."""
+    from app.crawlers import runs, schedule
+    runs.ensure_states(schedule.now())
+    claim = runs.claim(source_id, due_only=False)
+    if claim is None:
+        raise ValueError('Source is disabled or already running')
+    return engine.run(claim)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--recipe', required=True)
@@ -72,10 +82,10 @@ def main():
             from app import create_app
             from flask import has_app_context
             if has_app_context():
-                result = engine.run()
+                result = _apply(engine, source_id)
             else:
                 with create_app().app_context():
-                    result = engine.run()
+                    result = _apply(engine, source_id)
         else:
             result = engine.preview()
             if args.save_snapshots:

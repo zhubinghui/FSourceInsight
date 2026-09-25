@@ -82,11 +82,11 @@ class CrawlEngine:
                 raise ValueError('Invalid snapshots') from None
         self.snapshots = None if snapshots is None else tuple(snapshots)
 
-    def run(self) -> CrawlOutcome:
+    def run(self, claim) -> CrawlOutcome:
         if self.snapshots is not None:
             raise ValueError('Replay is preview-only')
         from ._ingestion import run
-        return run(self)
+        return run(self, claim)
 
     def preview(self) -> CrawlPreview:
         doc = self.recipe.to_dict()
