@@ -128,3 +128,35 @@ def test_monitoring_and_backfill_report_job_states(db, llm_env, client, login, s
     login('admin')
     page = BeautifulSoup(client.get('/admin/monitoring').text, 'html.parser')
     assert page.select_one('[data-llm-jobs="queued"]').get_text(strip=True) == '1'
+
+
+def test_redispatch_spacing_grows_with_job_age(db, llm_env, sent, monkeypatch):
+    # Review finding: a fixed 121 s re-send floods a rate-limited backlog with duplicates.
+    base = article_jobs.now()
+    identity, _ = article_jobs.request(llm_env.article.id, 'manual')
+    article_jobs.publish(identity)
+    for offset, expected in [(130, 2), (250, 2), (270, 3), (530, 3), (545, 4)]:
+        monkeypatch.setattr(article_jobs, 'now', lambda offset=offset: base + timedelta(seconds=offset))
+        recover.run()
+        assert len(sent) == expected, offset
+
+
+def test_a_content_change_during_processing_queues_a_fresh_job(db, llm_env, sent):
+    # Review finding: an upgrade that lands while a job runs must not leave the article unprocessed.
+    from sqlalchemy.orm import Session
+    article_id = llm_env.article.id
+    llm_env.provider.reply = article_reply
+
+    def change(call):
+        if len(llm_env.provider.calls) == 1:
+            with Session(db.engine) as session, session.begin():
+                session.get(Article, article_id).title_fr = 'New source title'
+    llm_env.provider.before = change
+    identity, _ = article_jobs.request(article_id, 'manual')
+    process.run(identity)
+    db.session.remove()
+    first = db.session.get(ArticleLLMJob, identity)
+    assert (first.state, first.reason) == ('failed', 'input_changed')
+    fresh = article_jobs.latest(article_id)
+    assert fresh.id != identity and (fresh.state, fresh.trigger) == ('queued', 'input_changed')
+    assert sent == [(TASK, [fresh.id], 'llm')]

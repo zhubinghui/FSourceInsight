@@ -12,6 +12,10 @@ from app.models.company import Company
 from app.utils.text import strip_html
 
 
+class ArticleChanged(RuntimeError):
+    """The article's inputs changed while its paid results were being collected."""
+
+
 def process_article(article_id, *, force=False, skip_translate=False):
     """Shared Celery/CLI pipeline. Returns whether a new result was committed.
 
@@ -64,7 +68,7 @@ def process_article(article_id, *, force=False, skip_translate=False):
             return False
         if (article.title_fr, article.content_fr, article.updated_at, article.content_level, article.source_language) != (
                 title, content, version, level, language):
-            raise RuntimeError('Article changed during LLM processing; retry with fresh input')
+            raise ArticleChanged('Article changed during LLM processing; retry with fresh input')
         if force:
             session.query(ArticleCompany).filter_by(article_id=article_id, extracted_by='llm').delete()
             session.query(ArticleCategory).filter_by(article_id=article_id).delete()

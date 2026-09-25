@@ -202,3 +202,15 @@ def test_inactive_sources_are_never_claimed(db, source, clock, sent):
     assert dispatch_due_crawls.run() == {'dispatched': 0}
     assert runs.claim(source, due_only=False) is None
     assert runs.request_now(source) == 'inactive'
+
+
+def test_dispatcher_claims_a_small_batch_so_queued_claims_do_not_expire(db, source, clock, sent):
+    # Review finding: at the daily anchor every source is due at once; claiming them all
+    # lets leases lapse while messages wait behind two crawl workers.
+    for index in range(5):
+        db.session.add(NewsSource(name=f'Extra {index}', slug=f'extra-{index}', url=f'https://extra{index}.test.invalid/',
+                                  category='national', crawl_frequency_minutes=360))
+    db.session.commit()
+    from app.crawlers.tasks import dispatch_due_crawls
+    assert dispatch_due_crawls.run() == {'dispatched': 4}
+    assert dispatch_due_crawls.run() == {'dispatched': 2}

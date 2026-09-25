@@ -22,11 +22,17 @@ def crawl_source(source_id: int, claim_id: str | None = None):
     return None if result is None else {'status': result.status}
 
 
+# Twice the production crawl concurrency. The dispatcher runs every minute, so a
+# small batch keeps claims from expiring in the queue when the daily anchor makes
+# every source due at once (spec §5.1 caps a round at 50).
+DISPATCH_LIMIT = 4
+
+
 @celery.task(name='app.crawlers.tasks.dispatch_due_crawls', queue='crawl', ignore_result=True)
 def dispatch_due_crawls():
-    """Claim due sources (at most 50) and send only their IDs; lease expiry covers lost sends."""
+    """Claim a small batch of due sources and send only their IDs; lease expiry covers lost sends."""
     from app.crawlers import runs
-    claims = runs.claim_due(limit=50)
+    claims = runs.claim_due(limit=DISPATCH_LIMIT)
     for item in claims:
         try:
             celery.send_task('app.crawlers.tasks.crawl_source', args=[item.source_id, item.claim_id], queue='crawl')

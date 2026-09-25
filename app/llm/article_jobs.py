@@ -19,6 +19,7 @@ TASK = 'app.llm.article_tasks.process'
 QUEUE_LIFETIME = timedelta(hours=24)
 RUNNING_LIMIT = timedelta(minutes=30)
 SPACING = timedelta(seconds=121)
+MAX_SPACING = timedelta(hours=1)
 logger = logging.getLogger(__name__)
 
 
@@ -70,7 +71,9 @@ def publish(identity):
             if now() >= item.expires_at:
                 _close(item, 'expired', 'queue_expired')
                 return
-            item.next_dispatch_at = now() + SPACING
+            # Spacing grows with the job's age (roughly doubling per re-send), so a
+            # rate-limited backlog is not flooded with duplicate messages.
+            item.next_dispatch_at = now() + max(SPACING, min(now() - item.created_at, MAX_SPACING))
         celery.send_task(TASK, args=[identity], queue='llm')
     except Exception:
         logger.warning('Article LLM dispatch unavailable; durable job retained')

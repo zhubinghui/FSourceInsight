@@ -6,7 +6,7 @@ Implementation plan: [plan](../superpowers/plans/2026-09-25-m2-activation-routin
 ## Schedule
 
 Beat runs `app.crawlers.tasks.dispatch_due_crawls` every 60 seconds. It gives every active source a
-`crawl_source_state` row, claims at most 50 due sources and sends `crawl_source(source_id, claim_id)`.
+`crawl_source_state` row, claims at most 4 due sources (twice the production crawl concurrency; the spec's cap is 50) and sends `crawl_source(source_id, claim_id)`. At the daily anchor the sources are therefore worked through over several minutes instead of being claimed at once, so queued claims do not outlive their lease.
 
 One rule decides the next due time (`app/crawlers/schedule.py`):
 
@@ -64,10 +64,10 @@ never falls back to its legacy crawler: problems block it and flag it for attent
 
 Every new or upgraded article gets an `article_llm_job` in the same transaction. The llm worker claims a
 job before any model call, so duplicate messages never pay twice. `app.llm.article_tasks.recover` runs
-every 60 s: it re-sends queued jobs (at least 120 s apart), expires jobs queued for more than 24 h and
+every 60 s: it re-sends queued jobs with a spacing that grows with the job's age (121 s, then roughly doubling, at most 1 h), expires jobs queued for more than 24 h and
 closes jobs running for more than 30 min as `failed (interrupted)` without paying again.
 
-Failed jobs are not retried automatically. Use **LLM reprocess** on the dashboard (unprocessed articles
+If an article's content changes while its job runs (for example a metadata-only article upgraded to full text), the job closes as `input_changed` and a fresh job is queued for the new content. Other failed jobs are not retried automatically. Use **LLM reprocess** on the dashboard (unprocessed articles
 without an active job) or **Reprocess with LLM** on an article. `scripts/run_llm_process.py` calls the
 pipeline directly and bypasses job claims; use it only when no llm worker is consuming the same articles.
 
