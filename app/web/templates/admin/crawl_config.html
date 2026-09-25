@@ -3,11 +3,26 @@
 {% block content %}
 <h2>Crawl configuration — {{ source.name }}</h2>
 <p><a href="{{ url_for('admin.sources') }}">Back to sources</a></p>
-<div class="alert alert-info">
-    <strong>No active recipe.</strong> Legacy crawling remains unchanged.
-    Candidates can be previewed with explicit permission. Approval is not available yet.
-    Saving a candidate does not fetch pages, write articles or dispatch LLM tasks.
+{% if profile and profile.active_version_id %}
+<div class="alert alert-success" data-activation>
+    Active recipe: version <a href="{{ url_for('admin.crawl_config.version', source_id=source.id, version_id=profile.active_version_id) }}"><span data-active-version>{{ profile.active_version_id }}</span></a>.
+    Scheduled crawls use it; its failures are recorded and never sent to the legacy crawler.
 </div>
+{% else %}
+<div class="alert alert-info">
+    <strong>No active recipe.</strong> Scheduled crawls use the legacy crawler.
+    Approve a candidate with current evidence to switch. Saving a candidate does not fetch pages, write articles or dispatch LLM tasks.
+</div>
+{% endif %}
+<p>Activation generation: <span data-activation-generation>{{ profile.activation_generation if profile else 0 }}</span>
+    · previous version: <span data-previous-version>{{ profile.previous_version_id if profile and profile.previous_version_id else 'none' }}</span></p>
+<h3>Decisions (latest 50)</h3>
+<ul>{% for decision in decisions %}
+    <li data-decision>{{ decision.created_at.strftime('%Y-%m-%d %H:%M UTC') }} — {{ decision.action }}
+        version {{ decision.version_id or decision.from_version_id }} by administrator #{{ decision.actor_id }}
+        {% if decision.evidence_kind %}— {{ decision.evidence_kind }} {{ decision.evidence_ref }}{% endif %}
+        {% if decision.reason %}— {{ decision.reason }}{% endif %}</li>
+{% else %}<li>No decisions yet.</li>{% endfor %}</ul>
 <form method="post" action="{{ url_for('admin.crawl_config.index', source_id=source.id) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label for="recipe" class="form-label">Recipe JSON for source {{ source.id }}</label>

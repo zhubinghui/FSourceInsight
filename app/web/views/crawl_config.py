@@ -7,7 +7,7 @@ from flask import Blueprint, abort, current_app, flash, redirect, render_templat
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.crawlers import _capture, _evidence, _source_policy
+from app.crawlers import _capture, _evidence, _source_policy, activation
 from app.crawlers.schema import validate_recipe
 from app.crawlers.engine import CrawlEngine
 from app.crawlers._preview import preview_policy, report_data, source_fingerprint
@@ -15,14 +15,17 @@ from app.extensions import db
 from app.models.crawl_schema import CrawlSchemaVersion, CrawlSourceProfile, CrawlPreviewReport, CrawlCaptureManifest
 from app.models.source import NewsSource
 from app.models.crawl_learning import CrawlRepairSession
+from app.models.crawl_runtime import CrawlSchemaDecision
 from .crawl_policy import crawl_policy_bp
 from .crawl_capture import crawl_capture_bp
 from .crawl_learning import crawl_learning_bp
+from .crawl_activation import crawl_activation_bp
 
 crawl_config_bp = Blueprint('crawl_config', __name__, url_prefix='/sources/<int:source_id>/crawl-config')
 crawl_config_bp.register_blueprint(crawl_policy_bp)
 crawl_config_bp.register_blueprint(crawl_capture_bp)
 crawl_config_bp.register_blueprint(crawl_learning_bp)
+crawl_config_bp.register_blueprint(crawl_activation_bp)
 
 
 @crawl_config_bp.errorhandler(SQLAlchemyError)
@@ -71,7 +74,10 @@ def index(source_id):
                 .order_by(CrawlSchemaVersion.id.desc()).limit(50).all()) if profile else []
     learning_sessions = (CrawlRepairSession.query.filter_by(source_id=source_id)
                          .order_by(CrawlRepairSession.created_at.desc(), CrawlRepairSession.id.desc()).limit(50).all())
-    return render_template('admin/crawl_config.html', source=source, versions=versions, learning_sessions=learning_sessions)
+    decisions = (CrawlSchemaDecision.query.filter_by(profile_id=profile.id)
+                 .order_by(CrawlSchemaDecision.id.desc()).limit(50).all()) if profile else []
+    return render_template('admin/crawl_config.html', source=source, versions=versions, learning_sessions=learning_sessions,
+                           profile=profile, decisions=decisions)
 
 
 @crawl_config_bp.route('/evidence/cleanup', methods=['POST'])
@@ -100,11 +106,21 @@ def version(source_id, version_id):
     policy_state = _source_policy.state(policy_record, source, profile)
     reports = (CrawlPreviewReport.query.filter_by(version_id=candidate.id)
                .order_by(CrawlPreviewReport.id.desc()).limit(20).all())
+    from app.crawlers import validation
+    identity = activation.learning_identity(candidate.id)
+    view = validation.view(db.session, identity) if identity else None
+    eligible = [] if identity else activation.eligible_reports(source, profile, candidate)
+    version_label = activation.label(profile, candidate)
+    approvable = bool(source.is_active and policy_state == 'effective' and version_label not in ('Active', 'Rejected')
+                      and ((identity and view is not None and view.state == 'passed') or (not identity and eligible)))
     return render_template('admin/crawl_schema_version.html', source=source, candidate=candidate,
                            generation=profile.generation, source_hash=source_fingerprint(source), reports=reports,
                            recipe_text=json.dumps(candidate.recipe, ensure_ascii=False, indent=2),
                            policy_record=policy_record, policy_state=policy_state,
-                           policy_configured=profile.policy_generation is not None or policy_record is not None)
+                           policy_configured=profile.policy_generation is not None or policy_record is not None,
+                           version_label=version_label, learning_identity=identity,
+                           validation_state=view.state if view else None, eligible_reports=eligible,
+                           approvable=approvable, activation_generation=profile.activation_generation)
 
 
 @crawl_config_bp.route('/versions/<int:version_id>/preview', methods=['POST'])
@@ -269,10 +285,7 @@ def preview_report(source_id, version_id, report_id, replay_data=None):
                       CrawlPreviewReport.id == report_id).first_or_404())
     candidate = db.session.get(CrawlSchemaVersion, version_id)
     profile = db.session.get(CrawlSourceProfile, candidate.profile_id)
-    stale = (report.status == 'stale' or not source.is_active or report.generation != profile.generation
-             or report.source_fingerprint != source_fingerprint(source)
-             or report.recipe_hash != candidate.recipe_hash or report.engine_version != CrawlEngine.VERSION
-             or not _source_policy.matches_report(_source_policy.latest(profile), source, profile, report.report))
+    stale = not activation.report_is_current(report, source, profile, candidate)
     try:
         inputs, _, _, _ = _stored_inputs(source_id, candidate, report)
         evidence_status = _evidence.inspect(current_app.config.get('CRAWL_EVIDENCE_DIR'), report.report.get('evidence'), inputs)
