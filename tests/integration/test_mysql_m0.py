@@ -725,6 +725,9 @@ class MySQLM0Tests(unittest.TestCase):
         crawler = FixtureCrawler(self.db.session.get(NewsSource, source_id))
         self.assertEqual(crawler.run(claimed(source_id)).articles_new, 1)
         self.assertEqual(crawler.run(claimed(source_id)).status, 'no_change')
+        # Runs commit in their own sessions; read from a new transaction, not the
+        # snapshot this session opened when it loaded the source.
+        self.db.session.remove()
         self.assertEqual(Article.query.count(), 1)
         self.assertEqual([log.status for log in CrawlLog.query.all()], ['success', 'success'])
 
@@ -744,6 +747,7 @@ class MySQLM0Tests(unittest.TestCase):
         result = FixtureCrawler(self.db.session.get(NewsSource, source_id)).run(claimed(source_id))
         self.assertTrue(result.errors)
         self.assertEqual(result.articles_new, 0)
+        self.db.session.remove()
         self.assertEqual(Article.query.count(), 0)
         self.assertEqual(CrawlLog.query.one().status, 'failed')
         self.assertIsNotNone(CrawlLog.query.one().finished_at)
@@ -960,13 +964,13 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertEqual(self.db.session.query(LLMReservation).one().state, 'reconciled')
 
     def test_mysql_llm_independent_ledger_does_not_wait_on_business_parent(self):
-        from app.llm.tasks import process_article_llm
+        from app.llm.pipeline import process_article
         from app.models.article import Article, ArticleCompany, ArticleCategory
         from app.models.llm import LLMUsageLog
         article_id = self.make_llm_article()
         with patch('app.llm.client.litellm.completion', side_effect=self.llm_reply):
-            process_article_llm.run(article_id)
-            process_article_llm.run(article_id)
+            process_article(article_id)
+            process_article(article_id)
         self.db.session.remove()
         self.assertTrue(self.db.session.get(Article, article_id).llm_processed)
         self.assertEqual(ArticleCompany.query.count(), 1)
@@ -975,7 +979,7 @@ class MySQLM0Tests(unittest.TestCase):
         self.assertTrue(all(log.success and log.article_id == article_id for log in LLMUsageLog.query.all()))
 
     def test_mysql_llm_apply_failure_keeps_usage_but_rolls_back_business(self):
-        from app.llm.tasks import process_article_llm
+        from app.llm.pipeline import process_article
         from app.models.article import Article, ArticleCompany
         from app.models.company import Company
         from app.models.llm import LLMUsageLog
@@ -984,7 +988,7 @@ class MySQLM0Tests(unittest.TestCase):
             conn.execute(text("CREATE TRIGGER m05_fail_category BEFORE INSERT ON article_category FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='synthetic apply failure'"))
         with patch('app.llm.client.litellm.completion', side_effect=self.llm_reply):
             with self.assertRaisesRegex(Exception, 'synthetic apply failure'):
-                process_article_llm.run(article_id)
+                process_article(article_id)
             self.db.session.remove()
             self.assertFalse(self.db.session.get(Article, article_id).llm_processed)
             self.assertEqual(Company.query.count(), 0)
@@ -993,7 +997,7 @@ class MySQLM0Tests(unittest.TestCase):
             self.db.session.remove()
             with self.db.engine.begin() as conn:
                 conn.execute(text('DROP TRIGGER m05_fail_category'))
-            process_article_llm.run(article_id)
+            process_article(article_id)
         self.db.session.remove()
         self.assertTrue(self.db.session.get(Article, article_id).llm_processed)
         self.assertEqual(ArticleCompany.query.count(), 1)
@@ -1001,7 +1005,7 @@ class MySQLM0Tests(unittest.TestCase):
     def test_mysql_duplicate_llm_consumers_apply_once(self):
         from concurrent.futures import ThreadPoolExecutor
         from threading import Barrier
-        from app.llm.tasks import process_article_llm
+        from app.llm.pipeline import process_article
         from app.models.article import ArticleCompany, ArticleCategory
         from app.models.company import Company
         article_id = self.make_llm_article()
@@ -1013,7 +1017,7 @@ class MySQLM0Tests(unittest.TestCase):
             return self.llm_reply(**kwargs)
         def process():
             with self.app.app_context():
-                process_article_llm.run(article_id)
+                process_article(article_id)
         with patch('app.llm.client.litellm.completion', side_effect=reply):
             with ThreadPoolExecutor(max_workers=2) as pool:
                 futures = [pool.submit(process), pool.submit(process)]

@@ -86,9 +86,23 @@ def main():
     before_task_publish.connect(observe_publish, weak=False)
 
     def dispatch():
+        # Real Admin action that publishes one crawl-queue task. "Crawl now" only marks a
+        # source due since M2, so the no-op load uses the startup discovery scan instead.
         before = len(published)
-        response = client.post(f'/admin/sources/{source_id}/crawl-now', data={'csrf_token': csrf('/admin/sources')})
+        response = client.post('/admin/startup-sources/scan-now', data={'csrf_token': csrf('/admin/startup-sources')})
         assert response.status_code == 302 and len(published) == before + 1
+        return celery.AsyncResult(published[-1])
+
+    def crawl():
+        # A claimed run, exactly as dispatch_due_crawls sends it after "Crawl now".
+        from app.crawlers import runs, schedule
+        with app.app_context():
+            runs.ensure_states(schedule.now())
+            claim = runs.claim(int(source_id), due_only=False)
+        assert claim is not None, 'source could not be claimed'
+        before = len(published)
+        celery.send_task('app.crawlers.tasks.crawl_source', args=[int(source_id), claim.claim_id], queue='crawl')
+        assert len(published) == before + 1
         return celery.AsyncResult(published[-1])
 
     def wait_for(callback, label, timeout=30):
@@ -132,11 +146,11 @@ def main():
                     continue
 
                 if case == 'count':
-                    # Existing inactive-source no-op branch, real Admin/Redis.
+                    # No startup sources are active: a real no-op crawl-queue task.
                     # At least one child must retire by 100 completed tasks.
                     for number in range(100):
                         result = dispatch()
-                        assert result.get(timeout=20) is None
+                        assert result.get(timeout=20) == {'sources_scanned': 0, 'new_companies': 0}
                         result.forget()
                         if number == 48:
                             assert set(stats()['pool']['processes']) == initial_pids, 'Child recycled before 50 total tasks'
@@ -162,7 +176,7 @@ def main():
                     'body': '<rss version="2.0"><channel><title>Fixture</title><link>https://news.test.invalid/</link>'
                             '<description>Empty synthetic feed</description></channel></rss>'}}}))
                 (root / 'hold').touch()
-                result = dispatch()
+                result = crawl()
                 wait_for(lambda: (root / 'held.json').exists(), 'Task never reached real fetch boundary')
                 held = json.loads((root / 'held.json').read_text())
                 assert held['rss_kib'] > 393216, 'Fixture did not actually cross RSS threshold'
@@ -171,13 +185,13 @@ def main():
                 assert held['pid'] in stats()['pool']['processes'], 'Task was recycled while still running'
                 (root / 'release').touch()
                 value = result.get(timeout=30)
-                assert value['new'] == 0 and value['found'] == 0 and not value['errors'], value
+                assert value == {'status': 'no_change'}, value
                 result.forget()
                 wait_for(lambda: (value if (value := stats()) and held['pid'] not in value['pool']['processes'] else None),
                          'Memory-heavy child was not recycled AFTER completion')
                 wait_for(lambda: not Path(f'/proc/{held["pid"]}').exists(), 'Memory-heavy child not reaped')
-                value = dispatch().get(timeout=30)
-                assert value['new'] == 0 and not value['errors'], value
+                value = crawl().get(timeout=30)
+                assert value == {'status': 'no_change'}, value
                 response = client.get('/api/v1/news')
                 assert response.status_code == 200 and response.json['total'] == 0
                 assert stats()['pid'] == process.pid

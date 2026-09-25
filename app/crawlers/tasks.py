@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 discover_crawlers()
 
 
-@celery.task(name='app.crawlers.tasks.crawl_source', queue='crawl', ignore_result=True,
+@celery.task(name='app.crawlers.tasks.crawl_source', queue='crawl',
              soft_time_limit=600, time_limit=660)
 def crawl_source(source_id: int, claim_id: str | None = None):
     """Run one claimed crawl. A message without a claim (older senders) is only a request."""
