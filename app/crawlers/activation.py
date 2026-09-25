@@ -2,6 +2,7 @@
 
 Runs inside the Admin request transaction (db.session). Lock order: source -> state -> profile.
 """
+from dataclasses import dataclass
 from datetime import timedelta
 import hashlib
 import json
@@ -203,3 +204,44 @@ def retire(source_id, actor_id, expected):
     profile.activation_generation += 1
     _decide(profile, 'retire', actor_id, from_version_id=current)
     db.session.commit()
+
+
+@dataclass(frozen=True)
+class Route:
+    kind: str
+    version_id: int | None = None
+    policy_version_id: int | None = None
+    recipe: object = None
+    fetch_policy: object = None
+    quality: object = None
+
+
+class Blocked(Exception):
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = code
+
+
+def route(claim):
+    """The route pinned to this claim; activation changes since the claim make it stale."""
+    from .runs import RunLost
+    profile = CrawlSourceProfile.query.filter_by(source_id=claim.source_id).populate_existing().first()
+    if (profile.activation_generation if profile else 0) != claim.activation_generation:
+        raise RunLost()
+    if profile is None or profile.active_version_id is None:
+        return Route('legacy')
+    if profile.active_source_generation != profile.source_generation:
+        raise Blocked('schema_stale')
+    source = db.session.get(NewsSource, claim.source_id)
+    record = _source_policy.latest(profile)
+    if _source_policy.state(record, source, profile) != 'effective':
+        raise Blocked('policy_unavailable')
+    fetch_policy, quality = _source_policy.inputs(record)
+    version = db.session.get(CrawlSchemaVersion, profile.active_version_id)
+    try:
+        recipe = validate_recipe(version.recipe)
+    except ValueError:
+        raise Blocked('invalid_schema') from None
+    if recipe.fingerprint != version.recipe_hash:
+        raise Blocked('invalid_schema')
+    return Route('schema', version.id, record.id, recipe, fetch_policy, quality)

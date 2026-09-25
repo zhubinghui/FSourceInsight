@@ -203,12 +203,34 @@ def request_now(source_id):
         return 'queued'
 
 
+def record_route(claim, route):
+    with Session(db.engine) as session, session.begin():
+        log = session.get(CrawlLog, claim.log_id)
+        if log is not None and log.status == 'running':
+            log.route, log.schema_version_id, log.policy_version_id = route.kind, route.version_id, route.policy_version_id
+
+
 def execute(source_id, claim_id):
-    """Run a current claim. Task 8 adds the approved-schema route before the legacy one."""
-    from app.crawlers import registry
+    """Resolve the route for a current claim and run it; approval is enforced here (spec §4.5)."""
+    from app.crawlers import activation, registry
+    from app.crawlers.engine import CrawlEngine
     claim = current(source_id, claim_id)
     if claim is None:
         return None
+    try:
+        route = activation.route(claim)
+    except RunLost:
+        mark_stale(claim)
+        return None
+    except activation.Blocked as blocked:
+        abandon(claim, route='schema', error_code=blocked.code)
+        return None
+    finally:
+        db.session.remove()
+    record_route(claim, route)
+    if route.kind == 'schema':
+        engine = CrawlEngine(source_id, recipe=route.recipe, fetch_policy=route.fetch_policy, profile=route.quality)
+        return engine.run(claim)
     try:
         crawler = registry.get_crawler(db.session.get(NewsSource, source_id))
     except Exception as exc:
