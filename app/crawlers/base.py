@@ -6,12 +6,13 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 import requests
-from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.extensions import db
 from app.models.article import Article
-from app.models.source import NewsSource, CrawlLog
+from app.models.source import NewsSource
 from .fetcher import FetchError
 
 logger = logging.getLogger(__name__)
@@ -39,11 +40,49 @@ class CrawlResult:
     retry_after: int | None = None
 
 
+class LegacyFailure(Exception):
+    """A classified legacy failure; its code feeds the schedule (spec §5.4)."""
+
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
+
+
+def failure_code(exc):
+    """Map a legacy exception to (crawl error code, Retry-After seconds or None)."""
+    from celery.exceptions import SoftTimeLimitExceeded
+    if isinstance(exc, LegacyFailure):
+        return exc.code, None
+    if isinstance(exc, SoftTimeLimitExceeded):
+        return 'timeout', None
+    if isinstance(exc, FetchError):
+        return exc.code, exc.retry_after
+    if isinstance(exc, requests.Timeout):
+        return 'timeout', None
+    if isinstance(exc, requests.ConnectionError):
+        return 'network_error', None
+    if isinstance(exc, requests.HTTPError) and exc.response is not None:
+        status = exc.response.status_code
+        if status == 429:
+            hint = exc.response.headers.get('Retry-After', '')
+            return 'rate_limited', int(hint) if hint.isdigit() else None
+        if status == 408:
+            return 'timeout', None
+        if status >= 500:
+            return 'server_error', None
+        return ('forbidden' if status in (401, 403) else 'http_error'), None
+    if isinstance(exc, SQLAlchemyError):
+        return 'database_error', None
+    if isinstance(exc, ValueError):
+        return 'invalid_article', None
+    return 'crawler_error', None
+
+
 class BaseCrawler(ABC):
     """Legacy crawl pipeline. A source must be committed before running it.
 
-    Full content-quality profiles, source leases and the ingestion outbox are
-    supplied by the later schema engine; this adapter only enforces basic validity.
+    Runs only under a claim: articles, their LLM jobs, the run log and the next
+    due time are written in one fenced transaction (spec §5.3).
     """
 
     def __init__(self, source: NewsSource):
@@ -55,28 +94,9 @@ class BaseCrawler(ABC):
     def fetch_articles(self) -> list[RawArticle]:
         raise NotImplementedError
 
-    def dedup(self, articles: list[RawArticle]) -> list[RawArticle]:
-        """Deduplicate both a single response and already persisted identities."""
-        if not articles:
-            return []
-        external_ids = [a.external_id for a in articles]
-        seen = set(
-            row[0] for row in db.session.query(Article.external_id).filter(
-                Article.source_id == self.source.id,
-                Article.external_id.in_(external_ids),
-            ).all()
-        )
-        unique = []
-        for article in articles:
-            if article.external_id not in seen:
-                unique.append(article)
-                seen.add(article.external_id)
-        return unique
-
-    def save(self, articles: list[RawArticle]) -> int:
-        """Commit valid entries, tolerating a competing insert of the same identity."""
+    def _validated(self, articles):
+        """Normalize entries; any invalid required field fails the whole run (as before)."""
         from app.utils.text import strip_html
-
         rows = []
         for raw in articles:
             title = strip_html(raw.title)
@@ -90,79 +110,69 @@ class BaseCrawler(ABC):
             published_at = raw.published_at
             if published_at is not None and published_at.tzinfo is not None:
                 published_at = published_at.astimezone(timezone.utc).replace(tzinfo=None)
-            rows.append(Article(
-                source_id=self.source.id, external_id=raw.external_id, url=raw.url,
-                title_fr=title, content_fr=strip_html(raw.content),
-                author=(raw.author or '')[:200] or None,
-                image_url=(raw.image_url or '')[:1000] or None,
-                published_at=published_at,
-            ))
+            rows.append(dict(external_id=raw.external_id, url=raw.url, title_fr=title,
+                             content_fr=strip_html(raw.content), author=(raw.author or '')[:200] or None,
+                             image_url=(raw.image_url or '')[:1000] or None, published_at=published_at))
+        return rows
 
-        if rows:
-            connection = db.session.connection()
-            # sqlite3 legacy mode does not BEGIN for SELECT/SAVEPOINT; without
-            # this, RELEASE commits each row and a later rollback cannot undo it.
-            if (connection.dialect.name == 'sqlite'
-                    and not connection.connection.driver_connection.in_transaction):
-                connection.exec_driver_sql('BEGIN')
-        saved = 0
-        for article in rows:
+    def _insert(self, session, rows):
+        """Insert unseen identities; a competing insert of the same identity is tolerated."""
+        seen = set(session.scalars(select(Article.external_id).where(
+            Article.source_id == self.source.id, Article.external_id.in_([r['external_id'] for r in rows]))))
+        ids = []
+        for row in rows:
+            if row['external_id'] in seen:
+                continue
+            seen.add(row['external_id'])
+            article = Article(source_id=self.source.id, **row)
             try:
-                with db.session.begin_nested():
-                    db.session.add(article)
-                    db.session.flush()
-                saved += 1
+                with session.begin_nested():
+                    session.add(article)
+                    session.flush()
             except IntegrityError:
-                # Current read on MySQL also sees a concurrent commit under
-                # REPEATABLE READ. Do not mask other constraint violations.
-                existing = Article.query.filter_by(
-                    source_id=self.source.id, external_id=article.external_id
-                ).with_for_update().first()
-                if existing is None:
+                # Current read on MySQL also sees a concurrent commit. Do not mask other violations.
+                if session.scalar(select(Article.id).where(Article.source_id == self.source.id,
+                                  Article.external_id == row['external_id']).with_for_update()) is None:
                     raise
-        if rows:
-            db.session.commit()
-        return saved
+                continue
+            ids.append(article.id)
+        return ids
 
-    def run(self) -> CrawlResult:
-        """Fetch -> deduplicate -> ingest, then independently finalize the run log."""
-        result = CrawlResult()
-        source_id, source_name = self.source.id, self.source.name
-        with Session(db.engine) as ledger, ledger.begin():
-            log = CrawlLog(source_id=source_id, started_at=datetime.utcnow(), status='running')
-            ledger.add(log)
-            ledger.flush()
-            log_id = log.id
-
+    def run(self, claim) -> CrawlResult:
+        """Fetch without locks, then write articles, LLM jobs, log and schedule in one claimed commit."""
+        from app.crawlers import runs
+        from app.llm import article_jobs
+        result, jobs = CrawlResult(), []
+        name = self.source.name
         try:
             raw_articles = self.fetch_articles()
             result.articles_found = len(raw_articles)
             if not raw_articles and not self.empty_result_is_valid:
-                raise ValueError('Empty extraction without evidence of a valid empty source')
-            result.articles_new = self.save(self.dedup(raw_articles))
-            self.source.last_crawled_at = datetime.utcnow()
-            db.session.commit()
-            result.status = 'success' if result.articles_new else 'no_change'
+                raise LegacyFailure('empty_extraction', 'Empty extraction without evidence of a valid empty source')
+            rows = self._validated(raw_articles)
+            with Session(db.engine) as session, session.begin():
+                state = runs.lock(session, claim)
+                ids = self._insert(session, rows) if rows else []
+                jobs = [job for job in (article_jobs.enqueue(session, article_id, 'crawl', crawl_log_id=claim.log_id)
+                                        for article_id in ids) if job]
+                result.articles_new = len(ids)
+                result.status = 'success' if ids else 'no_change'
+                runs.settle(session, state, claim, status=result.status, route='legacy',
+                            found=result.articles_found, new=result.articles_new)
+        except runs.RunLost:
+            runs.mark_stale(claim)
+            result.status, result.articles_new, result.errors = 'stale', 0, ['stale_claim']
+            return result
         except Exception as exc:
-            # Always recover the business session before recording a failed run.
-            db.session.rollback()
-            result.status = 'failed'
+            code, retry_after = failure_code(exc)
+            result.status, result.articles_new, result.retry_after = 'failed', 0, retry_after
             result.errors.append(str(exc))
-            result.retryable = isinstance(exc, (requests.Timeout, requests.ConnectionError, OperationalError))
-            if isinstance(exc, FetchError):
-                result.retryable = exc.retryable
-                result.retry_after = exc.retry_after
-            if isinstance(exc, requests.HTTPError) and exc.response is not None:
-                result.retryable = exc.response.status_code in {408, 429} or exc.response.status_code >= 500
-            self.logger.error('Crawl failed for %s: %s', source_name, exc)
-
-        with Session(db.engine) as ledger, ledger.begin():
-            log = ledger.get(CrawlLog, log_id)
-            log.status = 'failed' if result.errors else 'success'
-            log.articles_found = result.articles_found
-            log.articles_new = result.articles_new
-            log.error_message = '\n'.join(result.errors) or None
-            log.finished_at = datetime.utcnow()
-        self.logger.info('Crawled %s: found=%s new=%s status=%s', source_name,
+            self.logger.error('Crawl failed for %s: %s', name, exc)
+            runs.abandon(claim, route='legacy', error_code=code, found=result.articles_found,
+                         retry_after=retry_after, message=str(exc))
+            return result
+        for identity in jobs:
+            article_jobs.publish(identity)
+        self.logger.info('Crawled %s: found=%s new=%s status=%s', name,
                          result.articles_found, result.articles_new, result.status)
         return result

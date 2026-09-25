@@ -2,6 +2,7 @@
 import pytest
 
 from app.crawlers.fetcher import FetchPolicy
+from tests.support.runs import claimed
 
 
 def recipe(source_id=1):
@@ -595,7 +596,7 @@ def test_implicit_rss_guid_stays_compatible_with_a_later_legacy_run(db, news_sou
     feed = '<rss version="2.0"><channel><title>News</title><item><guid isPermaLink="false">retained-guid</guid><title>Research</title><link>https://news.test.invalid/research</link></item></channel></rss>'
     fetch_network.configure(routes={doc['feed']['url']: {'body': feed, 'headers': {'Content-Type': 'application/rss+xml'}}})
     assert engine(doc).run().status == 'success'
-    result = RSSCrawler(news_source).run()
+    result = RSSCrawler(news_source).run(claimed(news_source.id))
     assert result.status == 'no_change' and Article.query.count() == 1
     assert Article.query.one().external_id == 'retained-guid'
 
@@ -607,7 +608,7 @@ def test_url_canonicalization_does_not_change_the_legacy_hash_identity(db, news_
     url = 'https://news.test.invalid/research#section'
     fetch_network.configure(routes={'https://news.test.invalid/news': {'body': f'<article><h2><a href="{url}">Research</a></h2></article>'}})
     assert engine(recipe(news_source.id)).run().status == 'success'
-    result = HTMLCrawler(news_source).run()
+    result = HTMLCrawler(news_source).run(claimed(news_source.id))
     assert result.status == 'no_change' and Article.query.count() == 1
     assert Article.query.one().external_id == hashlib.sha256(url.encode()).hexdigest()[:32]
 

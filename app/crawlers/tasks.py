@@ -4,7 +4,7 @@ from datetime import datetime
 from celery_app import celery
 from app.extensions import db
 from app.models.source import NewsSource
-from app.crawlers.registry import get_crawler, discover_crawlers
+from app.crawlers.registry import discover_crawlers
 
 logger = logging.getLogger(__name__)
 
@@ -12,45 +12,28 @@ logger = logging.getLogger(__name__)
 discover_crawlers()
 
 
-@celery.task(name='app.crawlers.tasks.crawl_source', bind=True, max_retries=2,
-             default_retry_delay=60, queue='crawl')
-def crawl_source(self, source_id: int):
-    """Crawl a single news source by ID."""
-    source = db.session.get(NewsSource, source_id)
-    if not source:
-        logger.error(f'Source {source_id} not found')
-        return
+@celery.task(name='app.crawlers.tasks.crawl_source', queue='crawl', ignore_result=True,
+             soft_time_limit=600, time_limit=660)
+def crawl_source(source_id: int, claim_id: str | None = None):
+    """Run one claimed crawl. A message without a claim (older senders) is only a request."""
+    from app.crawlers import runs
+    if claim_id is None:
+        return {'requested': runs.request_now(source_id)}
+    result = runs.execute(source_id, claim_id)
+    return None if result is None else {'status': result.status}
 
-    if not source.is_active:
-        logger.info(f'Source {source.name} is inactive, skipping')
-        return
 
-    result = None
-    try:
-        crawler = get_crawler(source)
-        result = crawler.run()
-        if result.retryable:
-            raise RuntimeError('; '.join(result.errors))
-        logger.info(
-            f'Crawled {source.name}: found={result.articles_found}, new={result.articles_new}'
-        )
-
-        # Enqueue LLM processing for new articles if any
-        if result.articles_new > 0:
-            _enqueue_llm_processing(source)
-
-        return {
-            'source': source.name,
-            'found': result.articles_found,
-            'new': result.articles_new,
-            'errors': result.errors,
-            'status': result.status,
-            'retryable': result.retryable,
-        }
-    except Exception as exc:
-        logger.error(f'Crawl task failed for {source.name}: {exc}')
-        delay = max(self.default_retry_delay, result.retry_after or 0) if result else self.default_retry_delay
-        raise self.retry(exc=exc, countdown=delay)
+@celery.task(name='app.crawlers.tasks.dispatch_due_crawls', queue='crawl', ignore_result=True)
+def dispatch_due_crawls():
+    """Claim due sources (at most 50) and send only their IDs; lease expiry covers lost sends."""
+    from app.crawlers import runs
+    claims = runs.claim_due(limit=50)
+    for item in claims:
+        try:
+            celery.send_task('app.crawlers.tasks.crawl_source', args=[item.source_id, item.claim_id], queue='crawl')
+        except Exception:
+            logger.warning('Crawl dispatch unavailable for source %s; the lease will expire', item.source_id)
+    return {'dispatched': len(claims)}
 
 
 @celery.task(name='app.crawlers.tasks.crawl_all_sources', queue='crawl')
@@ -151,21 +134,3 @@ def check_crawl_health():
     logger.info(f'Crawl health check: {len(sources)} sources, {len(issues)} issues')
     return {'sources': len(sources), 'issues': issues}
 
-
-def _enqueue_llm_processing(source: NewsSource):
-    """Enqueue LLM processing for unprocessed articles from a source."""
-    try:
-        from app.llm.tasks import process_article_llm
-        from app.models.article import Article
-
-        unprocessed = Article.query.filter_by(
-            source_id=source.id,
-            llm_processed=False,
-        ).all()
-
-        for article in unprocessed:
-            process_article_llm.delay(article.id)
-
-        logger.info(f'Enqueued LLM processing for {len(unprocessed)} articles')
-    except ImportError:
-        logger.debug('LLM tasks not yet available, skipping')
