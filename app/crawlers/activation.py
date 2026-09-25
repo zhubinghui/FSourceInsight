@@ -168,3 +168,38 @@ def reject(source_id, version_id, actor_id, expected, reason=''):
         raise Refused(409, 'Already rejected')
     _decide(profile, 'reject', actor_id, version_id=candidate.id, reason=(reason or '').strip()[:200] or None)
     db.session.commit()
+
+
+def rollback(source_id, actor_id, expected):
+    source, state, profile = _locked(source_id, expected)
+    target = profile.previous_version_id
+    if target is None:
+        raise Refused(409, 'No previous version')
+    approved = db.session.scalar(select(CrawlSchemaDecision).where(
+        CrawlSchemaDecision.profile_id == profile.id, CrawlSchemaDecision.version_id == target,
+        CrawlSchemaDecision.action.in_(('approve', 'rollback'))).order_by(CrawlSchemaDecision.id.desc()).limit(1))
+    if approved is None or approved.source_generation != profile.source_generation:
+        raise Refused(409, 'The source changed since that version was approved; approve it again')
+    if not source.is_active:
+        raise Refused(409, 'Source is disabled')
+    record = _policy(source, profile)
+    _valid_recipe(db.session.get(CrawlSchemaVersion, target))
+    current = profile.active_version_id
+    profile.active_version_id, profile.previous_version_id = target, current
+    profile.active_source_generation = profile.source_generation
+    profile.activation_generation += 1
+    _decide(profile, 'rollback', actor_id, version_id=target, from_version_id=current, record=record)
+    state.next_due_at, state.due_reason = schedule.now(), 'activation'
+    db.session.commit()
+
+
+def retire(source_id, actor_id, expected):
+    _, _, profile = _locked(source_id, expected)
+    current = profile.active_version_id
+    if current is None:
+        raise Refused(409, 'Already using the legacy crawler')
+    profile.previous_version_id, profile.active_version_id = current, None
+    profile.active_source_generation = None
+    profile.activation_generation += 1
+    _decide(profile, 'retire', actor_id, from_version_id=current)
+    db.session.commit()

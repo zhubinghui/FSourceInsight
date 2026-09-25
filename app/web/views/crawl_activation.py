@@ -39,3 +39,19 @@ def reject(source_id, version_id):
     _apply(activation.reject, source_id, version_id, current_user.id, form['expected_activation'], form.get('reason', ''))
     flash(f'Version {version_id} rejected.', 'success')
     return redirect(url_for('admin.crawl_config.version', source_id=source_id, version_id=version_id))
+
+
+@crawl_activation_bp.route('/rollback', methods=['POST'])
+def rollback(source_id):
+    form = _form()
+    _apply(activation.rollback, source_id, current_user.id, form['expected_activation'])
+    flash('Rolled back to the previous version; the next crawl uses it.', 'success')
+    return redirect(url_for('admin.crawl_config.index', source_id=source_id))
+
+
+@crawl_activation_bp.route('/retire', methods=['POST'])
+def retire(source_id):
+    form = _form()
+    _apply(activation.retire, source_id, current_user.id, form['expected_activation'])
+    flash('Returned to the legacy crawler.', 'success')
+    return redirect(url_for('admin.crawl_config.index', source_id=source_id))

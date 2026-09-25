@@ -16,6 +16,18 @@
 {% endif %}
 <p>Activation generation: <span data-activation-generation>{{ profile.activation_generation if profile else 0 }}</span>
     · previous version: <span data-previous-version>{{ profile.previous_version_id if profile and profile.previous_version_id else 'none' }}</span></p>
+<div class="d-flex gap-2 mb-3">
+    <form method="post" data-rollback action="{{ url_for('admin.crawl_config.activation.rollback', source_id=source.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="expected_activation" value="{{ profile.activation_generation if profile else 0 }}">
+        <button class="btn btn-outline-warning" {% if not (profile and profile.previous_version_id) %}disabled{% endif %}>Roll back to previous version</button>
+    </form>
+    <form method="post" data-retire action="{{ url_for('admin.crawl_config.activation.retire', source_id=source.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="expected_activation" value="{{ profile.activation_generation if profile else 0 }}">
+        <button class="btn btn-outline-secondary" {% if not (profile and profile.active_version_id) %}disabled{% endif %}>Return to legacy crawler</button>
+    </form>
+</div>
 <h3>Decisions (latest 50)</h3>
 <ul>{% for decision in decisions %}
     <li data-decision>{{ decision.created_at.strftime('%Y-%m-%d %H:%M UTC') }} — {{ decision.action }}
