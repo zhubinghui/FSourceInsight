@@ -660,7 +660,9 @@ class MySQLM0Tests(unittest.TestCase):
     def test_mysql_news_engine_round_trips_quality_json_and_deduplicates(self):
         from app.models.article import Article
         with self.synthetic_news_engine() as engine:
-            first, second = engine.run(), engine.run()
+            from tests.support.runs import claimed
+            first = engine.run(claimed(engine.source_id))
+            second = engine.run(claimed(engine.source_id))
         # The engine owns its transactions. expire_all() would retain the
         # fixture's pre-run REPEATABLE READ snapshot and hide committed rows.
         self.db.session.remove()
@@ -677,7 +679,9 @@ class MySQLM0Tests(unittest.TestCase):
         with self.synthetic_news_engine() as engine:
             with self.db.engine.begin() as conn:
                 conn.execute(text("CREATE TRIGGER reject_crawl_completion BEFORE UPDATE ON crawl_log FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'synthetic final log failure'"))
-            result = engine.run()
+            from tests.support.runs import claimed
+            claim = claimed(engine.source_id)
+            result = engine.run(claim)
         # Observe rollback from a new transaction, not a stale empty snapshot.
         self.db.session.remove()
         self.assertEqual(result.status, 'failed')
@@ -717,9 +721,10 @@ class MySQLM0Tests(unittest.TestCase):
             def fetch_articles(self):
                 article = RawArticle('Research', 'https://test.invalid/news', 'one')
                 return [article, article]
+        from tests.support.runs import claimed
         crawler = FixtureCrawler(self.db.session.get(NewsSource, source_id))
-        self.assertEqual(crawler.run().articles_new, 1)
-        self.assertEqual(crawler.run().status, 'no_change')
+        self.assertEqual(crawler.run(claimed(source_id)).articles_new, 1)
+        self.assertEqual(crawler.run(claimed(source_id)).status, 'no_change')
         self.assertEqual(Article.query.count(), 1)
         self.assertEqual([log.status for log in CrawlLog.query.all()], ['success', 'success'])
 
@@ -735,42 +740,95 @@ class MySQLM0Tests(unittest.TestCase):
             def fetch_articles(self):
                 return [RawArticle('First', 'https://test.invalid/one', 'one'),
                         RawArticle('Second', 'https://test.invalid/two', 'two')]
-        result = FixtureCrawler(self.db.session.get(NewsSource, source_id)).run()
+        from tests.support.runs import claimed
+        result = FixtureCrawler(self.db.session.get(NewsSource, source_id)).run(claimed(source_id))
         self.assertTrue(result.errors)
         self.assertEqual(result.articles_new, 0)
         self.assertEqual(Article.query.count(), 0)
         self.assertEqual(CrawlLog.query.one().status, 'failed')
         self.assertIsNotNone(CrawlLog.query.one().finished_at)
 
-    def test_mysql_competing_crawls_keep_one_identity(self):
-        from concurrent.futures import ThreadPoolExecutor
-        from threading import Barrier
+    def _race(self, work):
+        import threading
+        barrier, results = threading.Barrier(2), []
+
+        def run():
+            with self.app.app_context():
+                barrier.wait(timeout=10)
+                results.append(work())
+                self.db.session.remove()
+        threads = [threading.Thread(target=run) for _ in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(30)
+        self.assertEqual(len(results), 2)
+        return results
+
+    def test_mysql_concurrent_claims_have_one_owner_who_writes_once(self):
+        # Replaces the pre-lease "competing crawls" test: a second crawl of the same
+        # source can no longer run at all, so it can never race the first insert.
+        from app.crawlers import runs, schedule
         from app.crawlers.base import BaseCrawler, RawArticle
-        from app.models.source import NewsSource, CrawlLog
         from app.models.article import Article
+        from app.models.crawl_runtime import ArticleLLMJob
+        from app.models.source import NewsSource
         self.upgrade()
         source_id = self.make_source()
-        barrier = Barrier(2)
+        runs.ensure_states(schedule.now())
+        claims = [item for item in self._race(lambda: runs.claim(source_id, due_only=False)) if item is not None]
+        self.assertEqual(len(claims), 1)
+
         class FixtureCrawler(BaseCrawler):
             def fetch_articles(self):
                 return [RawArticle('Research', 'https://test.invalid/news', 'one')]
-        def before_insert(conn, cursor, statement, parameters, context, many):
-            if statement.startswith('INSERT INTO article '):
-                barrier.wait(timeout=10)
-        def crawl():
-            with self.app.app_context():
-                self.db.session.execute(text('SET SESSION innodb_lock_wait_timeout=5'))
-                return FixtureCrawler(self.db.session.get(NewsSource, source_id)).run()
-        event.listen(self.db.engine, 'before_cursor_execute', before_insert)
-        try:
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                results = [future.result(timeout=20) for future in [executor.submit(crawl), executor.submit(crawl)]]
-        finally:
-            event.remove(self.db.engine, 'before_cursor_execute', before_insert)
-        self.assertEqual(sorted(r.articles_new for r in results), [0, 1])
-        self.assertTrue(all(not r.errors for r in results))
-        self.assertEqual(Article.query.count(), 1)
-        self.assertEqual(CrawlLog.query.filter_by(status='success').count(), 2)
+        self.assertEqual(FixtureCrawler(self.db.session.get(NewsSource, source_id)).run(claims[0]).articles_new, 1)
+        self.db.session.remove()
+        self.assertEqual((Article.query.count(), ArticleLLMJob.query.count()), (1, 1))
+
+    def test_mysql_reclaimed_source_rejects_the_old_commit(self):
+        from datetime import timedelta
+        from sqlalchemy.orm import Session
+        from app.crawlers import runs, schedule
+        from tests.support.runs import claimed
+        self.upgrade()
+        source_id = self.make_source()
+        first = claimed(source_id)
+        later = schedule.now() + timedelta(minutes=16)
+        with patch.object(schedule, 'now', lambda: later):
+            self.assertIsNotNone(runs.claim(source_id, due_only=False))
+            with self.assertRaises(runs.RunLost):
+                with Session(self.db.engine) as session, session.begin():
+                    runs.lock(session, first)
+
+    def test_mysql_one_active_llm_job_per_article(self):
+        from app.llm import article_jobs
+        from app.models.article import Article
+        from app.models.crawl_runtime import ArticleLLMJob
+        self.upgrade()
+        source_id = self.make_source()
+        article = Article(source_id=source_id, external_id='one', url='https://test.invalid/one', title_fr='One')
+        self.db.session.add(article)
+        self.db.session.commit()
+        article_id = article.id
+        self.db.session.remove()
+        results = self._race(lambda: article_jobs.request(article_id, 'manual'))
+        self.assertEqual(sum(1 for _, created in results if created), 1)
+        self.assertEqual(ArticleLLMJob.query.count(), 1)
+
+    def test_mysql_duplicate_job_messages_have_one_consumer(self):
+        import uuid
+        from app.llm import article_jobs
+        from app.models.article import Article
+        self.upgrade()
+        source_id = self.make_source()
+        article = Article(source_id=source_id, external_id='two', url='https://test.invalid/two', title_fr='Two')
+        self.db.session.add(article)
+        self.db.session.commit()
+        identity, _ = article_jobs.request(article.id, 'manual')
+        self.db.session.remove()
+        results = self._race(lambda: article_jobs.claim(identity, str(uuid.uuid4())))
+        self.assertEqual(sum(1 for item in results if item is not None), 1)
 
     def make_llm_article(self):
         from app.models.article import Article
